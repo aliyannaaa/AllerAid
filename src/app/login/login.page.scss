@@ -1,0 +1,30 @@
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.login-card,
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+ion-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+ion-content.login-bg,
+ion-content.register-bg {
+  --background: #f3f4f6;
+}

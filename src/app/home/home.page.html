@@ -1,20 +1,61 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-title>
-      Blank
+      AllerAid
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <h2 class="page-title">Welcome!</h2>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+  <ion-card class="alert-card">
+    <ion-card-header>
+      <ion-card-title>Allergy Emergency</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      You are at risk. Please press the emergency alert button now.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Emergency Actions</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button expand="block" color="danger">Send Emergency Alert</ion-button>
+      <ion-button expand="block" color="medium">Scan Food Product</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Health Overview</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p><strong>Allergens:</strong> Peanut, Dust</p>
+      <p><strong>Medication:</strong> Cetirizine</p>
+      <p><strong>Doctor Visits:</strong> 2 months ago</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" color="primary">View Medical History</ion-button>
+
+  <!-- Add Buddy Section -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Add Buddy</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">First Name</ion-label>
+        <ion-input [(ngModel)]="buddyFirstName"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Last Name</ion-label>
+        <ion-input [(ngModel)]="buddyLastName"></ion-input>
+      </ion-item>
+      <ion-button expand="block" color="success" (click)="addBuddy()">Add Buddy</ion-button>
+    </ion-card-content>
+  </ion-card>
 </ion-content>
