@@ -7,6 +7,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http'; // ✅ add this
 
 // ✅ Firebase imports
 import { AngularFireModule } from '@angular/fire/compat';
@@ -20,6 +21,7 @@ import { environment } from '../environments/environment';
     IonicModule.forRoot(),
     AppRoutingModule,
     FormsModule,
+    HttpClientModule,
 
     // ✅ Add AngularFire modules
     AngularFireModule.initializeApp(environment.firebaseConfig),

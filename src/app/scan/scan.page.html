@@ -1,0 +1,144 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button>
+        <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>AllergyScan</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Scan Product Barcode</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="scanner-container">
+        <div class="scanner-overlay"></div>
+        <div class="scanner-frame">
+          <ion-icon name="barcode-outline" style="font-size: 50px; color: var(--ion-color-primary);"></ion-icon>
+        </div>
+      </div>
+      <p class="ion-text-center ion-margin-top">Align the barcode within the frame to scan</p>
+
+      <ion-button expand="block" id="scanBtn" class="pulse ion-margin-top">
+        <ion-icon slot="start" name="camera-outline"></ion-icon>
+        Tap to Scan
+      </ion-button>
+
+      <!-- Manual Barcode Input -->
+      <ion-item class="ion-margin-top">
+        <ion-label position="stacked">Enter Barcode Manually</ion-label>
+        <ion-input [(ngModel)]="manualBarcode" placeholder="e.g. 737628064502"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" color="primary" (click)="scanAndFetchProduct(manualBarcode)">
+        <ion-icon slot="start" name="search-outline"></ion-icon>
+        Search Product
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Scan Result Display -->
+  <ion-card *ngIf="productInfo">
+    <ion-card-header>
+      <ion-card-title>{{ productInfo.product_name || 'Unnamed Product' }}</ion-card-title>
+      <p *ngIf="productInfo.brands">Brand: {{ productInfo.brands }}</p>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label>Allergen Status:</ion-label>
+        <ion-badge [color]="allergenStatus === 'safe' ? 'success' : 'danger'">
+          {{ allergenStatus?.toUpperCase() }}
+        </ion-badge>
+      </ion-item>
+
+      <ion-text *ngIf="allergenStatus === 'safe'">
+        No allergens detected from your profile.
+      </ion-text>
+
+      <div *ngIf="allergenStatus === 'warning'">
+        <ion-label class="ion-margin-top">Ingredients to avoid:</ion-label>
+        <ion-chip *ngFor="let allergen of ingredientsToWatch" color="danger">
+          {{ allergen }}
+        </ion-chip>
+      </div>
+
+      <ion-label class="ion-margin-top">Ingredients:</ion-label>
+      <p>{{ productInfo.ingredients_text || 'No ingredient info available.' }}</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Recent Scans -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Recent Scans</ion-card-title>
+      <ion-button fill="clear" slot="end" size="small">See All</ion-button>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none">
+        <ion-avatar slot="start" class="ion-no-margin">
+          <ion-icon name="wine-outline" style="font-size: 24px;"></ion-icon>
+        </ion-avatar>
+        <ion-label>
+          <h3>Organic Peanut Butter</h3>
+          <p>Scanned 2 hours ago</p>
+        </ion-label>
+        <ion-badge color="danger">WARNING</ion-badge>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-avatar slot="start" class="ion-no-margin">
+          <ion-icon name="pizza-outline" style="font-size: 24px;"></ion-icon>
+        </ion-avatar>
+        <ion-label>
+          <h3>Cheddar Cheese</h3>
+          <p>Scanned yesterday</p>
+        </ion-label>
+        <ion-badge color="success">SAFE</ion-badge>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Allergen Profile -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Your Allergen Profile</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-chip color="danger">Peanuts</ion-chip>
+      <ion-chip color="warning">Shellfish</ion-chip>
+      <ion-chip color="tertiary">Eggs</ion-chip>
+      <ion-chip color="primary">Dairy</ion-chip>
+      <ion-chip color="success">Soy</ion-chip>
+      <ion-button expand="block" fill="outline" class="ion-margin-top">
+        <ion-icon slot="start" name="create-outline"></ion-icon>
+        Edit Allergens
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+<ion-footer>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="home">
+      <ion-icon name="home-outline"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="scan">
+      <ion-icon name="scan-outline"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="buddy">
+      <ion-icon name="people-outline"></ion-icon>
+    </ion-tab-button>
+    <ion-tab-button tab="profile">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-footer>
