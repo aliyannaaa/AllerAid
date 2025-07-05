@@ -27,7 +27,7 @@ export class LoginPage {
     try {
       const userCredential = await this.afAuth.signInWithEmailAndPassword(this.email, this.password);
       this.presentToast('Login successful');
-      this.navCtrl.navigateForward('/home'); // Navigate after login
+      this.navCtrl.navigateForward('/tabs/home'); // Navigate after login
     } catch (error: any) {
       this.presentToast(`Login failed: ${error.message}`);
     }

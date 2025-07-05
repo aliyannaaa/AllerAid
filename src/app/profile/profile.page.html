@@ -1,0 +1,221 @@
+<ion-header [translucent]="true"></ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="profile-card">
+    <div class="profile-header">
+      <ion-avatar class="profile-avatar">
+        <img alt="person-avatar" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+      </ion-avatar>
+      
+      <div class="profile-name">User One</div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="stat">
+        <div class="stat-label">Allergies</div>
+        <div class="stat-value">1</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Medications</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Buddies</div>
+        <div class="stat-value">1</div>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      <button class="tab" [class.active]="selectedTab === 'overview'" (click)="selectTab('overview')">Overview</button>
+      <button class="tab" [class.active]="selectedTab === 'health'" (click)="selectTab('health')">Health</button>
+      <button class="tab" [class.active]="selectedTab === 'emergency'" (click)="selectTab('emergency')">Emergency</button>
+    </div>
+    <div class="profile-section">
+      <ng-container *ngIf="selectedTab === 'overview'">
+
+        <div class="section-title">
+          Allergies <ion-icon name="pencil-outline" (click)="showEditAllergiesModal = true"></ion-icon>
+        </div>
+
+        <ion-modal [isOpen]="showEditAllergiesModal" (didDismiss)="showEditAllergiesModal = false">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Edit Allergies</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button (click)="showEditAllergiesModal = false">Close</ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+              <!-- Your edit allergies form or content here -->
+              <ion-item>
+                <ion-label position="stacked">Allergy</ion-label>
+                <ion-input placeholder="Enter allergy"></ion-input>
+              </ion-item>
+              <ion-button expand="block" (click)="showEditAllergiesModal = false">Save</ion-button>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+
+        <div class="allergy-list">
+          <span class="allergy-chip">Peanuts</span>
+          <span class="add-allergy">+</span>
+        </div>
+        
+        <div class="section-title">
+          Emergency Instruction <ion-icon name="pencil-outline" (click)="showEditEmergencyModal = true"></ion-icon>
+        </div>
+
+        <ion-modal [isOpen]="showEditEmergencyModal" (didDismiss)="showEditEmergencyModal = false">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Edit Emergency Instruction</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button (click)="showEditEmergencyModal = false">Close</ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+              <!-- Your edit emergency instruction form or content here -->
+              <ion-item>
+                <ion-label position="stacked">Instruction</ion-label>
+                <ion-input placeholder="Enter instruction"></ion-input>
+              </ion-item>
+              <ion-button expand="block" (click)="showEditEmergencyModal = false">Save</ion-button>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+
+        <div class="emergency-box">
+          <div><b>If reaction occurs:</b> Use EpiPen immediately</div>
+          <div><b>Then call:</b> 911 or emergency contacts</div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="selectedTab === 'health'">
+        <div class="section-title">Medications 
+          <ion-icon name="pencil-outline" (click)="showEditMedicationsModal = true"></ion-icon>
+        </div>
+        <ion-modal [isOpen]="showEditMedicationsModal" (didDismiss)="showEditMedicationsModal = false">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Edit Medications</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button (click)="showEditMedicationsModal = false">Close</ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+              <!-- Your edit medications form or content here -->
+              <ion-item>
+                <ion-label position="stacked">Medication</ion-label>
+                <ion-input placeholder="Enter medication"></ion-input>
+              </ion-item>
+              <ion-button expand="block" (click)="showEditMedicationsModal = false">Save</ion-button>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+        <div class="medication-card">
+          <div class="medication-header">
+            <span class="medication-title">EpiPen</span>
+            <span class="medication-status active">Active</span>
+          </div>
+          <div class="medication-detail">0.3mg Auto-Injector</div>
+          <div class="medication-detail"><b>Dosage:</b> 1 injection as needed</div>
+          <div class="medication-detail"><b>Next Refill:</b> July 4, 2025</div>
+        </div>
+        <div class="plus-divider">+</div>
+        <div class="section-title" style="margin-top: 0;">Health Records</div>
+        <div class="health-record-card">
+          <div class="health-record-title">Allergy Test Result</div>
+          <div class="health-record-detail">Confirmed peanut allergy (Grade 4)</div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="selectedTab === 'emergency'">
+        <div class="emergency-settings-title">Emergency Settings</div>
+
+        <div class="emergency-setting-card">
+          <div class="emergency-setting-info">
+            <div class="emergency-setting-title">Shake to Alert</div>
+            <div class="emergency-setting-desc">Shake phone to trigger emergency</div>
+          </div>
+          <ion-toggle checked></ion-toggle>
+        </div>
+
+        <div class="emergency-setting-card">
+          <div class="emergency-setting-info">
+            <div class="emergency-setting-title">Power Button Alert</div>
+            <div class="emergency-setting-desc">Press power button 3 times</div>
+          </div>
+          <ion-toggle checked></ion-toggle>
+        </div>
+
+        <div class="emergency-setting-card">
+          <div class="emergency-setting-info">
+            <div class="emergency-setting-title">Audio Instructions</div>
+            <div class="emergency-setting-desc">Play emergency message aloud</div>
+          </div>
+          <ion-toggle checked></ion-toggle>
+        </div>
+
+        <div class="emergency-message-title">
+          Emergency Message <ion-icon name="pencil-outline" (click)="showEditEmergencyMessageModal = true"></ion-icon>
+        </div>
+        <ion-modal [isOpen]="showEditEmergencyMessageModal" (didDismiss)="showEditEmergencyMessageModal = false">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Edit Emergency Message</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button (click)="showEditEmergencyMessageModal = false">Close</ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+              <!-- Your edit emergency message form or content here -->
+              <ion-item>
+                <ion-label position="stacked">Name</ion-label>
+                <ion-input placeholder="Enter name"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Allergies</ion-label>
+                <ion-input placeholder="Enter allergies"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Instructions</ion-label>
+                <ion-input placeholder="Enter instructions"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Location</ion-label>
+                <ion-input placeholder="Enter location"></ion-input>
+              </ion-item>
+              <ion-button expand="block" (click)="showEditEmergencyMessageModal = false">Save</ion-button>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+        <div class="emergency-message-card">
+          <div class="emergency-message-row">
+            <div class="emergency-message-label">Name:</div>
+            <div class="emergency-message-value">User One</div>
+          </div>
+          <div class="emergency-message-row">
+            <div class="emergency-message-label">Allergies:</div>
+            <div class="emergency-message-value">Peanuts</div>
+          </div>
+          <div class="emergency-message-row">
+            <div class="emergency-message-label">Instructions:</div>
+            <div class="emergency-message-value">Use EpiPen immediately</div>
+          </div>
+          <div class="emergency-message-row">
+            <div class="emergency-message-label">Location:</div>
+            <div class="emergency-message-value">Google Maps</div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</ion-content>

@@ -10,7 +10,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'registration',
+    redirectTo: 'tabs/home',
     pathMatch: 'full'
   },
   {
@@ -25,6 +25,23 @@ const routes: Routes = [
     path: 'scan',
     loadChildren: () => import('./scan/scan.module').then( m => m.ScanPageModule)
   },
+  {
+    path: 'profile',
+    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
+  },
+  {
+    path: 'tabs',
+    loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
+  },
+  {
+    path: 'tabs',
+    loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
+  },  {
+    path: 'buddy',
+    loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule)
+  },
+
+
 ];
 
 @NgModule({
