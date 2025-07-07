@@ -34,19 +34,8 @@ const routes: Routes = [
     loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
   },
   {
-    path: 'tabs',
-    loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
-  },  {
     path: 'buddy',
     loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule)
-  },
-  {
-    path: 'allergy-onboarding',
-    loadChildren: () => import('./allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
-  },
-  {
-    path: 'allergy-onboarding',
-    loadChildren: () => import('./start-up-page/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
   },
   {
     path: 'allergy-onboarding',
