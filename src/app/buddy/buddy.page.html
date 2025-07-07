@@ -1,10 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>buddy</ion-title>
+    <ion-title>Buddy</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="ion-padding">
   <ion-card>
     <ion-card-header>
       <ion-card-title>Add Buddy</ion-card-title>
@@ -21,5 +21,19 @@
       <ion-button expand="block" color="success" (click)="addBuddy()">Add Buddy</ion-button>
     </ion-card-content>
   </ion-card>
-</ion-content>
 
+  <ion-card *ngIf="buddies.length > 0">
+    <ion-card-header>
+      <ion-card-title>Recent Buddies</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let buddy of buddies">
+          <ion-label>
+            {{ buddy.firstName }} {{ buddy.lastName }}
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

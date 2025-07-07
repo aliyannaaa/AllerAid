@@ -7,6 +7,7 @@ import { Component, OnInit } from '@angular/core';
   standalone: false,
 })
 export class ProfilePage implements OnInit {
+
   selectedTab: 'overview' | 'health' | 'emergency' = 'overview';
   showEditAllergiesModal = false;
   showEditEmergencyModal = false;
@@ -41,4 +42,5 @@ export class ProfilePage implements OnInit {
     // You can handle saving logic here
     this.showEditAllergiesModal = false;
   }
+
 }

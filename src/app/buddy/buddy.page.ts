@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FirebaseService } from '../service/firebase.service'; 
+import { FirebaseService } from '../service/firebase.service';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-buddy',
@@ -8,28 +9,49 @@ import { FirebaseService } from '../service/firebase.service';
   standalone: false,
 })
 export class BuddyPage implements OnInit {
-    buddyFirstName = '';
-    buddyLastName = '';
+  buddyFirstName = '';
+  buddyLastName = '';
+  buddies: any[] = [];
 
-  constructor(private firebaseService: FirebaseService) { }
+  constructor(
+    private firebaseService: FirebaseService,
+    private toastController: ToastController
+  ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.loadBuddies();
   }
 
-    async addBuddy() {
+  async loadBuddies() {
+    this.buddies = await this.firebaseService.getBuddies();
+  }
+
+  async addBuddy() {
     const buddy = {
       firstName: this.buddyFirstName,
       lastName: this.buddyLastName
     };
 
     try {
-      const id = await this.firebaseService.addBuddy(buddy);
-      console.log('Buddy added with ID:', id);
+      await this.firebaseService.addBuddy(buddy);
       this.buddyFirstName = '';
       this.buddyLastName = '';
+
+      const toast = await this.toastController.create({
+        message: 'Buddy added successfully!',
+        duration: 2000,
+        color: 'success'
+      });
+      await toast.present();
+
+      this.loadBuddies(); // Refresh the list
     } catch (error) {
-      console.error('Error adding buddy:', error);
+      const toast = await this.toastController.create({
+        message: 'Failed to add buddy.',
+        duration: 2000,
+        color: 'danger'
+      });
+      await toast.present();
     }
   }
-
 }

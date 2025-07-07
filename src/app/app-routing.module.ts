@@ -26,6 +26,7 @@ const routes: Routes = [
     loadChildren: () => import('./scan/scan.module').then( m => m.ScanPageModule)
   },
   {
+
     path: 'profile',
     loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
   },
@@ -34,14 +35,19 @@ const routes: Routes = [
     loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
   },
   {
+
     path: 'buddy',
     loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule)
   },
   {
+
     path: 'allergy-onboarding',
     loadChildren: () => import('./start-up/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
   },
 
+    path: 'profile',
+    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
+  },
 
 ];
 
