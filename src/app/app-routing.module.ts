@@ -40,6 +40,18 @@ const routes: Routes = [
     path: 'buddy',
     loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule)
   },
+  {
+    path: 'allergy-onboarding',
+    loadChildren: () => import('./allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
+  },
+  {
+    path: 'allergy-onboarding',
+    loadChildren: () => import('./start-up-page/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
+  },
+  {
+    path: 'allergy-onboarding',
+    loadChildren: () => import('./start-up/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
+  },
 
 
 ];

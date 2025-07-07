@@ -48,12 +48,16 @@
               </ion-toolbar>
             </ion-header>
             <ion-content class="ion-padding">
-              <!-- Your edit allergies form or content here -->
-              <ion-item>
-                <ion-label position="stacked">Allergy</ion-label>
-                <ion-input placeholder="Enter allergy"></ion-input>
-              </ion-item>
-              <ion-button expand="block" (click)="showEditAllergiesModal = false">Save</ion-button>
+              <form>
+                <ion-list lines="none">
+                  <ion-item *ngFor="let allergy of allergyOptions">
+                    <ion-checkbox slot="start" [(ngModel)]="allergy.checked" [name]="allergy.name"></ion-checkbox>
+                    <ion-label>{{ allergy.label }}</ion-label>
+                    <ion-input *ngIf="allergy.hasInput" placeholder="please specify" [(ngModel)]="allergy.value" [name]="allergy.name + 'Value'" style="margin-left: 8px;"></ion-input>
+                  </ion-item>
+                </ion-list>
+                <ion-button expand="block" (click)="saveAllergies()">Save</ion-button>
+              </form>
             </ion-content>
           </ng-template>
         </ion-modal>
