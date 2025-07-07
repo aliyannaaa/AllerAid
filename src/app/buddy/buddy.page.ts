@@ -44,8 +44,7 @@ export class BuddyPage implements OnInit {
       });
       await toast.present();
 
-      this.loadBuddies(); // Refresh list
-
+      this.loadBuddies(); // Refresh the list
     } catch (error) {
       const toast = await this.toastController.create({
         message: 'Failed to add buddy.',

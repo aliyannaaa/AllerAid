@@ -9,6 +9,7 @@ import { ToastController, AlertController } from '@ionic/angular';
   standalone: false,
 })
 export class HomePage {
+
   buddyFirstName = '';
   buddyLastName = '';
 

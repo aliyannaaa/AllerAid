@@ -1,19 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-profile',
-  templateUrl: './profile.page.html',
-  styleUrls: ['./profile.page.scss'],
+  selector: 'app-allergy-onboarding',
+  templateUrl: './allergy-onboarding.page.html',
+  styleUrls: ['./allergy-onboarding.page.scss'],
   standalone: false,
 })
-export class ProfilePage implements OnInit {
-
-  selectedTab: 'overview' | 'health' | 'emergency' = 'overview';
-  showEditAllergiesModal = false;
-  showEditEmergencyModal = false;
-  showEditMedicationsModal = false;
-  showEditEmergencyMessageModal = false;
-
+export class AllergyOnboardingPage implements OnInit {
   allergyOptions = [
     { name: 'peanuts', label: 'Peanuts/Nuts', checked: false },
     { name: 'dairy', label: 'Dairy/Milk', checked: false },
@@ -32,15 +25,14 @@ export class ProfilePage implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {}
-
-  selectTab(tab: 'overview' | 'health' | 'emergency') {
-    this.selectedTab = tab;
+  ngOnInit() {
   }
 
-  saveAllergies() {
-    // You can handle saving logic here
-    this.showEditAllergiesModal = false;
+  submitAllergies() {
+    // TODO: Save allergies to backend or local storage
+    // Example: console.log(this.allergyOptions.filter(a => a.checked));
+    // After saving, navigate to main app
+    // this.router.navigate(['/tabs/home']);
   }
 
 }
