@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  background: transparent;
+}
+
+ion-header ion-toolbar {
+  --background: #72ABD9 !important;
+  --ion-color-base: #72ABD9 !important;
+  color: #fff !important;
+}
+
+.buddy-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buddy-modal-content {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  width: 90vw;
+  max-width: 400px;
+  height: 50vh; /* Set a fixed height, adjust as needed */
+  max-height: 80vh;
+  z-index: 1001;
+  padding-bottom: 16px;
+}
+
+.add-buddy{
+    --background: #E55E76 !important;
+    --color: #fff !important;
+}
+

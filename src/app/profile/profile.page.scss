@@ -243,3 +243,14 @@
 .emergency-message-value {
   color: #444;
 }
+ion-toggle {
+  --background-checked: #f5aab7 !important;
+  --background: #e0a7a7;
+  --handle-background-checked: #E55E76 !important;
+  --handle-background: #fff;
+  --border-color-checked: #E55E76 !important;
+}
+
+ion-toggle::part(bar) {
+  background: #f5aab7 !important;
+}

@@ -5,35 +5,37 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Add Buddy</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="stacked">First Name</ion-label>
-        <ion-input [(ngModel)]="buddyFirstName"></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-label position="stacked">Last Name</ion-label>
-        <ion-input [(ngModel)]="buddyLastName"></ion-input>
-      </ion-item>
-      <ion-button expand="block" color="success" (click)="addBuddy()">Add Buddy</ion-button>
-    </ion-card-content>
-  </ion-card>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="openModal()">
+      <ion-icon name="person-add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
-  <ion-card *ngIf="buddies.length > 0">
-    <ion-card-header>
-      <ion-card-title>Recent Buddies</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list>
-        <ion-item *ngFor="let buddy of buddies">
-          <ion-label>
-            {{ buddy.firstName }} {{ buddy.lastName }}
-          </ion-label>
-        </ion-item>
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
+  <!-- Only show the modal when showModal is true -->
+  <app-buddy-modal *ngIf="showModal" (add)="onAddBuddy($event)" (close)="closeModal()"></app-buddy-modal>
+
+  <ion-item class="search-bar-item">
+    <ion-input class="search-bar-input" placeholder="Search buddy..." [(ngModel)]="searchTerm"></ion-input>
+    <ion-button class="search-bar-btn" (click)="searchBuddy()">
+      <ion-icon name="search"></ion-icon>
+    </ion-button>
+  </ion-item>
+
+  <!-- Hide recent buddies list when the modal is open -->
+  <ng-container *ngIf="!showModal">
+    <ion-card *ngIf="buddies.length > 0">
+      <ion-card-header>
+        <ion-card-title>Recent Buddies</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let buddy of filteredBuddies">
+            <ion-label>
+              {{ buddy.firstName }} {{ buddy.lastName }}
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
 </ion-content>

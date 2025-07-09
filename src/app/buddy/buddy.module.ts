@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { BuddyPageRoutingModule } from './buddy-routing.module';
 
 import { BuddyPage } from './buddy.page';
+import { BuddyModalComponent } from './buddy-modal.component';
 
 @NgModule({
   imports: [
@@ -15,6 +16,6 @@ import { BuddyPage } from './buddy.page';
     IonicModule,
     BuddyPageRoutingModule
   ],
-  declarations: [BuddyPage]
+  declarations: [BuddyPage, BuddyModalComponent]
 })
 export class BuddyPageModule {}
