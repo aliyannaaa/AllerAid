@@ -1,0 +1,37 @@
+<ng-container>
+  <div class="buddy-modal-backdrop">
+    <div class="buddy-modal-content">
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Add Buddy</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="dismiss()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" [style.background]="'#fff'">
+        <form>
+          <ion-item>
+            <ion-label position="stacked">First Name</ion-label>
+            <ion-input [(ngModel)]="buddyFirstName" name="firstName" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Last Name</ion-label>
+            <ion-input [(ngModel)]="buddyLastName" name="lastName" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Relationship</ion-label>
+            <ion-input [(ngModel)]="buddyRelationship" name="relationship" required></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Contact Number</ion-label>
+            <ion-input [(ngModel)]="buddyContact" name="contact" type="tel" required></ion-input>
+          </ion-item>
+          <ion-button class="add-buddy"expand="block" (click)="addBuddy()" style="margin-top: 16px;">Add Buddy</ion-button>
+        </form>
+      </ion-content>
+    </div>
+  </div>
+</ng-container>
