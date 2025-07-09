@@ -44,6 +44,7 @@ const routes: Routes = [
     path: 'allergy-onboarding',
     loadChildren: () => import('./start-up/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
   },
+  {
 
     path: 'profile',
     loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
