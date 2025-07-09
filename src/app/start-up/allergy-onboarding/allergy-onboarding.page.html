@@ -7,11 +7,17 @@
 <ion-content [fullscreen]="true" class="onboarding-bg">
   <div class="onboarding-container">
     <div class="onboarding-welcome">
-      <h2>Welcome, User!</h2>
       <p>To ensure your safety, please indicate any allergies you may have before signing in.</p>
     </div>
     <ion-card class="onboarding-card">
-      <form>
+      <!-- Loading spinner -->
+      <div *ngIf="isLoading" class="ion-text-center ion-padding">
+        <ion-spinner></ion-spinner>
+        <p>Loading allergy options...</p>
+      </div>
+      
+      <!-- Allergy form -->
+      <form *ngIf="!isLoading">
         <ion-list lines="none">
           <ion-item *ngFor="let allergy of allergyOptions">
             <ion-checkbox slot="start" [(ngModel)]="allergy.checked" [name]="allergy.name"></ion-checkbox>
@@ -21,8 +27,14 @@
         </ion-list>
       </form>
     </ion-card>
+    
+    <!-- Debug button to delete all allergy options -->
+    <ion-button expand="block" color="danger" (click)="deleteAllAllergyOptions()" *ngIf="!isLoading">
+      Delete All Allergy Options from Firebase
+    </ion-button>
+    
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button color="primary" (click)="submitAllergies()">
+      <ion-fab-button color="primary" (click)="submitAllergies()" [disabled]="isLoading">
         <ion-icon name="arrow-forward-outline"></ion-icon>
       </ion-fab-button>
     </ion-fab>

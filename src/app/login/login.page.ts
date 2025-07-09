@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ToastController, NavController } from '@ionic/angular';
+import { UserService } from '../service/user.service';
 
 @Component({
   selector: 'app-login',
@@ -15,7 +16,8 @@ export class LoginPage {
   constructor(
     private afAuth: AngularFireAuth,
     private toastController: ToastController,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private userService: UserService
   ) {}
 
   async login() {
@@ -26,9 +28,23 @@ export class LoginPage {
 
     try {
       const userCredential = await this.afAuth.signInWithEmailAndPassword(this.email, this.password);
-      this.presentToast('Login successful');
-      this.navCtrl.navigateForward('/tabs/home'); // Navigate after login
+      
+      if (userCredential.user) {
+        // Update last login timestamp
+        await this.userService.updateLastLogin(userCredential.user.uid);
+        
+        // Check if user needs to complete allergy onboarding
+        const userProfile = await this.userService.getUserProfile(userCredential.user.uid);
+        if (userProfile) {
+          this.presentToast('Login successful');
+          this.navCtrl.navigateForward('/tabs/home');
+        } else {
+          // If no profile exists, redirect to onboarding
+          this.navCtrl.navigateForward('/allergy-onboarding');
+        }
+      }
     } catch (error: any) {
+      console.error('Login error:', error);
       this.presentToast(`Login failed: ${error.message}`);
     }
   }

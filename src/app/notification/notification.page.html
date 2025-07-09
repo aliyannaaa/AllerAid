@@ -1,0 +1,22 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="notification-header">
+    <ion-buttons slot="start">
+      <ion-button>
+        <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Reminders</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="notification-bg">
+  <div class="notification-container">
+    <div class="reminder-card">
+      <div class="reminder-header">
+        <h3>Reminders</h3>
+        <span class="reminder-time">12:51 PM</span>
+      </div>
+      <p class="reminder-text">Please take your medication!</p>
+    </div>
+  </div>
+</ion-content>

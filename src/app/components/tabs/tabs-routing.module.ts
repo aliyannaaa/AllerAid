@@ -24,6 +24,10 @@ const routes: Routes = [
         loadChildren: () => import('../../profile/profile.module').then(m => m.ProfilePageModule)
       },
       {
+        path: 'notification',
+        loadChildren: () => import('../../notification/notification.module').then(m => m.NotificationPageModule)
+      },
+      {
         path: '',
         redirectTo: '/tabs/home',
         pathMatch: 'full'

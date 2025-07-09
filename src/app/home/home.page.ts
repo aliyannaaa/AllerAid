@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { FirebaseService } from '../service/firebase.service';
 import { ToastController, AlertController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -10,44 +10,10 @@ import { ToastController, AlertController } from '@ionic/angular';
 })
 export class HomePage {
 
-  buddyFirstName = '';
-  buddyLastName = '';
-
   constructor(
-    private firebaseService: FirebaseService,
-    private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private router: Router
   ) {}
-
-  async addBuddy() {
-    const buddy = {
-      firstName: this.buddyFirstName,
-      lastName: this.buddyLastName
-    };
-
-    try {
-      const id = await this.firebaseService.addBuddy(buddy);
-      console.log('Buddy added with ID:', id);
-      this.buddyFirstName = '';
-      this.buddyLastName = '';
-
-      const toast = await this.toastController.create({
-        message: 'Buddy added successfully!',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-
-    } catch (error) {
-      console.error('Error adding buddy:', error);
-      const toast = await this.toastController.create({
-        message: 'Failed to add buddy.',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-    }
-  }
 
   triggerEmergency() {
     this.presentEmergencyConfirmation();
@@ -83,6 +49,9 @@ export class HomePage {
 
     await alert.present();
 
-    // TODO: Add your actual emergency logic (Firebase, SMS, location, etc.)
+  }
+
+  openNotifications() {
+    this.router.navigate(['/tabs/notification']);
   }
 }
