@@ -19,7 +19,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 4px solid #72ABD9;
+    border: 4px solid #451d66;
     border-radius: 8px;
     margin: auto;
     width: 70%;
@@ -40,12 +40,12 @@
   }
 
   ion-header ion-toolbar {
-    --background: #72ABD9 !important;
-    --ion-color-base: #72ABD9 !important;
+    --background: #451d66 !important;
+    --ion-color-base: #451d66 !important;
     color: #fff !important;
   }
   ion-button#scanBtn,
   ion-button#searchBtn {
-    --background: #E55E76 !important;
+    --background: #e87388 !important; 
     --color: #fff !important;
   }

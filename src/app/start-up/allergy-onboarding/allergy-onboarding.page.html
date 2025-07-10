@@ -1,14 +1,9 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>Welcome, User!</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="onboarding-bg">
   <div class="onboarding-container">
     <div class="onboarding-welcome">
       <p>To ensure your safety, please indicate any allergies you may have before signing in.</p>
     </div>
+
     <ion-card class="onboarding-card">
       <!-- Loading spinner -->
       <div *ngIf="isLoading" class="ion-text-center ion-padding">
@@ -37,9 +32,19 @@
         
         <ion-list lines="none">
           <ion-item *ngFor="let allergy of allergyOptions">
-            <ion-checkbox slot="start" [(ngModel)]="allergy.checked" [name]="allergy.name"></ion-checkbox>
+            <ion-checkbox
+              slot="start"
+              [(ngModel)]="allergy.checked"
+              [name]="allergy.name">
+            </ion-checkbox>
             <ion-label>{{ allergy.label }}</ion-label>
-            <ion-input *ngIf="allergy.hasInput" placeholder="please specify" [(ngModel)]="allergy.value" [name]="allergy.name + 'Value'" style="margin-left: 8px;"></ion-input>
+            <ion-input
+              *ngIf="allergy.hasInput"
+              placeholder="please specify"
+              [(ngModel)]="allergy.value"
+              [name]="allergy.name + 'Value'"
+              style="margin-left: 8px;">
+            </ion-input>
           </ion-item>
         </ion-list>
       </form>

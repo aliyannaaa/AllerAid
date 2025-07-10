@@ -17,6 +17,11 @@ export class BuddyPage implements OnInit {
   filteredBuddies: any[] = [];
   searchTerm: string = '';
   showModal = false;
+  showEditModal = false;
+  showActionsModal = false;
+  showDeleteModal = false;
+  buddyToEdit: any = null;
+  selectedBuddy: any = null;
 
   constructor(
     private buddyService: BuddyService,
@@ -73,6 +78,32 @@ export class BuddyPage implements OnInit {
     this.showModal = false;
   }
 
+  openEditModal(buddy?: any) {
+    if (buddy) {
+      this.buddyToEdit = { ...buddy };
+    } else if (this.filteredBuddies.length > 0) {
+      this.buddyToEdit = { ...this.filteredBuddies[0] };
+    } else {
+      return;
+    }
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.buddyToEdit = null;
+  }
+
+  openBuddyActions(buddy: any) {
+    this.selectedBuddy = buddy;
+    this.showActionsModal = true;
+  }
+
+  closeActionsModal() {
+    this.showActionsModal = false;
+    this.selectedBuddy = null;
+  }
+
   async onAddBuddy(buddy: { firstName: string; lastName: string }) {
     try {
       await this.buddyService.addBuddy(buddy); // use buddyService instead of firebaseService
@@ -91,6 +122,44 @@ export class BuddyPage implements OnInit {
         color: 'danger'
       });
       await toast.present();
+    }
+  }
+
+  onEditBuddy(buddy: any) {
+    this.closeActionsModal();
+    this.buddyToEdit = buddy;
+    this.showEditModal = true;
+  }
+
+  onSaveEditBuddy(editedBuddy: any) {
+    // Save the edited buddy to Firebase (expects id and data)
+    this.firebaseService.updateBuddy(editedBuddy.id, editedBuddy).then(() => {
+      this.loadBuddies();
+      this.closeEditModal();
+    });
+  }
+
+  onDeleteBuddy(buddy: any) {
+    this.closeActionsModal();
+    this.buddyToEdit = buddy;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.buddyToEdit = null;
+  }
+
+  async onConfirmDeleteBuddy(buddy: any) {
+    try {
+      await this.firebaseService.deleteBuddy(buddy.id); // Delete from Firebase by ID
+      this.showDeleteModal = false;
+      this.buddyToEdit = null;
+      await this.loadBuddies(); // Refresh the list
+      // Optionally show a toast or feedback here
+    } catch (error) {
+      // Handle error (e.g., show a toast)
+      console.error('Error deleting buddy:', error);
     }
   }
 

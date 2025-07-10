@@ -8,6 +8,9 @@ import { BuddyPageRoutingModule } from './buddy-routing.module';
 
 import { BuddyPage } from './buddy.page';
 import { BuddyModalComponent } from './buddy-modal.component';
+import { BuddyActionsModalComponent } from './buddy-actions-modal.component';
+import { BuddyEditModalComponent } from './buddy-edit-modal.component';
+import { BuddyDeleteConfirmModalComponent } from './buddy-delete-confirm-modal.component';
 
 @NgModule({
   imports: [
@@ -16,6 +19,12 @@ import { BuddyModalComponent } from './buddy-modal.component';
     IonicModule,
     BuddyPageRoutingModule
   ],
-  declarations: [BuddyPage, BuddyModalComponent]
+  declarations: [
+    BuddyPage,
+    BuddyModalComponent,
+    BuddyActionsModalComponent,
+    BuddyEditModalComponent,
+    BuddyDeleteConfirmModalComponent
+  ]
 })
 export class BuddyPageModule {}
