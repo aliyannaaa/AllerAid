@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { ToastController, NavController } from '@ionic/angular';
 import { UserService } from '../service/user.service';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,10 +14,10 @@ export class LoginPage {
   password: string = '';
 
   constructor(
-    private afAuth: AngularFireAuth,
     private toastController: ToastController,
     private navCtrl: NavController,
-    private userService: UserService
+    private userService: UserService,
+    private authService: AuthService
   ) {}
 
   async login() {
@@ -27,19 +27,50 @@ export class LoginPage {
     }
 
     try {
-      const userCredential = await this.afAuth.signInWithEmailAndPassword(this.email, this.password);
+      const userCredential = await this.authService.signIn(this.email, this.password);
       
       if (userCredential.user) {
-        // Update last login timestamp
-        await this.userService.updateLastLogin(userCredential.user.uid);
+        // Check if user profile exists
+        let userProfile = await this.userService.getUserProfile(userCredential.user.uid);
         
-        // Check if user needs to complete allergy onboarding
-        const userProfile = await this.userService.getUserProfile(userCredential.user.uid);
+        if (!userProfile) {
+          // User exists in Auth but not in Firestore, create profile
+          console.log('User exists in Auth but not in Firestore, creating profile...');
+          
+          // Extract first and last name from email or use defaults
+          const emailParts = this.email.split('@')[0];
+          const firstName = emailParts.split('.')[0] || 'User';
+          const lastName = emailParts.split('.')[1] || '';
+          
+          await this.userService.createUserProfile(userCredential.user.uid, {
+            email: this.email,
+            firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
+            lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
+            role: 'user' // Default role for existing users
+          });
+          
+          // Get the newly created profile
+          userProfile = await this.userService.getUserProfile(userCredential.user.uid);
+        }
+        
         if (userProfile) {
-          this.presentToast('Login successful');
-          this.navCtrl.navigateForward('/tabs/home');
+          // Update last login timestamp
+          await this.userService.updateLastLogin(userCredential.user.uid);
+          
+          // Check if user has completed allergy onboarding
+          const hasCompletedOnboarding = await this.userService.hasCompletedAllergyOnboarding(userCredential.user.uid);
+          
+          if (hasCompletedOnboarding) {
+            this.presentToast('Login successful');
+            this.navCtrl.navigateForward('/tabs/home');
+          } else {
+            // First-time user or user who hasn't completed onboarding
+            this.presentToast('Welcome! Please complete your allergy profile');
+            this.navCtrl.navigateForward('/allergy-onboarding');
+          }
         } else {
-          // If no profile exists, redirect to onboarding
+          // If profile still doesn't exist, redirect to onboarding
+          this.presentToast('Please complete your profile setup');
           this.navCtrl.navigateForward('/allergy-onboarding');
         }
       }

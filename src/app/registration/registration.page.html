@@ -26,6 +26,16 @@
           </ion-item>
 
           <ion-item>
+            <ion-icon slot="start" name="people-outline"></ion-icon>
+            <ion-select placeholder="Select Role" [(ngModel)]="role" interface="popover">
+              <ion-select-option value="user">User</ion-select-option>
+              <ion-select-option value="caregiver">Caregiver</ion-select-option>
+              <ion-select-option value="healthcare">Healthcare Provider</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
             <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
             <ion-input type="password" placeholder="Password" [(ngModel)]="password"></ion-input>
           </ion-item>

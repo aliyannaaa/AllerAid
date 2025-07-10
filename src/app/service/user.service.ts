@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { FirebaseService } from './firebase.service';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AuthService } from './auth.service';
 
 export interface UserProfile {
   uid: string;
@@ -20,11 +20,13 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   fullName: string;
+  role: string;
   avatar?: string;
   emergencyInstruction?: string;
   dateCreated: any;
   lastLogin: any;
   isActive: boolean;
+  allergyOnboardingCompleted?: boolean;
 }
 
 @Injectable({
@@ -35,7 +37,7 @@ export class UserService {
 
   constructor(
     private firebaseService: FirebaseService,
-    private afAuth: AngularFireAuth
+    private authService: AuthService
   ) {
     this.db = this.firebaseService.getDb();
   }
@@ -45,14 +47,16 @@ export class UserService {
     email: string;
     firstName: string;
     lastName: string;
+    role: string;
   }): Promise<void> {
     try {
       const userProfile: UserProfile = {
         uid,
         email: userData.email,
         firstName: userData.firstName,
-        lastName: userData.lastName,
-        fullName: `${userData.firstName} ${userData.lastName}`,
+        lastName: userData.lastName || '',
+        fullName: `${userData.firstName} ${userData.lastName || ''}`.trim(),
+        role: userData.role,
         dateCreated: serverTimestamp(),
         lastLogin: serverTimestamp(),
         isActive: true
@@ -60,6 +64,14 @@ export class UserService {
 
       await setDoc(doc(this.db, 'users', uid), userProfile);
       console.log('User profile created successfully');
+      
+      // Verify the document was created
+      const createdDoc = await getDoc(doc(this.db, 'users', uid));
+      if (createdDoc.exists()) {
+        console.log('User profile creation verified');
+      } else {
+        console.error('User profile creation failed - document not found');
+      }
     } catch (error) {
       console.error('Error creating user profile:', error);
       throw error;
@@ -100,9 +112,17 @@ export class UserService {
   // Update last login timestamp
   async updateLastLogin(uid: string): Promise<void> {
     try {
-      await updateDoc(doc(this.db, 'users', uid), {
-        lastLogin: serverTimestamp()
-      });
+      // First check if user document exists
+      const userDoc = await getDoc(doc(this.db, 'users', uid));
+      
+      if (userDoc.exists()) {
+        await updateDoc(doc(this.db, 'users', uid), {
+          lastLogin: serverTimestamp()
+        });
+        console.log('Last login updated successfully');
+      } else {
+        console.log('User document does not exist, cannot update last login');
+      }
     } catch (error) {
       console.error('Error updating last login:', error);
       throw error;
@@ -112,7 +132,7 @@ export class UserService {
   // Get current user profile
   async getCurrentUserProfile(): Promise<UserProfile | null> {
     try {
-      const user = await this.afAuth.currentUser;
+      const user = this.authService.getCurrentUser();
       if (user) {
         return await this.getUserProfile(user.uid);
       }
@@ -159,6 +179,108 @@ export class UserService {
     } catch (error) {
       console.error('Error getting user by email:', error);
       throw error;
+    }
+  }
+
+  // Utility method to check and create profile for current user if needed
+  async ensureUserProfileExists(): Promise<UserProfile | null> {
+    try {
+      const user = this.authService.getCurrentUser();
+      if (!user) {
+        return null;
+      }
+
+      let userProfile = await this.getUserProfile(user.uid);
+      
+      if (!userProfile && user.email) {
+        // Create profile for existing auth user
+        await this.createUserProfileFromAuth(user.uid, user.email);
+        userProfile = await this.getUserProfile(user.uid);
+      }
+
+      return userProfile;
+    } catch (error) {
+      console.error('Error ensuring user profile exists:', error);
+      return null;
+    }
+  }
+
+  // Create user profile for existing auth users (migration helper)
+  async createUserProfileFromAuth(uid: string, email: string): Promise<void> {
+    try {
+      // Check if profile already exists
+      const existingProfile = await this.getUserProfile(uid);
+      if (existingProfile) {
+        console.log('User profile already exists');
+        return;
+      }
+
+      // Extract names from email
+      const emailParts = email.split('@')[0];
+      const firstName = emailParts.split('.')[0] || 'User';
+      const lastName = emailParts.split('.')[1] || '';
+
+      const userProfile: UserProfile = {
+        uid,
+        email: email,
+        firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
+        lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
+        fullName: `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${lastName.charAt(0).toUpperCase() + lastName.slice(1)}`.trim(),
+        role: 'user', // Default role for migrated users
+        dateCreated: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        isActive: true
+      };
+
+      await setDoc(doc(this.db, 'users', uid), userProfile);
+      console.log('User profile created from existing auth user');
+    } catch (error) {
+      console.error('Error creating user profile from auth:', error);
+      throw error;
+    }
+  }
+
+  // Check if user has completed allergy onboarding
+  async hasCompletedAllergyOnboarding(uid: string): Promise<boolean> {
+    try {
+      // First check user profile flag
+      const userProfile = await this.getUserProfile(uid);
+      if (userProfile && userProfile.allergyOnboardingCompleted) {
+        return true;
+      }
+      
+      // Fallback: check if user has any allergies saved
+      const userAllergies = await this.getUserAllergies(uid);
+      return userAllergies.length > 0;
+    } catch (error) {
+      console.error('Error checking allergy onboarding status:', error);
+      return false;
+    }
+  }
+
+  // Mark allergy onboarding as completed
+  async markAllergyOnboardingCompleted(uid: string): Promise<void> {
+    try {
+      await updateDoc(doc(this.db, 'users', uid), {
+        allergyOnboardingCompleted: true
+      });
+      console.log('Allergy onboarding marked as completed');
+    } catch (error) {
+      console.error('Error marking allergy onboarding as completed:', error);
+      throw error;
+    }
+  }
+
+  // Get user allergies (reusing from allergy service logic)
+  async getUserAllergies(uid: string): Promise<any[]> {
+    try {
+      const allergiesRef = collection(this.db, 'allergies');
+      const q = query(allergiesRef, where('userId', '==', uid));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error getting user allergies:', error);
+      return [];
     }
   }
 

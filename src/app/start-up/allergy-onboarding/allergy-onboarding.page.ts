@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AllergyService } from '../../service/allergy.service';
+import { UserService } from '../../service/user.service';
+import { AuthService } from '../../service/auth.service';
 import { ToastController } from '@ionic/angular';
 
 @Component({
@@ -16,10 +18,19 @@ export class AllergyOnboardingPage implements OnInit {
   constructor(
     private router: Router,
     private allergyService: AllergyService,
+    private userService: UserService,
+    private authService: AuthService,
     private toastController: ToastController
   ) { }
 
   ngOnInit() {
+    // Check if user is logged in
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    
     this.loadAllergyOptions();
   }
 
@@ -30,10 +41,12 @@ export class AllergyOnboardingPage implements OnInit {
       // Load allergy options from Firebase
       let options = await this.allergyService.getAllergyOptions();
       
-      // If no options exist in Firebase, use fallback
-      if (options.length === 0) {
-        // Use hardcoded fallback since createAllergyOptions() is disabled
-        this.useFallbackOptions();
+      console.log('Loaded options from Firebase:', options);
+      
+      // If no options exist in Firebase, show empty state
+      if (!options || options.length === 0) {
+        console.log('No options in Firebase, showing empty state');
+        this.allergyOptions = [];
         return;
       }
       
@@ -46,31 +59,13 @@ export class AllergyOnboardingPage implements OnInit {
       
     } catch (error) {
       console.error('Error loading allergy options:', error);
-      this.useFallbackOptions();
+      this.allergyOptions = [];
     } finally {
       this.isLoading = false;
     }
   }
 
-  useFallbackOptions() {
-    // Fallback to hardcoded options if Firebase fails
-    this.allergyOptions = [
-      { name: 'peanuts', label: 'Peanuts/Nuts', checked: false },
-      { name: 'dairy', label: 'Dairy/Milk', checked: false },
-      { name: 'eggs', label: 'Eggs', checked: false },
-      { name: 'wheat', label: 'Wheat/Gluten', checked: false },
-      { name: 'fish', label: 'Fish', checked: false },
-      { name: 'shellfish', label: 'Shellfish', checked: false },
-      { name: 'soy', label: 'Soy', checked: false },
-      { name: 'pollen', label: 'Pollen', checked: false },
-      { name: 'latex', label: 'Latex', checked: false },
-      { name: 'animalDander', label: 'Animal Dander', checked: false },
-      { name: 'insectStings', label: 'Insect Stings', checked: false },
-      { name: 'medication', label: 'Medication', checked: false, hasInput: true, value: '' },
-      { name: 'others', label: 'Others', checked: false, hasInput: true, value: '' },
-      { name: 'none', label: 'No Allergies', checked: false }
-    ];
-  }
+
 
   async submitAllergies() {
     // Filter selected allergies
@@ -87,11 +82,24 @@ export class AllergyOnboardingPage implements OnInit {
     }
 
     try {
-      // For now, using a placeholder user ID. In a real app, you'd get this from authentication
-      const userId = 'user123'; // Replace with actual user ID from auth
+      // Get current user ID from authentication
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        const toast = await this.toastController.create({
+          message: 'You must be logged in to save allergies',
+          duration: 3000,
+          color: 'danger'
+        });
+        await toast.present();
+        this.router.navigate(['/login']);
+        return;
+      }
       
       // Save to Firebase
-      await this.allergyService.addUserAllergies(userId, selectedAllergies);
+      await this.allergyService.addUserAllergies(currentUser.uid, selectedAllergies);
+      
+      // Mark allergy onboarding as completed
+      await this.userService.markAllergyOnboardingCompleted(currentUser.uid);
       
       // Show success message
       const toast = await this.toastController.create({
@@ -115,30 +123,13 @@ export class AllergyOnboardingPage implements OnInit {
     }
   }
 
-  // Method to delete all allergy options from Firebase
-  async deleteAllAllergyOptions() {
-    try {
-      await this.allergyService.deleteAllAllergyOptions();
-      
-      const toast = await this.toastController.create({
-        message: 'All allergy options deleted from Firebase!',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-      
-      // Reload options (will use fallback since Firebase is now empty)
-      this.loadAllergyOptions();
-      
-    } catch (error) {
-      console.error('Error deleting allergy options:', error);
-      const toast = await this.toastController.create({
-        message: 'Failed to delete allergy options.',
-        duration: 3000,
-        color: 'danger'
-      });
-      await toast.present();
-    }
+  // Check if we're currently using fallback options
+  get isUsingFallbackOptions(): boolean {
+    return this.allergyOptions.length > 0 && 
+           this.allergyOptions.some(option => option.name === 'none' && option.label === 'No Allergies');
   }
+
+
+
 
 }

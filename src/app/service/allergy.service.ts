@@ -68,21 +68,15 @@ export class AllergyService {
 
   // READ all allergy options from Firebase
   async getAllergyOptions(): Promise<any[]> {
-    const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
-  // DELETE all allergy options from Firebase
-  async deleteAllAllergyOptions(): Promise<void> {
-    const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
-    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(deletePromises);
-  }
-
-  // DELETE specific allergy option from Firebase
-  async deleteAllergyOption(optionId: string): Promise<void> {
-    const optionDoc = doc(this.db, 'allergyOptions', optionId);
-    await deleteDoc(optionDoc);
+    try {
+      const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
+      const options = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('Retrieved', options.length, 'allergy options from Firebase');
+      return options;
+    } catch (error) {
+      console.error('Error fetching allergy options:', error);
+      throw error;
+    }
   }
 
   // CHECK if user has specific allergy
