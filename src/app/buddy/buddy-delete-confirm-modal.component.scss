@@ -28,13 +28,13 @@ ion-header ion-toolbar {
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   width: 90vw;
   max-width: 400px;
-  height: 50vh; /* Set a fixed height, adjust as needed */
+  height: 45vh;
   max-height: 80vh;
   z-index: 1001;
   padding-bottom: 16px;
 }
 
-.add-buddy{
+.deleteBtn{
     --background: #E55E76 !important;
     --color: #fff !important;
 }

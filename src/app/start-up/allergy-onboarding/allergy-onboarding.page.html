@@ -1,9 +1,3 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>Welcome, User!</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="onboarding-bg">
   <div class="onboarding-container">
     <div class="onboarding-welcome">
@@ -21,10 +15,10 @@
         </ion-list>
       </form>
     </ion-card>
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button color="primary" (click)="submitAllergies()">
-        <ion-icon name="arrow-forward-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
   </div>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="submitAllergies()">
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

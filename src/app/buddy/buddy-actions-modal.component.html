@@ -1,0 +1,28 @@
+<ng-container>
+  <div class="buddy-modal-backdrop">
+    <div class="buddy-modal-content">
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Buddy Actions</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="close()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" [style.background]="'#fff'">
+        <ion-list>
+          <ion-item button (click)="editBuddy()">
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            <ion-label>Edit Buddy</ion-label>
+          </ion-item>
+          <ion-item button (click)="deleteBuddy()">
+            <ion-icon name="trash-outline" slot="start" color="danger"></ion-icon>
+            <ion-label color="danger">Delete Buddy</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </div>
+  </div>
+</ng-container>
