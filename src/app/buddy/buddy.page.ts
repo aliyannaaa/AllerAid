@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FirebaseService } from '../service/firebase.service';
+import { BuddyService } from '../service/buddy.service';
 import { ToastController } from '@ionic/angular';
 
 @Component({
@@ -24,7 +24,7 @@ export class BuddyPage implements OnInit {
   selectedBuddy: any = null;
 
   constructor(
-    private firebaseService: FirebaseService,
+    private buddyService: BuddyService,
     private toastController: ToastController
   ) {}
 
@@ -33,7 +33,7 @@ export class BuddyPage implements OnInit {
   }
 
   async loadBuddies() {
-    this.buddies = await this.firebaseService.getBuddies();
+    this.buddies = await this.buddyService.getBuddies();
     this.filteredBuddies = this.buddies;
   }
 
@@ -46,7 +46,7 @@ export class BuddyPage implements OnInit {
     };
 
     try {
-      await this.firebaseService.addBuddy(buddy);
+      await this.buddyService.addBuddy(buddy);
       this.buddyFirstName = '';
       this.buddyLastName = '';
       this.buddyRelationship = '';
@@ -59,7 +59,7 @@ export class BuddyPage implements OnInit {
       });
       await toast.present();
 
-      this.loadBuddies(); // Refresh the list
+      this.loadBuddies();
     } catch (error) {
       const toast = await this.toastController.create({
         message: 'Failed to add buddy.',
@@ -106,7 +106,7 @@ export class BuddyPage implements OnInit {
 
   async onAddBuddy(buddy: { firstName: string; lastName: string }) {
     try {
-      await this.firebaseService.addBuddy(buddy);
+      await this.buddyService.addBuddy(buddy); // use buddyService instead of firebaseService
       const toast = await this.toastController.create({
         message: 'Buddy added successfully!',
         duration: 2000,

@@ -6,7 +6,7 @@
   <ion-title>AllerAid</ion-title>
 
   <ion-buttons slot="end">
-    <ion-button fill="clear" size="small">
+    <ion-button fill="clear" size="small" (click)="openNotifications()">
       <img src="assets/icon/bell.png" alt="bell" style="width: 24px; height: 24px;" />
     </ion-button>
   </ion-buttons>
@@ -15,7 +15,6 @@
 <ion-content class="ion-padding">
   <h2 class="page-title">Welcome!</h2>
 
-  <!-- Emergency Circular Button Section -->
   <div class="emergency-wrapper">
     <div class="circle-button" (click)="triggerEmergency()">
       <ion-icon name="notifications-outline"></ion-icon>
@@ -37,8 +36,6 @@
       <p><strong>Doctor Visits:</strong> 2 months ago</p>
     </ion-card-content>
   </ion-card>
-
-  <ion-button expand="block" color="primary">View Medical History</ion-button>
 
 </ion-content>
 

@@ -7,21 +7,21 @@
         <img alt="person-avatar" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
       </ion-avatar>
       
-      <div class="profile-name">User One</div>
+      <div class="profile-name">{{ getUserDisplayName() }}</div>
     </div>
 
     <div class="profile-stats">
       <div class="stat">
         <div class="stat-label">Allergies</div>
-        <div class="stat-value">1</div>
+        <div class="stat-value">{{ allergiesCount }}</div>
       </div>
       <div class="stat">
         <div class="stat-label">Medications</div>
-        <div class="stat-value">2</div>
+        <div class="stat-value">{{ medicationsCount }}</div>
       </div>
       <div class="stat">
         <div class="stat-label">Buddies</div>
-        <div class="stat-value">1</div>
+        <div class="stat-value">{{ buddiesCount }}</div>
       </div>
     </div>
 
@@ -62,7 +62,8 @@
         </ion-modal>
 
         <div class="allergy-list">
-          <span class="allergy-chip">Peanuts</span>
+          <span *ngFor="let allergy of userAllergies" class="allergy-chip">{{ allergy.label || allergy.name }}</span>
+          <span *ngIf="userAllergies.length === 0" class="no-data">No allergies recorded</span>
         </div>
         
         <div class="section-title">
@@ -82,16 +83,21 @@
             <ion-content class="ion-padding">
               <ion-item>
                 <ion-label position="stacked">Instruction</ion-label>
-                <ion-input placeholder="Enter instruction"></ion-input>
+                <ion-textarea placeholder="Enter emergency instruction" [(ngModel)]="emergencyInstruction"></ion-textarea>
               </ion-item>
-              <ion-button expand="block" (click)="showEditEmergencyModal = false">Save</ion-button>
+              <ion-button expand="block" (click)="saveEmergencyInstruction()">Save</ion-button>
             </ion-content>
           </ng-template>
         </ion-modal>
 
         <div class="emergency-box">
-          <div><b>If reaction occurs:</b> Use EpiPen immediately</div>
-          <div><b>Then call:</b> 911 or emergency contacts</div>
+          <div *ngIf="emergencyInstruction; else noInstruction">
+            <b>Emergency Instruction:</b> {{ emergencyInstruction }}
+          </div>
+          <ng-template #noInstruction>
+            <div><b>If reaction occurs:</b> Use EpiPen immediately</div>
+            <div><b>Then call:</b> 911 or emergency contacts</div>
+          </ng-template>
         </div>
       </ng-container>
 
@@ -199,11 +205,11 @@
         <div class="emergency-message-card">
           <div class="emergency-message-row">
             <div class="emergency-message-label">Name:</div>
-            <div class="emergency-message-value">User One</div>
+            <div class="emergency-message-value">{{ getUserDisplayName() }}</div>
           </div>
           <div class="emergency-message-row">
             <div class="emergency-message-label">Allergies:</div>
-            <div class="emergency-message-value">Peanuts</div>
+            <div class="emergency-message-value">{{ getUserAllergiesDisplay() }}</div>
           </div>
           <div class="emergency-message-row">
             <div class="emergency-message-label">Instructions:</div>

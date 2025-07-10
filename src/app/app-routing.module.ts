@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { NavController } from '@ionic/angular';
 
 
 const routes: Routes = [
@@ -44,10 +43,16 @@ const routes: Routes = [
     path: 'allergy-onboarding',
     loadChildren: () => import('./start-up/allergy-onboarding/allergy-onboarding.module').then( m => m.AllergyOnboardingPageModule)
   },
+  {
 
     path: 'profile',
     loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
   },
+  {
+    path: 'notification',
+    loadChildren: () => import('./notification/notification.module').then( m => m.NotificationPageModule)
+  },
+
 
 ];
 
