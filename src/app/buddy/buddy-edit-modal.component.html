@@ -3,9 +3,9 @@
     <div class="buddy-modal-content">
       <ion-header>
         <ion-toolbar color="primary">
-          <ion-title>Add Buddy</ion-title>
+          <ion-title>Edit Buddy</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="dismiss()">
+            <ion-button (click)="close()">
               <ion-icon name="close"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -15,16 +15,16 @@
         <form>
           <ion-item>
             <ion-label position="stacked">First Name</ion-label>
-            <ion-input [(ngModel)]="buddyFirstName" name="firstName" required></ion-input>
+            <ion-input [(ngModel)]="editFirstName" name="editFirstName" required></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked">Last Name</ion-label>
-            <ion-input [(ngModel)]="buddyLastName" name="lastName" required></ion-input>
+            <ion-input [(ngModel)]="editLastName" name="editLastName" required></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked">Relationship</ion-label>
-            <ion-select [(ngModel)]="buddyRelationship" name="relationship" required placeholder="Select Relationship">
-              <ion-select-option value="" disabled selected hidden>Select Relationship</ion-select-option>
+            <ion-select [(ngModel)]="editRelationship" name="editRelationship" required placeholder="Select Relationship">
+              <ion-select-option value="" disabled hidden>Select Relationship</ion-select-option>
               <ion-select-option value="Family">Family</ion-select-option>
               <ion-select-option value="Friend">Friend</ion-select-option>
               <ion-select-option value="Partner">Partner</ion-select-option>
@@ -34,9 +34,9 @@
           </ion-item>
           <ion-item>
             <ion-label position="stacked">Contact Number</ion-label>
-            <ion-input [(ngModel)]="buddyContact" name="contact" type="tel" required></ion-input>
+            <ion-input [(ngModel)]="editContact" name="editContact" type="tel" required></ion-input>
           </ion-item>
-          <ion-button class="add-buddy"expand="block" (click)="addBuddy()" style="margin-top: 16px;">Add Buddy</ion-button>
+          <ion-button expand="block" class="saveBtn" (click)="saveEdit()" style="margin-top: 16px;">Save Changes</ion-button>
         </form>
       </ion-content>
     </div>

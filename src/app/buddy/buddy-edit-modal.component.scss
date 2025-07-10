@@ -34,8 +34,8 @@ ion-header ion-toolbar {
   padding-bottom: 16px;
 }
 
-.add-buddy{
-    --background: #E55E76 !important;
-    --color: #fff !important;
+ion-button.saveBtn {
+  --background: #E55E76 !important;
+  --color: #fff !important;
 }
 

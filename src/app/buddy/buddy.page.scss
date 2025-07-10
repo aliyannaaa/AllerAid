@@ -4,8 +4,8 @@
 }
 
 ion-header ion-toolbar {
-  --background: #72ABD9 !important;
-  --ion-color-base: #72ABD9 !important;
+  --background: #451d66 !important;
+  --ion-color-base: #451d66 !important;
   color: #fff !important;
 }
 
@@ -36,7 +36,7 @@ ion-input.search-bar-input {
 
 ion-button.search-bar-btn {
   --background: #fff;
-  --color: #72ABD9;
+  --color: #451d66;
   border-radius: 8px;
   margin-left: 8px;
   box-shadow: none;
@@ -50,7 +50,11 @@ ion-button.search-bar-btn {
 }
 
 ion-button.search-bar-btn ion-icon {
-  color: #72ABD9;
+  color: #451d66;
   font-size: 22px;
+}
+
+ion-button[fill="clear"] ion-icon[name="ellipsis-vertical"] {
+  color: #5e3c7a !important;
 }
 

@@ -1,0 +1,47 @@
+ion-content.onboarding-bg {
+  --background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
+  background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+.onboarding-bg {
+  background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+.onboarding-bg, .onboarding-bg * {
+  color: #fff !important;
+}
+
+.onboarding-card, .onboarding-card * {
+  color: #222 !important;
+}
+
+.onboarding-welcome {
+  padding: 24px 20px 12px 20px;
+  text-align: center;
+}
+
+.onboarding-welcome h2 {
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.10);
+}
+
+ion-fab-button {
+  --background: #451d66 !important;
+  color: #fff !important;
+}
+
+ion-checkbox {
+  --checkbox-background-checked: #E55E76 !important;
+  --checkbox-border-color-checked: #E55E76 !important;
+  --background-checked: #E55E76 !important;
+  --border-color-checked: #E55E76 !important;
+  --checkmark-color: #fff !important;
+}
