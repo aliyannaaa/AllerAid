@@ -8,35 +8,34 @@
   <ion-buttons slot="end">
     <ion-button fill="clear" size="small" (click)="openNotifications()">
       <img src="assets/icon/bell.png" alt="bell" style="width: 24px; height: 24px;" />
-    </ion-button>
-  </ion-buttons>
-</ion-toolbar>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
 
 <ion-content class="ion-padding">
-  <h2 class="page-title">Welcome!</h2>
+  <div class = "wrapper">
+    <h2 class="page-title">Welcome, {{ userName }}!</h2>
 
-  <div class="emergency-wrapper">
-    <div class="circle-button" (click)="triggerEmergency()">
-      <ion-icon name="notifications-outline"></ion-icon>
-      <h2 class="emergency-title">EMERGENCY</h2>
-      <p class="instruction-text">Press 5 times or shake</p>
+    <div class="emergency-wrapper">
+      <div class="circle-button" (click)="triggerEmergency()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <h2 class="emergency-title">EMERGENCY</h2>
+        <p class="instruction-text">Press the button or shake</p>
+      </div>
+      <p class="bottom-text">Press the button above in case of emergency</p>
     </div>
-    <p class="bottom-text">Press the button above in case of emergency</p>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Health Overview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Allergens:</strong> Peanut, Dust</p>
+        <p><strong>Medication:</strong> Cetirizine</p>
+        <p><strong>Doctor Visits:</strong> 2 months ago</p>
+      </ion-card-content>
+    </ion-card>
   </div>
-
-  
-
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Health Overview</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p><strong>Allergens:</strong> Peanut, Dust</p>
-      <p><strong>Medication:</strong> Cetirizine</p>
-      <p><strong>Doctor Visits:</strong> 2 months ago</p>
-    </ion-card-content>
-  </ion-card>
-
 </ion-content>
 
 

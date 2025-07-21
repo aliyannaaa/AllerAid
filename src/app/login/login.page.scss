@@ -4,19 +4,39 @@
   align-items: center;
   height: 100%;
 }
-
-.login-card,
-.register-card {
-  width: 100%;
-  max-width: 420px;
-  margin: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
+ion-card {
+  background: #fff !important;
+  color: #272727 !important;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(229, 94, 118, 0.10);
+  border: 1px solid #f5aab7;
 }
-
 ion-card-title {
   font-size: 1.5rem;
   font-weight: 600;
+  color: #272727;
+}
+
+ion-list{
+  background-color: #ffffff !important;
+}
+ion-item{
+  --background: #dddddd !important;
+  color: #272727 !important;
+  border-radius: 15px;
+  margin-top: 5px;
+}
+
+ion-icon[name="mail-outline"],
+ion-icon[name="lock-closed-outline"] {
+  color: #272727 !important;
+}
+
+ion-button.loginBtn {
+  --background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
+  --color: #2b2b2b !important;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 .text-center {
@@ -24,7 +44,16 @@ ion-card-title {
   margin-top: 1rem;
 }
 
-ion-content.login-bg,
-ion-content.register-bg {
-  --background: #f3f4f6;
+a{
+  color: #AB7082;
+  font-weight: bold;;
+  text-decoration: none;
+}
+
+ion-content{
+  --background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
+  background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
+  min-height: 100vh !important;
+  height: 100vh !important;
+  width: 100vw !important;
 }

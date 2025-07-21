@@ -132,8 +132,8 @@ export class BuddyPage implements OnInit {
   }
 
   onSaveEditBuddy(editedBuddy: any) {
-    // Save the edited buddy to Firebase (expects id and data)
-    this.firebaseService.updateBuddy(editedBuddy.id, editedBuddy).then(() => {
+    // Save the edited buddy using buddyService (expects id and data)
+    this.buddyService.updateBuddy(editedBuddy.id, editedBuddy).then(() => {
       this.loadBuddies();
       this.closeEditModal();
     });
@@ -152,7 +152,7 @@ export class BuddyPage implements OnInit {
 
   async onConfirmDeleteBuddy(buddy: any) {
     try {
-      await this.firebaseService.deleteBuddy(buddy.id); // Delete from Firebase by ID
+      await this.buddyService.deleteBuddy(buddy.id); // Delete using buddyService by ID
       this.showDeleteModal = false;
       this.buddyToEdit = null;
       await this.loadBuddies(); // Refresh the list

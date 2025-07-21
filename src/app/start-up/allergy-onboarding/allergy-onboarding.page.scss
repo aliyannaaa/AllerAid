@@ -1,25 +1,92 @@
+
 ion-content.onboarding-bg {
-  --background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
-  background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
-  min-height: 100vh !important;
-  height: 100vh !important;
-  width: 100vw !important;
+  --background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
+  background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
 }
 
 .onboarding-bg {
-  background: linear-gradient(135deg, #451d66 0%, #E55E76 100%) !important;
-  min-height: 100vh !important;
-  height: 100vh !important;
-  width: 100vw !important;
+  background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
 }
 
 .onboarding-bg, .onboarding-bg * {
   color: #fff !important;
+  font-weight: bold !important;
 }
 
-.onboarding-card, .onboarding-card * {
-  color: #222 !important;
+.onboarding-card {
+  background: #fff !important;
+  color: #272727 !important;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(229, 94, 118, 0.10);
+  border: 1px solid #f5aab7;
+  margin: 0 0 24px 0;
+  padding: 8px;
 }
+
+.onboarding-card ion-list {
+  --background: #fff !important;
+  background: #fff !important;
+  border-radius: 12px;
+  margin: 0;
+  padding: 8px;
+}
+
+.onboarding-card ion-item {
+  --background: #ddd !important;
+  background: #ddd !important;
+  color: #272727 !important;
+  border-radius: 8px;
+  margin-top: 5px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  align-items: center;
+}
+
+/* Only set the background for the allergy label inside the onboarding card */
+.onboarding-card ion-item > ion-label {
+  background: #dddddd !important;
+  color: #272727 !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  margin: 4px 0 !important;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.onboarding-card ion-item ion-checkbox {
+  margin-right: 8px;
+}
+
+.onboarding-card ion-item ion-input {
+  background: transparent !important;
+  color: #272727 !important;
+  margin-left: 8px;
+}
+
+.nextBtn{
+  --background: #E55E76 !important;
+  --color: #fff !important;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.nextBtn{
+  --background: #E55E76 !important;
+  --color: #fff !important;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+
+/* Only set the background for the allergy label inside the onboarding card */
+
+
 
 .onboarding-welcome {
   padding: 24px 20px 12px 20px;
@@ -33,15 +100,21 @@ ion-content.onboarding-bg {
   text-shadow: 1px 1px 2px rgba(0,0,0,0.10);
 }
 
-ion-fab-button {
-  --background: #451d66 !important;
+
+ion-fab-button.nextBtn {
+  --background: #E55E76 !important;
   color: #fff !important;
 }
 
+
 ion-checkbox {
+  --background: #dddddd !important;
+  --checkbox-background: #dddddd !important;
   --checkbox-background-checked: #E55E76 !important;
+  --checkbox-border-color: #E55E76 !important;
   --checkbox-border-color-checked: #E55E76 !important;
-  --background-checked: #E55E76 !important;
+  --background-checked: #dddddd !important;
+  --border-color: #E55E76 !important;
   --border-color-checked: #E55E76 !important;
-  --checkmark-color: #fff !important;
+  --checkmark-color: #fff5f7 !important;
 }

@@ -31,7 +31,6 @@
               <ion-select-option value="user">User</ion-select-option>
               <ion-select-option value="caregiver">Caregiver</ion-select-option>
               <ion-select-option value="healthcare">Healthcare Provider</ion-select-option>
-              <ion-select-option value="admin">Admin</ion-select-option>
             </ion-select>
           </ion-item>
 
@@ -39,9 +38,14 @@
             <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
             <ion-input type="password" placeholder="Password" [(ngModel)]="password"></ion-input>
           </ion-item>
+
+          <ion-item>
+            <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+            <ion-input type="password" placeholder="Confirm Password" [(ngModel)]="confirmPassword"></ion-input>
+          </ion-item>
         </ion-list>
 
-        <ion-button expand="block" color="primary" shape="round" (click)="register()">
+        <ion-button expand="block" class="registerBtn" shape="round" (click)="register()">
           Register
         </ion-button>
 

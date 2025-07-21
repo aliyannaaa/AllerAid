@@ -14,6 +14,7 @@ export class RegistrationPage {
   lastName = '';
   email = '';
   password = '';
+  confirmPassword = '';
   role = '';
 
   constructor(
@@ -24,8 +25,13 @@ export class RegistrationPage {
   ) {}
 
   async register() {
-    if (!this.email || !this.password || !this.firstName || !this.lastName || !this.role) {
+    if (!this.email || !this.password || !this.confirmPassword || !this.firstName || !this.lastName || !this.role) {
       this.presentToast('All fields are required.');
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
+      this.presentToast('Passwords do not match.');
       return;
     }
 

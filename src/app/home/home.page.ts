@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { UserService } from '../service/user.service';
 
 @Component({
   selector: 'app-home',
@@ -8,12 +9,19 @@ import { Router } from '@angular/router';
   styleUrls: ['./home.page.scss'],
   standalone: false,
 })
-export class HomePage {
+export class HomePage implements OnInit {
+  userName: string = '';
 
   constructor(
     private alertController: AlertController,
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) {}
+
+  async ngOnInit() {
+    const userProfile = await this.userService.getCurrentUserProfile();
+    this.userName = userProfile?.firstName || '';
+  }
 
   triggerEmergency() {
     this.presentEmergencyConfirmation();
