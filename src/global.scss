@@ -35,3 +35,48 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+// For the alert interface (used by ion-select on mobile)
+ion-alert .alert-wrapper,
+ion-alert .alert-radio-group,
+ion-alert .alert-checkbox-group {
+  --background: #faeaee !important;
+  background: #faeaee !important;
+}
+ion-alert .alert-radio-label,
+ion-alert .alert-checkbox-label {
+  color: #AB7082 !important;
+}
+
+// For the popover interface (used by ion-select on desktop)
+ion-popover .select-interface-option {
+  --background: #faeaee !important;
+  background: #faeaee !important;
+  color: #AB7082 !important;
+}
+
+ion-alert .alert-button,
+ion-alert .alert-button.sc-ion-alert-md,
+ion-alert .alert-button.sc-ion-alert-ios {
+  color: #E55E76 !important;
+}
+
+// Custom radio button color for ion-alert (select options)
+ion-alert .alert-radio-icon {
+  border: 2px solid #E55E76 !important;
+  background: #faeaee !important;
+}
+
+ion-alert .alert-radio-checked .alert-radio-icon {
+  border: 2px solid #E55E76 !important;
+  background: #E55E76 !important;
+}
+ion-alert .alert-radio-checked .alert-radio-inner {
+  background: #faeaee !important;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  left: 3px;
+  top: 3px;
+  position: absolute;
+}

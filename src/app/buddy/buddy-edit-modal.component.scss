@@ -4,9 +4,20 @@
 }
 
 ion-header ion-toolbar {
-  --background: #72ABD9 !important;
-  --ion-color-base: #72ABD9 !important;
+  --background: #AB7082 !important;
+  --ion-color-base: #AB7082 !important;
   color: #fff !important;
+}
+
+ion-content{
+  --background: #faeaee !important;
+  color: #000 !important;
+}
+
+ion-item{
+  --background: #edd8de !important;
+  color: #000 !important;
+  border-radius: 32px;
 }
 
 .buddy-modal-backdrop {

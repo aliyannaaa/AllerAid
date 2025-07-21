@@ -2,7 +2,7 @@
   <div class="buddy-modal-backdrop">
     <div class="buddy-modal-content">
       <ion-header>
-        <ion-toolbar color="primary">
+        <ion-toolbar color="transparent">
           <ion-title>Confirm Delete</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="cancel()">
@@ -18,7 +18,7 @@
           <p>Are you sure you want to delete <b>{{ buddy?.firstName }} {{ buddy?.lastName }}</b>?</p>
         </div>
         <ion-button expand="block" class="deleteBtn" (click)="confirmDelete()">Delete</ion-button>
-        <ion-button expand="block" fill="clear" (click)="cancel()">Cancel</ion-button>
+        <ion-button expand="block" class="cancelBtn" fill="clear" (click)="cancel()">Cancel</ion-button>
       </ion-content>
     </div>
   </div>

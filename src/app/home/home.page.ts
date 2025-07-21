@@ -1,12 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ToastController, AlertController, ModalController, LoadingController } from '@ionic/angular';
+import { Component } from '@angular/core';
+import { ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { EmergencyService } from '../service/emergency.service';
-import { UserService } from '../service/user.service';
-import { BuddyService } from '../service/buddy.service';
-import { AuthService } from '../service/auth.service';
-import { Subscription } from 'rxjs';
-import { AllergyService } from '../service/allergy.service';
 
 @Component({
   selector: 'app-home',
@@ -14,100 +8,12 @@ import { AllergyService } from '../service/allergy.service';
   styleUrls: ['./home.page.scss'],
   standalone: false,
 })
-export class HomePage implements OnInit, OnDestroy {
-  private emergencyResponseSubscription: Subscription | null = null;
-  private currentEmergencyId: string | null = null;
-  
-  // Current user information
-  userId: string | null = null;
-  userName: string = '';
-  userAllergies: any[] = [];
-  emergencyInstruction: string = '';
-  userBuddies: any[] = [];
-  
-  // For tracking responding buddy
-  respondingBuddy: any = null;
+export class HomePage {
 
   constructor(
     private alertController: AlertController,
-    private router: Router,
-    private emergencyService: EmergencyService,
-    private userService: UserService,
-    private buddyService: BuddyService,
-    private authService: AuthService,
-    private allergyService: AllergyService,
-    private loadingController: LoadingController,
-    private modalController: ModalController,
-    private toastController: ToastController
+    private router: Router
   ) {}
-  
-  ngOnInit() {
-    // Load user data when the component initializes
-    this.loadUserData();
-    
-    // Subscribe to emergency responses
-    this.subscribeToEmergencyResponses();
-  }
-  
-  ngOnDestroy() {
-    // Clean up subscriptions when component is destroyed
-    if (this.emergencyResponseSubscription) {
-      this.emergencyResponseSubscription.unsubscribe();
-    }
-    
-    // Stop any active location tracking
-    this.emergencyService.stopLocationTracking();
-  }
-  
-  async loadUserData() {
-    // Wait for auth to be initialized
-    const currentUser = await this.authService.waitForAuthInit();
-    
-    if (currentUser) {
-      this.userId = currentUser.uid;
-      console.log('Loading user data for:', currentUser.email); // Debug log
-      
-      // Load user profile
-      try {
-        const userProfile = await this.userService.getUserProfile(currentUser.uid);
-        if (userProfile) {
-          this.userName = `${userProfile.firstName} ${userProfile.lastName}`;
-          this.emergencyInstruction = userProfile.emergencyInstruction || 'Use EpiPen immediately';
-        }
-        
-        // Load user allergies
-        const allergies = await this.allergyService.getUserAllergies(currentUser.uid);
-        this.userAllergies = allergies;
-        
-        // Load buddies
-        this.userBuddies = await this.buddyService.getUserBuddies(currentUser.uid);
-        console.log('Loaded buddies:', this.userBuddies); // Debug log
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      }
-    } else {
-      console.log('No current user found in home page - redirecting to login');
-      
-      // Show toast and redirect to login
-      const toast = await this.presentToast('Please log in to access the app');
-      
-      // Redirect to login page
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 1000);
-    }
-  }
-  
-  subscribeToEmergencyResponses() {
-    this.emergencyResponseSubscription = this.emergencyService.emergencyResponse$.subscribe(
-      response => {
-        if (response) {
-          this.respondingBuddy = response;
-          this.showResponderAlert(response);
-        }
-      }
-    );
-  }
 
   triggerEmergency() {
     this.presentEmergencyConfirmation();
