@@ -1,6 +1,11 @@
-import { Component } from '@angular/core';
-import { ToastController, AlertController } from '@ionic/angular';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ToastController, AlertController, LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { AuthService } from '../service/auth.service';
+import { BuddyService } from '../service/buddy.service';
+import { EmergencyService } from '../service/emergency.service';
+import { UserService } from '../service/user.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -8,12 +13,63 @@ import { Router } from '@angular/router';
   styleUrls: ['./home.page.scss'],
   standalone: false,
 })
-export class HomePage {
+export class HomePage implements OnInit, OnDestroy {
+  userBuddies: any[] = [];
+  userAllergies: any[] = [];
+  userName: string = '';
+  emergencyInstruction: string = '';
+  currentEmergencyId: string | null = null;
+  respondingBuddy: any = null;
+  
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private alertController: AlertController,
-    private router: Router
+    private toastController: ToastController,
+    private loadingController: LoadingController,
+    private router: Router,
+    private authService: AuthService,
+    private buddyService: BuddyService,
+    private emergencyService: EmergencyService,
+    private userService: UserService
   ) {}
+
+  async ngOnInit() {
+    await this.loadUserData();
+    this.listenForEmergencyResponses();
+  }
+
+  ngOnDestroy() {
+    // Clean up subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  async loadUserData() {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (currentUser) {
+        // Load user profile
+        const userProfile = await this.userService.getUserProfile(currentUser.uid);
+        if (userProfile) {
+          this.userName = userProfile.fullName || 'User';
+          this.emergencyInstruction = userProfile.emergencyInstruction || '';
+        }
+
+        // Load user buddies
+        this.userBuddies = await this.buddyService.getUserBuddies(currentUser.uid);
+        
+        // Load user allergies
+        this.userAllergies = await this.userService.getUserAllergies(currentUser.uid) || [];
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  }
+
+  listenForEmergencyResponses() {
+    // Listen for emergency responses if user has active emergencies
+    // This would be implemented based on your emergency service
+  }
 
   triggerEmergency() {
     this.presentEmergencyConfirmation();
@@ -63,12 +119,12 @@ export class HomePage {
     
     try {
       // Get buddy IDs
-      const buddyIds = this.userBuddies.map(buddy => buddy.id);
+      const buddyIds = this.userBuddies.map((buddy: any) => buddy.id);
       
       // Get allergies as string array
-      const allergyStrings = this.userAllergies.map(allergy => 
+      const allergyStrings = this.userAllergies.map((allergy: any) => 
         allergy.label || allergy.name || ''
-      ).filter(allergy => allergy !== '');
+      ).filter((allergy: string) => allergy !== '');
       
       // Send the emergency alert
       this.currentEmergencyId = await this.emergencyService.sendEmergencyAlert(

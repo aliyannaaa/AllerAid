@@ -10,11 +10,12 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="openModal()">
-      <ion-icon name="person-add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  <div class="wrapper">
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button (click)="openModal()">
+        <ion-icon name="person-add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
 
     <!-- Only show the modal when showModal is true -->
     <app-buddy-modal *ngIf="showModal" (add)="onAddBuddy($event)" (close)="closeModal()"></app-buddy-modal>
