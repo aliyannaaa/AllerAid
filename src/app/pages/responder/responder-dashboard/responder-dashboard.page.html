@@ -1,0 +1,93 @@
+<ion-header translucent>
+  <ion-toolbar color="primary">
+    <ion-title>BuddyCare Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-grid>
+    <!-- Emergency Alert Card -->
+    <ion-row>
+      <ion-col size="12">
+        <ion-card class="emergency-card emergency-pulse">
+          <ion-card-header class="emergency-header">
+            <ion-card-title>INCOMING EMERGENCY ALERT</ion-card-title>
+            <ion-note slot="end">Just now</ion-note>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-item lines="none">
+              <ion-label>
+                <h2>Emergency from Juan Dela Cruz</h2>
+                <p>Severe asthma attack</p>
+              </ion-label>
+              <ion-badge color="danger">CRITICAL</ion-badge>
+            </ion-item>
+
+            <ion-label class="label-heading">Patient Location</ion-label>
+            <div class="map-container"></div>
+            <ion-text color="primary">
+              <p><ion-icon name="location"></ion-icon> 123 Main St, Makati City</p>
+            </ion-text>
+
+            <ion-label class="label-heading">Emergency Instructions</ion-label>
+            <ion-text class="instruction-box">"Bring inhaler, allergic to nuts"</ion-text>
+
+            <ion-item lines="none" class="voice-item">
+              <ion-button fill="clear" color="primary" (click)="playVoiceMessage()">
+                <ion-icon name="play" slot="start"></ion-icon>
+                Voice message available
+              </ion-button>
+            </ion-item>
+
+            <!-- Action Buttons -->
+            <ion-row class="button-grid">
+              <ion-col size="6">
+                <ion-button expand="block" color="success" (click)="responded()">
+                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                  Responded
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="6">
+                <ion-button expand="block" color="medium" (click)="cannotRespond()">
+                  <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+                  Cannot Respond
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="6">
+                <ion-button expand="block" color="primary" (click)="navigate()">
+                  <ion-icon slot="start" name="navigate"></ion-icon>
+                  Navigation
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="6">
+                <ion-button expand="block" color="success" (click)="markResolved()">
+                  <ion-icon slot="start" name="checkmark-done-circle-outline"></ion-icon>
+                  Mark as Resolved
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="12">
+                <ion-button expand="block" class="speak-alert" (click)="speakAlert()">
+                  <ion-icon slot="start" name="megaphone-outline"></ion-icon>
+                  Speak Alert
+                </ion-button>
+              </ion-col>
+            </ion-row>
+
+            <ion-card color="success" class="confirmation-card" *ngIf="hasResponded">
+              <ion-card-content class="ion-text-center">
+                <ion-icon name="checkmark-circle-outline" color="dark" size="large"></ion-icon>
+                <p class="ion-margin-top">You have responded to this emergency</p>
+              </ion-card-content>
+            </ion-card>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+

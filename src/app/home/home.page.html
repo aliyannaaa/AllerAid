@@ -23,8 +23,17 @@
     </div>
     <p class="bottom-text">Press the button above in case of emergency</p>
   </div>
-
   
+  <!-- Show the emergency response notification when a buddy responds -->
+  <app-emergency-response-notification 
+    *ngIf="respondingBuddy"
+    [responderName]="respondingBuddy.responderName"
+    [estimatedTime]="respondingBuddy.estimatedTime"
+    [distance]="respondingBuddy.distance"
+    [estimatedMinutes]="respondingBuddy.estimatedArrival"
+    (viewMap)="openResponderMap(respondingBuddy)"
+    (dismiss)="respondingBuddy = null">
+  </app-emergency-response-notification>
 
   <ion-card>
     <ion-card-header>

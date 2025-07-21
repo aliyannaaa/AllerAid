@@ -58,3 +58,33 @@ ion-button[fill="clear"] ion-icon[name="ellipsis-vertical"] {
   color: #5e3c7a !important;
 }
 
+.user-info-card {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  ion-icon {
+    font-size: 32px;
+    color: #451d66;
+  }
+  
+  h3 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #451d66;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+}
+

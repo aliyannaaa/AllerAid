@@ -1,0 +1,74 @@
+.emergency-pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+  }
+  
+  .emergency-header {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .map-container {
+    height: 200px;
+    border-radius: 8px;
+    background-image: url('https://maps.googleapis.com/maps/api/staticmap?center=14.5995,120.9842&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C14.5995,120.9842&key=YOUR_API_KEY');
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .label-heading {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #374151;
+  }
+  
+  .voice-item {
+    margin-top: 0.5rem;
+  }
+  
+  .instruction-box {
+    display: block;
+    background: #f3f4f6;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+    font-style: italic;
+    font-size: 15px;
+  }
+  
+  .button-grid ion-col {
+    padding: 0.25rem 0.25rem;
+  }
+  
+  .speak-alert {
+    --background: #a855f7;
+    --background-hover: #9333ea;
+    color: white;
+    font-size: 14px;
+    margin-top: 1rem;
+    border-radius: 10px;
+  }
+  
+  .confirmation-card {
+    margin-top: 1rem;
+    border-radius: 12px;
+    --background: #d1fae5;
+    color: #065f46;
+    font-size: 14px;
+  }

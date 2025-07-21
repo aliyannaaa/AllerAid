@@ -77,6 +77,37 @@
   font-size: 18px;
   margin-left: 4px;
 }
+.allergy-list-container {
+  margin-bottom: 18px;
+}
+
+.allergy-list-scrollable {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+}
+
+.allergy-list-scrollable::-webkit-scrollbar {
+  height: 6px;
+}
+
+.allergy-list-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.allergy-list-scrollable::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.allergy-list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
 .allergy-list {
   display: flex;
   align-items: center;
@@ -91,6 +122,8 @@
   font-size: 16px;
   font-weight: 500;
   display: inline-block;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .add-allergy {
   font-size: 22px;

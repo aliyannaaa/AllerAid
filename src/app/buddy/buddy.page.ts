@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { BuddyService } from '../service/buddy.service';
+import { AuthService } from '../service/auth.service';
+import { UserService } from '../service/user.service';
 import { ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-buddy',
@@ -22,27 +25,93 @@ export class BuddyPage implements OnInit {
   showDeleteModal = false;
   buddyToEdit: any = null;
   selectedBuddy: any = null;
+  
+  // Current user info
+  currentUserName: string = '';
 
   constructor(
     private buddyService: BuddyService,
-    private toastController: ToastController
+    private authService: AuthService,
+    private userService: UserService,
+    private toastController: ToastController,
+    private router: Router
   ) {}
 
   async ngOnInit() {
+    await this.loadCurrentUser();
     this.loadBuddies();
+  }
+  
+  async loadCurrentUser() {
+    // Wait for auth to be initialized
+    const currentUser = await this.authService.waitForAuthInit();
+    
+    if (currentUser) {
+      console.log('Loading current user data for:', currentUser.email); // Debug log
+      
+      try {
+        const userProfile = await this.userService.getUserProfile(currentUser.uid);
+        if (userProfile) {
+          this.currentUserName = `${userProfile.firstName} ${userProfile.lastName}`;
+        }
+      } catch (error) {
+        console.error('Error loading current user:', error);
+      }
+    }
   }
 
   async loadBuddies() {
-    this.buddies = await this.buddyService.getBuddies();
+    // Wait for auth to be initialized
+    const currentUser = await this.authService.waitForAuthInit();
+    
+    if (currentUser) {
+      console.log('Loading buddies for current user:', currentUser.uid); // Debug log
+      
+      // Debug: Show all buddies in database
+      await this.buddyService.debugAllBuddies();
+      
+      this.buddies = await this.buddyService.getUserBuddies(currentUser.uid);
+      console.log('Loaded buddies from buddy page:', this.buddies); // Debug log
+    } else {
+      console.log('No current user found - redirecting to login'); // Debug log
+      this.buddies = [];
+      
+      // Show toast and redirect to login
+      const toast = await this.toastController.create({
+        message: 'Please log in to view your buddies',
+        duration: 3000,
+        color: 'warning'
+      });
+      await toast.present();
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 1000);
+    }
     this.filteredBuddies = this.buddies;
   }
 
   async addBuddy() {
+    // Wait for auth to be initialized
+    const currentUser = await this.authService.waitForAuthInit();
+    
+    if (!currentUser) {
+      const toast = await this.toastController.create({
+        message: 'You must be logged in to add a buddy.',
+        duration: 2000,
+        color: 'danger'
+      });
+      await toast.present();
+      return;
+    }
+
     const buddy = {
+      userId: currentUser.uid, // Add the current user's ID
       firstName: this.buddyFirstName,
       lastName: this.buddyLastName,
       relationship: this.buddyRelationship,
-      contact: this.buddyContact
+      contactNumber: this.buddyContact
     };
 
     try {
@@ -106,7 +175,26 @@ export class BuddyPage implements OnInit {
 
   async onAddBuddy(buddy: { firstName: string; lastName: string }) {
     try {
-      await this.buddyService.addBuddy(buddy); // use buddyService instead of firebaseService
+      // Wait for auth to be initialized
+      const currentUser = await this.authService.waitForAuthInit();
+      
+      if (!currentUser) {
+        const toast = await this.toastController.create({
+          message: 'You must be logged in to add a buddy.',
+          duration: 2000,
+          color: 'danger'
+        });
+        await toast.present();
+        return;
+      }
+
+      // Add userId to the buddy object
+      const buddyWithUserId = {
+        ...buddy,
+        userId: currentUser.uid
+      };
+
+      await this.buddyService.addBuddy(buddyWithUserId); // use buddyService instead of firebaseService
       const toast = await this.toastController.create({
         message: 'Buddy added successfully!',
         duration: 2000,
@@ -133,7 +221,7 @@ export class BuddyPage implements OnInit {
 
   onSaveEditBuddy(editedBuddy: any) {
     // Save the edited buddy to Firebase (expects id and data)
-    this.firebaseService.updateBuddy(editedBuddy.id, editedBuddy).then(() => {
+    this.buddyService.updateBuddy(editedBuddy.id, editedBuddy).then(() => {
       this.loadBuddies();
       this.closeEditModal();
     });
@@ -152,7 +240,7 @@ export class BuddyPage implements OnInit {
 
   async onConfirmDeleteBuddy(buddy: any) {
     try {
-      await this.firebaseService.deleteBuddy(buddy.id); // Delete from Firebase by ID
+      await this.buddyService.deleteBuddy(buddy.id); // Delete from Firebase by ID
       this.showDeleteModal = false;
       this.buddyToEdit = null;
       await this.loadBuddies(); // Refresh the list

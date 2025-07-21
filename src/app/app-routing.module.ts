@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth.guard';
 
 
 const routes: Routes = [
@@ -9,7 +10,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'tabs/home',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
   {
@@ -31,12 +32,14 @@ const routes: Routes = [
   },
   {
     path: 'tabs',
-    loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule)
+    loadChildren: () => import('./components/tabs/tabs.module').then( m => m.TabsPageModule),
+    canActivate: [AuthGuard]
   },
   {
 
     path: 'buddy',
-    loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule)
+    loadChildren: () => import('./buddy/buddy.module').then( m => m.BuddyPageModule),
+    canActivate: [AuthGuard]
   },
   {
 
@@ -46,11 +49,28 @@ const routes: Routes = [
   {
 
     path: 'profile',
-    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule)
+    loadChildren: () => import('./profile/profile.module').then( m => m.ProfilePageModule),
+    canActivate: [AuthGuard]
   },
   {
     path: 'notification',
-    loadChildren: () => import('./notification/notification.module').then( m => m.NotificationPageModule)
+    loadChildren: () => import('./notification/notification.module').then( m => m.NotificationPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'buddy-dashboard',
+    loadChildren: () => import('./pages/buddy/buddy-dashboard/buddy-dashboard.module').then( m => m.BuddyDashboardPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'responder-dashboard',
+    loadChildren: () => import('./pages/responder/responder-dashboard/responder-dashboard.module').then( m => m.ResponderDashboardPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'responder-map',
+    loadChildren: () => import('./responder-map/responder-map.module').then( m => m.ResponderMapPageModule),
+    canActivate: [AuthGuard]
   },
 
 

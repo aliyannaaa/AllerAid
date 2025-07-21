@@ -5,31 +5,19 @@
     </div>
 
     <ion-card class="onboarding-card">
-      <!-- Loading spinner -->
+
       <div *ngIf="isLoading" class="ion-text-center ion-padding">
         <ion-spinner></ion-spinner>
         <p>Loading allergy options...</p>
       </div>
       
-      <!-- Empty state when no options in Firebase -->
       <div *ngIf="!isLoading && allergyOptions.length === 0" class="ion-text-center ion-padding">
         <ion-icon name="alert-circle-outline" size="large" color="medium"></ion-icon>
-        <h3>No Allergy Options Found</h3>
-        <p>The allergy options collection is empty in Firebase.</p>
-        <p>Please add allergy options to the Firebase database or use the refresh button to try again.</p>
+        <h3>No Allergy Options Available</h3>
+        <p>Please contact support if this issue persists.</p>
       </div>
       
-      <!-- Allergy form -->
       <form *ngIf="!isLoading && allergyOptions.length > 0">
-        <!-- Fallback options indicator -->
-        <ion-item *ngIf="isUsingFallbackOptions" color="warning">
-          <ion-icon name="warning-outline" slot="start"></ion-icon>
-          <ion-label>
-            <h3>Using default options</h3>
-            <p>Firebase data unavailable, showing fallback options.</p>
-          </ion-label>
-        </ion-item>
-        
         <ion-list lines="none">
           <ion-item *ngFor="let allergy of allergyOptions">
             <ion-checkbox
@@ -47,10 +35,17 @@
             </ion-input>
           </ion-item>
         </ion-list>
+        
+        <div class="ion-padding">
+          <ion-button expand="block" color="success" (click)="saveAllergies()">
+            <ion-icon name="save-outline" slot="start"></ion-icon>
+            Save Allergies
+          </ion-button>
+        </div>
       </form>
     </ion-card>
 
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!isLoading && allergyOptions.length > 0">
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!isLoading && allergyOptions.length > 0" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
       <ion-fab-button color="primary" (click)="submitAllergies()">
         <ion-icon name="arrow-forward-outline"></ion-icon>
       </ion-fab-button>

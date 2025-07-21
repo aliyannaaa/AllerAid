@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { UserService, UserProfile } from '../service/user.service';
 import { AllergyService } from '../service/allergy.service';
 import { BuddyService } from '../service/buddy.service';
+import { AuthService } from '../service/auth.service';
+import { BarcodeService } from '../service/barcode.service';
 import { ToastController } from '@ionic/angular';
 
 @Component({
@@ -18,13 +20,11 @@ export class ProfilePage implements OnInit {
   showEditMedicationsModal = false;
   showEditEmergencyMessageModal = false;
 
-  // User data
   userProfile: UserProfile | null = null;
   userAllergies: any[] = [];
   userBuddies: any[] = [];
   emergencyInstruction: string = '';
 
-  // Stats
   allergiesCount = 0;
   medicationsCount = 0;
   buddiesCount = 0;
@@ -49,34 +49,76 @@ export class ProfilePage implements OnInit {
     private userService: UserService,
     private allergyService: AllergyService,
     private buddyService: BuddyService,
+    private authService: AuthService,
+    private barcodeService: BarcodeService,
     private toastController: ToastController
   ) { }
 
   async ngOnInit() {
+    await this.loadAllergyOptions();
     await this.loadUserData();
+  }
+
+  async loadAllergyOptions() {
+    try {
+      // Load allergy options from Firebase
+      const options = await this.allergyService.getAllergyOptions();
+      
+      if (options && options.length > 0) {
+        // Use options from Firebase, sorted by order
+        this.allergyOptions = options.sort((a, b) => a.order - b.order).map(option => ({
+          name: option.name,
+          label: option.label,
+          checked: false,
+          hasInput: option.hasInput || false,
+          value: ''
+        }));
+      }
+      // If no options in Firebase, keep the hardcoded ones as fallback
+      console.log('Loaded allergy options:', this.allergyOptions); // Debug log
+    } catch (error) {
+      console.error('Error loading allergy options:', error);
+      // Keep hardcoded options as fallback
+    }
   }
 
   async loadUserData() {
     try {
+      // Get current user using AuthService
+      const currentUser = await this.authService.waitForAuthInit();
+      
+      if (!currentUser) {
+        console.log('No authenticated user found');
+        this.presentToast('Please log in to view your profile');
+        return;
+      }
+      
+      console.log('Loading profile data for user:', currentUser.uid); // Debug log
+      
       // Load user profile
-      this.userProfile = await this.userService.getCurrentUserProfile();
+      this.userProfile = await this.userService.getUserProfile(currentUser.uid);
       
       if (this.userProfile) {
         // Load user allergies
-        const userAllergyDocs = await this.allergyService.getUserAllergies(this.userProfile.uid);
+        const userAllergyDocs = await this.allergyService.getUserAllergies(currentUser.uid);
+        console.log('User allergy docs:', userAllergyDocs); // Debug log
+        
         this.userAllergies = [];
         
-        // Flatten the allergies from documents
+        // Flatten the allergies from documents and filter only checked ones
         userAllergyDocs.forEach((allergyDoc: any) => {
-          if (allergyDoc.allergies) {
-            this.userAllergies.push(...allergyDoc.allergies);
+          if (allergyDoc.allergies && Array.isArray(allergyDoc.allergies)) {
+            // Only include allergies that are checked
+            const checkedAllergies = allergyDoc.allergies.filter((allergy: any) => allergy.checked);
+            this.userAllergies.push(...checkedAllergies);
           }
         });
         
+        console.log('Processed user allergies:', this.userAllergies); // Debug log
         this.allergiesCount = this.userAllergies.length;
         
         // Load user buddies
-        this.userBuddies = await this.buddyService.getUserBuddies(this.userProfile.uid);
+        this.userBuddies = await this.buddyService.getUserBuddies(currentUser.uid);
         this.buddiesCount = this.userBuddies.length;
         
         // Set medications count (placeholder for now)
@@ -95,15 +137,32 @@ export class ProfilePage implements OnInit {
   }
 
   updateAllergyOptions() {
+    console.log('Updating allergy options with user allergies:', this.userAllergies); // Debug log
+    
+    // Reset all options first
     this.allergyOptions.forEach(option => {
-      const userAllergy = this.userAllergies.find(allergy => allergy.name === option.name);
+      option.checked = false;
+      if (option.hasInput) {
+        option.value = '';
+      }
+    });
+    
+    // Update options based on user's saved allergies
+    this.allergyOptions.forEach(option => {
+      const userAllergy = this.userAllergies.find(allergy => 
+        allergy.name === option.name && allergy.checked === true
+      );
+      
       if (userAllergy) {
+        console.log(`Setting ${option.name} to checked with value:`, userAllergy.value); // Debug log
         option.checked = true;
-        if (option.hasInput) {
-          option.value = userAllergy.value || '';
+        if (option.hasInput && userAllergy.value) {
+          option.value = userAllergy.value;
         }
       }
     });
+    
+    console.log('Updated allergy options:', this.allergyOptions); // Debug log
   }
 
   selectTab(tab: 'overview' | 'health' | 'emergency') {
@@ -111,27 +170,53 @@ export class ProfilePage implements OnInit {
   }
 
   async saveAllergies() {
-    if (!this.userProfile) {
-      this.presentToast('User profile not loaded');
-      return;
-    }
-
     try {
-      // Clear existing allergies
-      await this.allergyService.clearUserAllergies(this.userProfile.uid);
+      // Get current user
+      const currentUser = await this.authService.waitForAuthInit();
       
-      // Add selected allergies
-      const selectedAllergies = this.allergyOptions.filter(option => option.checked);
+      if (!currentUser) {
+        this.presentToast('Please log in to save allergies');
+        return;
+      }
+
+      console.log('Saving allergies for user:', currentUser.uid); // Debug log
+      console.log('Current allergy options:', this.allergyOptions); // Debug log
       
-      for (const allergy of selectedAllergies) {
-        await this.allergyService.addUserAllergy(this.userProfile.uid, {
+      // Prepare allergies for saving (same format as onboarding page)
+      const sanitizedAllergies = this.allergyOptions.map(allergy => {
+        const cleanAllergy: Record<string, any> = {
+          id: allergy.name, // Use name as id for consistency
           name: allergy.name,
           label: allergy.label,
-          value: allergy.value || null
-        });
+          checked: allergy.checked,
+          hasInput: allergy.hasInput || false
+        };
+        
+        // Only include input value if it's not empty
+        if (allergy.hasInput && allergy.value) {
+          cleanAllergy['value'] = allergy.value;
+        }
+        
+        return cleanAllergy;
+      });
+      
+      console.log('Sanitized allergies:', sanitizedAllergies); // Debug log
+      
+      // Check if user already has allergy data
+      const userAllergies = await this.allergyService.getUserAllergies(currentUser.uid);
+      
+      if (userAllergies && userAllergies.length > 0) {
+        // User has existing allergy data - update it
+        const allergyDocId = userAllergies[0].id;
+        await this.allergyService.updateUserAllergies(allergyDocId, sanitizedAllergies);
+        console.log('Updated user allergies');
+      } else {
+        // No existing data - create new record
+        await this.allergyService.addUserAllergies(currentUser.uid, sanitizedAllergies);
+        console.log('Created new user allergies record');
       }
       
-      // Reload user data
+      // Reload user data to refresh the display
       await this.loadUserData();
       
       this.showEditAllergiesModal = false;
@@ -179,5 +264,18 @@ export class ProfilePage implements OnInit {
 
   getUserAllergiesDisplay(): string {
     return this.userAllergies.map(allergy => allergy.label).join(', ') || 'None';
+  }
+
+  async scanProduct() {
+    if (this.userAllergies.length === 0) {
+      await this.presentToast('Please add allergies to your profile first');
+      return;
+    }
+
+    const barcode = await this.barcodeService.scanBarcode();
+    if (barcode) {
+      const userAllergenNames = this.userAllergies.map(a => a.name || a.label);
+      await this.barcodeService.checkProductForAllergens(barcode, userAllergenNames);
+    }
   }
 }

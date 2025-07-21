@@ -61,10 +61,17 @@
           </ng-template>
         </ion-modal>
 
-        <div class="allergy-list">
-          <span *ngFor="let allergy of userAllergies" class="allergy-chip">{{ allergy.label || allergy.name }}</span>
-          <span *ngIf="userAllergies.length === 0" class="no-data">No allergies recorded</span>
+        <div class="allergy-list-container">
+          <div class="allergy-list-scrollable">
+            <span *ngFor="let allergy of userAllergies" class="allergy-chip">{{ allergy.label || allergy.name }}</span>
+            <span *ngIf="userAllergies.length === 0" class="no-data">No allergies recorded</span>
+          </div>
         </div>
+
+        <ion-button expand="block" fill="outline" (click)="scanProduct()" class="scan-button">
+          <ion-icon name="scan-outline" slot="start"></ion-icon>
+          Scan Product for Allergens
+        </ion-button>
         
         <div class="section-title">
           Emergency Instruction <ion-icon name="pencil-outline" (click)="showEditEmergencyModal = true"></ion-icon>

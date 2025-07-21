@@ -10,6 +10,19 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <!-- User Info Header -->
+  <ion-card *ngIf="currentUserName" class="user-info-card">
+    <ion-card-content>
+      <div class="user-info">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <div>
+          <h3>{{ currentUserName }}'s Buddies</h3>
+          <p>{{ buddies.length }} buddy(ies) added</p>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button (click)="openModal()">
       <ion-icon name="person-add"></ion-icon>

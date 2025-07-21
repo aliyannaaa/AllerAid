@@ -61,17 +61,51 @@ export class AllergyService {
 
   // CREATE predefined allergy options (run once to populate Firebase)
   async createAllergyOptions(): Promise<void> {
-    // Allergy options should be created manually in Firebase Console
-    // or loaded from an external configuration
-    throw new Error('Allergy options should be created manually in Firebase Console');
+    try {
+      // First, delete all existing allergy options
+      const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
+      const deletePromises = querySnapshot.docs.map(docSnap => deleteDoc(doc(this.db, 'allergyOptions', docSnap.id)));
+      await Promise.all(deletePromises);
+
+      // Now, add the allergy options in the correct order
+      const allergyOptions = [
+        { name: 'peanuts', label: 'Peanuts/Nuts', hasInput: false, order: 1 },
+        { name: 'dairy', label: 'Dairy/Milk', hasInput: false, order: 2 },
+        { name: 'eggs', label: 'Eggs', hasInput: false, order: 3 },
+        { name: 'wheat', label: 'Wheat/Gluten', hasInput: false, order: 4 },
+        { name: 'fish', label: 'Fish', hasInput: false, order: 5 },
+        { name: 'shellfish', label: 'Shellfish', hasInput: false, order: 6 },
+        { name: 'soy', label: 'Soy', hasInput: false, order: 7 },
+        { name: 'pollen', label: 'Pollen', hasInput: false, order: 8 },
+        { name: 'latex', label: 'Latex', hasInput: false, order: 9 },
+        { name: 'animalDander', label: 'Animal Dander', hasInput: false, order: 10 },
+        { name: 'insectStings', label: 'Insect Stings', hasInput: false, order: 11 },
+        { name: 'medication', label: 'Medication', hasInput: true, order: 12 },
+        { name: 'others', label: 'Others', hasInput: true, order: 13 }
+      ];
+
+      for (const option of allergyOptions) {
+        await addDoc(collection(this.db, 'allergyOptions'), option);
+      }
+      console.log('Allergy options reset and created successfully in Firebase');
+    } catch (error) {
+      console.error('Error resetting/creating allergy options:', error);
+      throw error;
+    }
   }
 
   // READ all allergy options from Firebase
   async getAllergyOptions(): Promise<any[]> {
     try {
-      const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
+      // Use Firestore's orderBy to guarantee correct order
+      const allergyOptionsRef = collection(this.db, 'allergyOptions');
+      // Import query and orderBy from firebase/firestore if not already
+      // import { query, orderBy } from 'firebase/firestore';
+      const { query, orderBy } = await import('firebase/firestore');
+      const q = query(allergyOptionsRef, orderBy('order'));
+      const querySnapshot = await getDocs(q);
       const options = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log('Retrieved', options.length, 'allergy options from Firebase');
+      console.log('Retrieved', options.length, 'allergy options from Firebase (ordered by order field)');
       return options;
     } catch (error) {
       console.error('Error fetching allergy options:', error);
@@ -124,5 +158,16 @@ export class AllergyService {
     };
     const docRef = await addDoc(collection(this.db, 'allergies'), allergyData);
     return docRef.id;
+  }
+
+  // UTILITY: Reset allergy options (delete all and recreate top-level collection)
+  async resetAllergyOptions(): Promise<void> {
+    // Delete all top-level allergyOptions documents
+    const querySnapshot = await getDocs(collection(this.db, 'allergyOptions'));
+    const deletePromises = querySnapshot.docs.map(docSnap => deleteDoc(doc(this.db, 'allergyOptions', docSnap.id)));
+    await Promise.all(deletePromises);
+    // Repopulate top-level allergyOptions
+    await this.createAllergyOptions();
+    console.log('Allergy options reset and repopulated at top-level collection.');
   }
 }
