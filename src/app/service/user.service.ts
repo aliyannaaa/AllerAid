@@ -23,6 +23,24 @@ export interface UserProfile {
   role: string;
   avatar?: string;
   emergencyInstruction?: string;
+  emergencyMessage?: {
+    name: string;
+    allergies: string;
+    instructions: string;
+    location: string;
+    audioUrl?: string; // Optional audio instruction URL
+  };
+  emergencySettings?: {
+    shakeToAlert: boolean;
+    powerButtonAlert: boolean;
+    audioInstructions: boolean;
+  };
+  emergencyLocation?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+    timestamp: any;
+  };
   dateCreated: any;
   lastLogin: any;
   isActive: boolean;

@@ -240,7 +240,7 @@ export class BuddyPage implements OnInit {
 
   async onConfirmDeleteBuddy(buddy: any) {
     try {
-      await this.firebaseService.deleteBuddy(buddy.id); // Delete from Firebase by ID
+      await this.buddyService.deleteBuddy(buddy.id); // Delete from Firebase by ID
       this.showDeleteModal = false;
       this.buddyToEdit = null;
       await this.loadBuddies(); // Refresh the list

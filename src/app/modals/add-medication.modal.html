@@ -1,0 +1,75 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Add Medication</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" fill="clear">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="saveMedication()">
+    <ion-list lines="full">
+      <ion-item>
+        <ion-label position="stacked">Name of Medication *</ion-label>
+        <ion-input 
+          [(ngModel)]="med.name" 
+          name="name" 
+          placeholder="e.g., Ibuprofen, Cetirizine"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Dosage *</ion-label>
+        <ion-input 
+          [(ngModel)]="med.dosage" 
+          name="dosage"
+          placeholder="e.g., 200mg, 10mg"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Number of Pills *</ion-label>
+        <ion-input 
+          [(ngModel)]="med.quantity" 
+          name="quantity"
+          type="number"
+          placeholder="e.g., 30, 60"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Duration *</ion-label>
+        <ion-input 
+          [(ngModel)]="med.frequency" 
+          name="frequency"
+          placeholder="e.g., 10 days, 2 weeks"
+          required>
+        </ion-input>
+      </ion-item>
+    </ion-list>
+
+    <div style="margin-top: 20px;">
+      <ion-button 
+        expand="block" 
+        type="submit" 
+        [disabled]="!med.name.trim() || !med.dosage.trim() || !med.quantity || !med.frequency.trim()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Save Medication
+      </ion-button>
+      
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="dismiss()" 
+        style="margin-top: 8px;">
+        Cancel
+      </ion-button>
+    </div>
+  </form>
+</ion-content>

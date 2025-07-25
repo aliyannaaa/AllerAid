@@ -12,8 +12,8 @@
   </ion-buttons>
 </ion-toolbar>
 
-<ion-content class="ion-padding">
-  <div class="wrapper">
+<ion-content class="ion-padding" [scrollY]="true">
+  <div class="wrapper scrollable-content">
     <h2 class="page-title">Welcome, {{ userName }}!</h2>
 
     <div class="emergency-wrapper">
@@ -43,15 +43,13 @@
       <ion-card-content>
         <p><strong>Allergens:</strong> 
           <span *ngIf="userAllergies.length > 0">
-            {{ userAllergies.map(a => a.label || a.name).join(', ') }}
+            {{ getAllergensDisplay() }}
           </span>
           <span *ngIf="userAllergies.length === 0">None recorded</span>
         </p>
-        <p><strong>Buddies:</strong> {{ userBuddies.length }} added</p>
-        <p><strong>Emergency Contact:</strong> {{ userBuddies.length > 0 ? 'Configured' : 'Not set' }}</p>
+        <p><strong>Buddies:</strong> {{ getBuddiesCount() }}</p>
+        <p><strong>Emergency Contact:</strong> {{ getEmergencyContactStatus() }}</p>
       </ion-card-content>
     </ion-card>
   </div>
 </ion-content>
-
-

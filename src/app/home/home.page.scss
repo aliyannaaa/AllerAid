@@ -18,20 +18,24 @@ ion-button [color="accent"] {
 ion-content {
   position: relative;
   min-height: 100vh;
+  overflow-y: auto;
 }
 
 .wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
   background-color: #faeaee;
   display: flex;
   flex-direction: column;
-
   padding: 20px;
+  padding-bottom: 20px;
   z-index: 1;
+}
+
+.scrollable-content {
+  height: auto;
+  overflow-y: auto;
 }
 
 ion-card {

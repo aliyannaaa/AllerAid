@@ -220,6 +220,18 @@ export class HomePage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/notification']);
   }
   
+  getAllergensDisplay(): string {
+    return this.userAllergies.map((a: any) => a.label || a.name).join(', ');
+  }
+  
+  getBuddiesCount(): string {
+    return `${this.userBuddies.length} added`;
+  }
+  
+  getEmergencyContactStatus(): string {
+    return this.userBuddies.length > 0 ? 'Configured' : 'Not set';
+  }
+  
   async presentToast(message: string) {
     const toast = await this.toastController.create({
       message,

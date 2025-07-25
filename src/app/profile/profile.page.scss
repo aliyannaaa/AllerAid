@@ -276,3 +276,366 @@
 .emergency-message-value {
   color: #444;
 }
+
+.emergency-testing-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a3977;
+  margin: 24px 16px 12px 16px;
+}
+
+.emergency-test-buttons {
+  margin: 0 16px 20px 16px;
+  
+  ion-button {
+    margin-bottom: 12px;
+    --border-radius: 12px;
+    height: 48px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    ion-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.examples-container {
+  .example-section {
+    margin-bottom: 24px;
+    
+    h3 {
+      color: #0a3977;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+  }
+  
+  .example-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #e9ecef;
+      border-color: #0a3977;
+    }
+    
+    p {
+      margin: 0;
+      line-height: 1.4;
+      flex: 1;
+      font-size: 14px;
+    }
+    
+    ion-icon {
+      margin-left: 8px;
+      font-size: 16px;
+    }
+  }
+  
+  .tips-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+    
+    h3 {
+      color: #856404;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      
+      li {
+        margin-bottom: 6px;
+        color: #856404;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.emergency-instructions-display {
+  margin: 0 16px 16px 16px;
+  
+  .instruction-card {
+    background: #e6f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    
+    .instruction-header {
+      color: #0a3977;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    
+    .instruction-text {
+      color: #333;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  }
+  
+  .no-instructions-card {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+.instructions-list {
+  .instruction-item {
+    display: flex;
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    
+    .instruction-content {
+      flex: 1;
+      
+      strong {
+        color: #0a3977;
+      }
+      
+      p {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        color: #333;
+      }
+    }
+    
+    ion-button {
+      margin-left: 8px;
+    }
+  }
+  
+  .no-instructions {
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+.medications-list {
+  margin: 0 16px 16px 16px;
+  
+  .medication-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    .medication-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      
+      .medication-title {
+        font-weight: 600;
+        color: #0a3977;
+        font-size: 16px;
+        flex: 1;
+        margin-right: 8px;
+      }
+      
+      .medication-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        
+        ion-chip {
+          --background: rgba(var(--ion-color-primary-rgb), 0.1);
+          --color: var(--ion-color-primary);
+          margin: 0;
+          font-size: 11px;
+          height: 20px;
+        }
+        
+        .action-buttons {
+          display: flex;
+          gap: 4px;
+        }
+        
+        ion-button {
+          --padding-start: 4px;
+          --padding-end: 4px;
+          height: 28px;
+          width: 28px;
+        }
+      }
+    }
+    
+    .medication-detail {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 4px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      b {
+        color: #333;
+      }
+    }
+  }
+  
+  .no-medications {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+.medication-filters {
+  margin: 0 16px 16px 16px;
+  
+  ion-segment {
+    --background: #f8f9fa;
+    border-radius: 8px;
+    
+    ion-segment-button {
+      --color: #666;
+      --color-checked: #0a3977;
+      --background-checked: #fff;
+      font-size: 12px;
+      
+      ion-label {
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Enhanced Medication Styles
+.medication-dashboard {
+  margin: 0 16px 16px 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  
+  .dashboard-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    
+    .stat-card {
+      text-align: center;
+      flex: 1;
+      padding: 12px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 8px;
+      margin: 0 4px;
+      
+      .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0a3977;
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+      }
+    }
+  }
+  
+  .quick-actions {
+    display: flex;
+    gap: 8px;
+    
+    .quick-action-btn {
+      flex: 1;
+      height: 36px;
+      font-size: 12px;
+    }
+  }
+}
+
+.medication-search {
+  margin: 0 16px 8px 16px;
+  
+  ion-searchbar {
+    --background: #fff;
+    --border-radius: 12px;
+    --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+}
+
+.medication-card {
+  &.emergency-medication {
+    border-left: 4px solid #ff6b6b !important;
+    background: linear-gradient(135deg, #fff 0%, #fff5f5 100%) !important;
+  }
+  
+  .medication-header {
+    .medication-title-section {
+      flex: 1;
+      
+      .medication-title {
+        display: block;
+        margin-bottom: 4px;
+      }
+      
+      .medication-type-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #666;
+        
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+  
+  .medication-details {
+    .medication-detail {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      ion-icon {
+        font-size: 16px;
+        color: #888;
+        min-width: 16px;
+      }
+      
+      .expiring-warning {
+        color: #ff9500;
+        font-weight: 600;
+        font-size: 12px;
+      }
+    }
+  }
+}
