@@ -23,10 +23,8 @@ const config: CapacitorConfig = {
         'PDF_417', 
         'AZTEC', 
         'DATA_MATRIX'
-      ],
-      // Auto-install Google Barcode Scanner module
-      googleBarcodeScannerModuleInstallState: 2, // INSTALLED
-      googleBarcodeScannerModuleInstallProgress: 100
+      ]
+      // Remove module installation config - let the app handle it
     }
   }
 };

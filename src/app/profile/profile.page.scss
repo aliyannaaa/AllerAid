@@ -1,3 +1,4 @@
+// Header and layout
 .profile-header {
   display: flex;
   flex-direction: column;
@@ -24,23 +25,22 @@
 .stat {
   flex: 1;
   text-align: center;
-}
-
-.stat-label {
-  color: #888;
-  font-size: 15px;
-  font-weight: 400;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #333;
+  
+  &-label {
+    color: #888;
+    font-size: 15px;
+    font-weight: 400;
+  }
+  
+  &-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+  }
 }
 
 .profile-tabs {
   display: flex;
-  justify-content: space-between;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.07);
@@ -59,8 +59,6 @@
   font-weight: 700;
   color: #222;
   transition: all 0.2s;
-  cursor: pointer;
-  outline: none;
   
   &.active {
     background: #f5aab7;
@@ -87,22 +85,21 @@
   padding: 20px 18px 0;
 }
 
+// Allergies and components
 .allergy-list-scrollable {
   display: flex;
   align-items: center;
   gap: 10px;
   overflow-x: auto;
   padding: 4px 0 8px;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
   
   &::-webkit-scrollbar {
     height: 6px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 3px;
+    
+    &-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
   }
 }
 
@@ -130,10 +127,11 @@
   }
 }
 
-// Consolidated card styles
+// Cards - consolidated styles
 .medication-card, 
 .health-record-card, 
-.emergency-setting-card {
+.emergency-setting-card,
+.visit-card {
   border: 1.5px solid #bbb;
   border-radius: 12px;
   background: #fff;
@@ -154,6 +152,13 @@
   justify-content: space-between;
 }
 
+.visit-card {
+  border-color: #e9ecef;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+// Medication styles
 .medication-header {
   display: flex;
   justify-content: space-between;
@@ -161,10 +166,16 @@
   margin-bottom: 2px;
 }
 
-.medication-title {
+.medication-title, .visit-title {
   font-size: 18px;
   font-weight: 700;
   color: #222;
+}
+
+.visit-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
 .medication-status {
@@ -178,13 +189,20 @@
 }
 
 .medication-detail, 
-.health-record-detail {
+.health-record-detail,
+.visit-detail {
   font-size: 15px;
   color: #444;
   margin-bottom: 2px;
 }
 
-// Layout containers
+.visit-detail {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+// Layout containers and emergency styles
 .medications-list,
 .medication-search,
 .medication-filters {
@@ -203,7 +221,6 @@
   margin-bottom: 8px;
 }
 
-// Emergency styles
 .emergency-setting-title {
   font-weight: 700;
   font-size: 16px;
@@ -237,12 +254,16 @@
   color: #444;
 }
 
-// EHR Styles
+// EHR styles - optimized
 .ehr-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-bottom: 24px;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .ehr-stat-card {
@@ -267,15 +288,6 @@
   font-weight: 500;
 }
 
-.visit-card {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
 .visit-header {
   display: flex;
   justify-content: space-between;
@@ -283,21 +295,9 @@
   margin-bottom: 8px;
 }
 
-.visit-title {
-  font-weight: 600;
-  color: #333;
-  font-size: 16px;
-}
-
 .visit-date {
   font-size: 12px;
   color: #666;
-}
-
-.visit-detail {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 4px;
 }
 
 .vital-signs-grid {
@@ -305,15 +305,8 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   font-size: 12px;
-}
-
-// Mobile responsive
-@media (max-width: 480px) {
-  .vital-signs-grid {
-    grid-template-columns: 1fr;
-  }
   
-  .ehr-overview {
-    grid-template-columns: repeat(2, 1fr);
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
   }
 }

@@ -11,11 +11,207 @@ export class BarcodeService {
   constructor(private alertController: AlertController) {}
 
   /**
+   * Comprehensive diagnostic function to identify the exact problem
+   */
+  async diagnoseBarcodeIssues(): Promise<void> {
+    console.log('=== BARCODE DIAGNOSTIC START ===');
+    
+    try {
+      // 1. Platform check
+      console.log('Platform:', Capacitor.getPlatform());
+      console.log('Is native platform:', Capacitor.isNativePlatform());
+      
+      // 2. Plugin availability
+      try {
+        console.log('BarcodeScanner plugin available:', typeof BarcodeScanner);
+      } catch (e) {
+        console.error('BarcodeScanner plugin not found:', e);
+        await this.showAlert('Plugin Error', 'BarcodeScanner plugin is not properly installed');
+        return;
+      }
+      
+      // 3. Permission check
+      try {
+        const permissions = await BarcodeScanner.requestPermissions();
+        console.log('Camera permissions:', permissions);
+      } catch (e) {
+        console.error('Permission check failed:', e);
+      }
+      
+      // 4. Module availability check
+      try {
+        const moduleResult = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+        console.log('Module check result:', moduleResult);
+        const isAvailable = typeof moduleResult === 'boolean' ? moduleResult : moduleResult.available;
+        console.log('Module available:', isAvailable);
+      } catch (e) {
+        console.error('Module availability check failed:', e);
+      }
+      
+      // 5. Try simple scan without module dependency
+      try {
+        console.log('Testing simple scan...');
+        const result = await BarcodeScanner.scan({ formats: [] });
+        console.log('Simple scan result:', result);
+      } catch (e) {
+        console.error('Simple scan failed:', e);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        
+        // Analyze error
+        if (errorMsg.includes('MODULE_NOT_AVAILABLE')) {
+          await this.showAlert('Diagnosis', 'Problem: Google Barcode Scanner module is not installed. This is common on emulators or first app launch.');
+        } else if (errorMsg.includes('PERMISSION_DENIED')) {
+          await this.showAlert('Diagnosis', 'Problem: Camera permission denied. Please enable camera access in settings.');
+        } else if (errorMsg.includes('CAMERA_NOT_AVAILABLE')) {
+          await this.showAlert('Diagnosis', 'Problem: Camera not available. Are you running on an emulator?');
+        } else {
+          await this.showAlert('Diagnosis', `Problem identified: ${errorMsg}`);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Diagnostic failed:', error);
+      await this.showAlert('Diagnostic Error', `Failed to run diagnostics: ${error}`);
+    }
+    
+    console.log('=== BARCODE DIAGNOSTIC END ===');
+  }
+
+  /**
+   * Alternative scan method without Google module dependency
+   */
+  async scanBarcodeSimple(): Promise<string | null> {
+    console.log('=== SIMPLE BARCODE SCAN START ===');
+    
+    if (!Capacitor.isNativePlatform()) {
+      await this.showAlert('Not Available', 'Barcode scanning only works on mobile devices. Please use manual input.');
+      return null;
+    }
+
+    try {
+      // Request permissions
+      const permissions = await BarcodeScanner.requestPermissions();
+      if (permissions.camera !== 'granted') {
+        await this.showAlert('Permission Required', 'Camera permission is required for barcode scanning.');
+        return null;
+      }
+
+      // Try scanning without checking module availability first
+      console.log('Attempting direct barcode scan...');
+      const result = await BarcodeScanner.scan({
+        formats: [], // All formats
+      });
+      
+      if (result.barcodes && result.barcodes.length > 0) {
+        const scannedCode = result.barcodes[0].rawValue;
+        console.log('✅ Barcode scanned:', scannedCode);
+        return scannedCode;
+      }
+      
+      console.log('No barcode detected');
+      return null;
+      
+    } catch (error) {
+      console.error('Simple scan error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if Google Barcode Scanner module is available
+   */
+  async isModuleAvailable(): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return false;
+      }
+      const result = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+      // Handle both possible return types
+      return typeof result === 'boolean' ? result : result.available;
+    } catch (error) {
+      console.error('Error checking module availability:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Ensure Google Barcode Scanner module is installed
+   */
+  async ensureModuleInstalled(): Promise<boolean> {
+    console.log('=== CHECKING MODULE INSTALLATION ===');
+    
+    try {
+      const result = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+      // Handle both possible return types
+      const isAvailable = typeof result === 'boolean' ? result : result.available;
+      console.log('Module currently available:', isAvailable);
+      
+      if (isAvailable) {
+        console.log('✅ Module already installed');
+        return true;
+      }
+      
+      console.log('📦 Module not available - starting installation...');
+      
+      // Show installation alert
+      const installAlert = await this.alertController.create({
+        header: 'Installing Barcode Scanner',
+        message: 'Installing the barcode scanner module. This requires internet connection and may take a few moments...',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => {
+              console.log('User cancelled module installation');
+              return false;
+            }
+          }
+        ]
+      });
+      await installAlert.present();
+      
+      // Install the module
+      const progressListener = await BarcodeScanner.addListener(
+        'googleBarcodeScannerModuleInstallProgress',
+        (event) => {
+          console.log('📊 Installation progress:', event.progress, '%');
+        }
+      );
+      
+      await BarcodeScanner.installGoogleBarcodeScannerModule();
+      progressListener.remove();
+      await installAlert.dismiss();
+      
+      // Verify installation
+      const verifyResult = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+      const isNowAvailable = typeof verifyResult === 'boolean' ? verifyResult : verifyResult.available;
+      console.log('✅ Module installation completed. Available:', isNowAvailable);
+      
+      if (isNowAvailable) {
+        await this.showAlert('Installation Complete', 'Barcode scanner module installed successfully! You can now scan barcodes.');
+        return true;
+      } else {
+        throw new Error('Module installation completed but module still not available');
+      }
+      
+    } catch (error) {
+      console.error('❌ Module installation failed:', error);
+      await this.showAlert('Installation Failed', 'Failed to install barcode scanner module. Please check your internet connection and try again.');
+      return false;
+    }
+  }
+
+  /**
    * Scan barcode and return result
    */
   async scanBarcode(): Promise<string | null> {
+    console.log('=== BARCODE SCAN DEBUG START ===');
+    console.log('Platform check:', Capacitor.getPlatform());
+    console.log('Is native platform:', Capacitor.isNativePlatform());
+    
     if (!Capacitor.isNativePlatform()) {
-      await this.showAlert('Not Available', 'Barcode scanning only works on mobile devices');
+      console.log('Not on native platform - showing alert');
+      await this.showAlert('Not Available', 'Barcode scanning only works on mobile devices. For testing, please use the manual barcode input field below.');
       return null;
     }
 
@@ -28,100 +224,84 @@ export class BarcodeService {
       console.log('Permission result:', permissions);
       
       if (permissions.camera !== 'granted') {
-        await this.showAlert('Permission Required', 'Camera permission needed for scanning');
+        console.log('Camera permission denied');
+        await this.showAlert('Permission Required', 'Camera permission is required for barcode scanning. Please enable camera access in your device settings.');
         return null;
       }
 
-      console.log('Camera permission granted, checking module availability...');
+      console.log('Camera permission granted, ensuring module is installed...');
       
-      // Check if Google Barcode Scanner module is available
-      const isAvailable = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
-      console.log('Module available:', isAvailable);
-      
-      if (!isAvailable) {
-        console.log('Installing Google Barcode Scanner module...');
-        
-        // Show installation progress alert
-        const installAlert = await this.alertController.create({
-          header: 'Installing Scanner',
-          message: 'Installing barcode scanner module. This may take a moment and requires internet connection...',
-          buttons: []
-        });
-        await installAlert.present();
-        
-        try {
-          // Listen for installation progress
-          const progressListener = await BarcodeScanner.addListener(
-            'googleBarcodeScannerModuleInstallProgress',
-            (event) => {
-              console.log('Installation progress:', event.progress);
-            }
-          );
-          
-          await BarcodeScanner.installGoogleBarcodeScannerModule();
-          progressListener.remove();
-          await installAlert.dismiss();
-          
-          console.log('Module installed successfully');
-          
-          // Show success message
-          await this.showAlert('Installation Complete', 'Barcode scanner installed. Tap scan again to start scanning.');
-          return null; // Return null so user taps scan again
-          
-        } catch (installError) {
-          await installAlert.dismiss();
-          console.error('Failed to install module:', installError);
-          await this.showAlert('Installation Failed', 'Failed to install barcode scanner. Please ensure you have a stable internet connection and Google Play Services is updated.');
-          return null;
-        }
+      // Ensure module is installed
+      const moduleReady = await this.ensureModuleInstalled();
+      if (!moduleReady) {
+        console.log('Module installation failed or was cancelled');
+        return null;
       }
 
-      console.log('Starting camera scan...');
+      console.log('Module is ready, starting camera scan...');
       
       // Start scanning with camera UI
       const result = await BarcodeScanner.scan({
         formats: [], // Empty array means all formats are supported
       });
       
-      console.log('Scan result:', result);
+      console.log('Scan result received:', result);
+      console.log('Number of barcodes found:', result.barcodes ? result.barcodes.length : 0);
       
       if (result.barcodes && result.barcodes.length > 0) {
-        console.log('Barcode found:', result.barcodes[0].rawValue);
-        return result.barcodes[0].rawValue;
+        const scannedCode = result.barcodes[0].rawValue;
+        console.log('✅ Barcode successfully scanned:', scannedCode);
+        console.log('Barcode format:', result.barcodes[0].format);
+        console.log('=== BARCODE SCAN DEBUG END ===');
+        return scannedCode;
       }
       
-      console.log('No barcode detected');
+      console.log('❌ No barcode detected in scan result');
+      console.log('=== BARCODE SCAN DEBUG END ===');
       return null;
 
     } catch (error) {
-      console.error('Barcode scan error:', error);
+      console.error('❌ Barcode scan error occurred:', error);
+      console.log('Error type:', typeof error);
+      console.log('Error details:', JSON.stringify(error, null, 2));
       
       // Check if user cancelled
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = (error as any).message.toLowerCase();
+        console.log('Error message (lowercase):', errorMessage);
+        
         if (errorMessage.includes('cancelled') || errorMessage.includes('canceled') || errorMessage.includes('user_canceled')) {
-          console.log('User cancelled scan');
+          console.log('✅ User cancelled scan - this is normal');
+          console.log('=== BARCODE SCAN DEBUG END ===');
           return null;
         }
         
         // Handle specific error cases
         if (errorMessage.includes('module_not_available') || errorMessage.includes('module is not available')) {
+          console.log('Module not available error detected');
           await this.showAlert('Module Installation Required', 'The barcode scanner module needs to be installed. Please tap "Tap to Scan" again to install it.');
+          console.log('=== BARCODE SCAN DEBUG END ===');
           return null;
         }
         
         if (errorMessage.includes('permission')) {
-          await this.showAlert('Permission Denied', 'Camera permission is required for barcode scanning.');
+          console.log('Permission error detected');
+          await this.showAlert('Permission Denied', 'Camera permission is required for barcode scanning. Please enable camera access in your device settings.');
+          console.log('=== BARCODE SCAN DEBUG END ===');
           return null;
         }
         
         if (errorMessage.includes('google play services')) {
+          console.log('Google Play Services error detected');
           await this.showAlert('Google Play Services Required', 'Please update Google Play Services to use barcode scanning.');
+          console.log('=== BARCODE SCAN DEBUG END ===');
           return null;
         }
       }
       
-      await this.showAlert('Scan Failed', 'Barcode scanning failed. Please try again or ensure you have internet connection for first-time setup.');
+      console.log('❌ Unhandled error - showing generic message');
+      await this.showAlert('Scan Failed', `Barcode scanning failed: ${error}. Please try again or use manual barcode input.`);
+      console.log('=== BARCODE SCAN DEBUG END ===');
       return null;
     }
   }

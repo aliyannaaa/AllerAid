@@ -14,9 +14,6 @@ export class ScanPage {
   allergenStatus: 'safe' | 'warning' | null = null;
   ingredientsToWatch: string[] = [];
 
-  // Hardcoded user allergen list (can later be dynamic)
-  userAllergens: string[] = ['peanuts', 'shellfish', 'eggs', 'dairy', 'soy'];
-
   constructor(
     private productService: ProductService,
     private barcodeService: BarcodeService
@@ -38,25 +35,36 @@ export class ScanPage {
         const product = data.product;
         this.productInfo = product;
 
-        // Use enhanced allergen detection
-        const allergenResult = await this.barcodeService.checkProductForAllergens(barcode, this.userAllergens);
+        // TODO: Get user allergens from user profile/settings service
+        // For now, skip allergen checking or implement dynamic user allergen retrieval
+        const userAllergens: string[] = []; // Empty array - to be populated from user profile
         
-        // Map the new status to your existing UI
-        switch (allergenResult.status) {
-          case 'safe':
-            this.allergenStatus = 'safe';
-            this.ingredientsToWatch = [];
-            break;
-          case 'warning':
-          case 'contains_allergen':
-            this.allergenStatus = 'warning';
-            this.ingredientsToWatch = allergenResult.matchingAllergens;
-            break;
-        }
+        if (userAllergens.length > 0) {
+          // Use enhanced allergen detection only if user has configured allergens
+          const allergenResult = await this.barcodeService.checkProductForAllergens(barcode, userAllergens);
+          
+          // Map the new status to your existing UI
+          switch (allergenResult.status) {
+            case 'safe':
+              this.allergenStatus = 'safe';
+              this.ingredientsToWatch = [];
+              break;
+            case 'warning':
+            case 'contains_allergen':
+              this.allergenStatus = 'warning';
+              this.ingredientsToWatch = allergenResult.matchingAllergens;
+              break;
+          }
 
-        console.log('Allergen Status:', this.allergenStatus);
-        console.log('Ingredients to watch:', this.ingredientsToWatch);
-        console.log('Detection result:', allergenResult);
+          console.log('Allergen Status:', this.allergenStatus);
+          console.log('Ingredients to watch:', this.ingredientsToWatch);
+          console.log('Detection result:', allergenResult);
+        } else {
+          // No allergens configured - show product info without allergen checking
+          this.allergenStatus = null;
+          this.ingredientsToWatch = [];
+          console.log('No user allergens configured - skipping allergen check');
+        }
       } else {
         alert('Product not found in OpenFoodFacts.');
         this.productInfo = null;
@@ -69,21 +77,21 @@ export class ScanPage {
   // Function to handle camera scanning
   async startCameraScan() {
     try {
-      console.log('Starting camera scan...');
+      console.log('=== SCAN PAGE: Starting camera scan ===');
       
       const scannedBarcode = await this.barcodeService.scanBarcode();
       
       if (scannedBarcode) {
-        console.log('Scanned barcode:', scannedBarcode);
+        console.log('=== SCAN PAGE: Scanned barcode received ===', scannedBarcode);
         // Use the scanned barcode to fetch product info
         this.scanAndFetchProduct(scannedBarcode);
         // Also update the manual input field with the scanned code
         this.manualBarcode = scannedBarcode;
       } else {
-        console.log('No barcode scanned or scan cancelled');
+        console.log('=== SCAN PAGE: No barcode scanned or scan cancelled ===');
       }
     } catch (error) {
-      console.error('Error during barcode scan:', error);
+      console.error('=== SCAN PAGE: Error during barcode scan ===', error);
       // The error is already handled in the barcode service, so no need to show another alert here
     }
   }
