@@ -91,12 +91,14 @@ export interface EHRRecord {
   providedIn: 'root'
 })
 export class EHRService {
-  private db = this.firebaseService.getDb();
+  private db: any;
 
   constructor(
     private firebaseService: FirebaseService,
     private authService: AuthService
-  ) {}
+  ) {
+    this.db = this.firebaseService.getDb();
+  }
 
   /**
    * Create or update EHR record
@@ -264,20 +266,65 @@ export class EHRService {
    * Add doctor visit
    */
   async addDoctorVisit(visitData: Omit<DoctorVisit, 'id' | 'patientId'>): Promise<void> {
+    console.log('EHR Service: Starting addDoctorVisit with data:', visitData);
+    
     const currentUser = await this.authService.waitForAuthInit();
+    console.log('EHR Service: Current user:', currentUser?.uid);
+    
     if (!currentUser) {
       throw new Error('User not logged in');
     }
 
     try {
-      await addDoc(collection(this.db, `ehr/${currentUser.uid}/doctorVisits`), {
-        ...visitData,
+      // Clean and validate the data before saving
+      const cleanedData: any = {
+        doctorName: visitData.doctorName?.trim() || '',
+        specialty: visitData.specialty?.trim() || '',
+        visitDate: visitData.visitDate || new Date().toISOString(),
+        visitType: visitData.visitType || 'routine',
+        chiefComplaint: visitData.chiefComplaint?.trim() || '',
+        diagnosis: visitData.diagnosis?.trim() || '',
+        treatment: visitData.treatment?.trim() || '',
+        recommendations: visitData.recommendations?.trim() || '',
+        nextAppointment: visitData.nextAppointment || '',
+        prescriptions: Array.isArray(visitData.prescriptions) ? visitData.prescriptions : [],
+        vitalSigns: {},
+        notes: visitData.notes?.trim() || '',
         patientId: currentUser.uid,
         createdAt: new Date(),
         updatedAt: new Date()
-      });
+      };
+
+      // Only add vital signs fields if they have values (not undefined or empty)
+      if (visitData.vitalSigns) {
+        if (visitData.vitalSigns.bloodPressure?.trim()) {
+          cleanedData.vitalSigns.bloodPressure = visitData.vitalSigns.bloodPressure.trim();
+        }
+        if (visitData.vitalSigns.heartRate !== undefined && visitData.vitalSigns.heartRate !== null && !isNaN(Number(visitData.vitalSigns.heartRate))) {
+          cleanedData.vitalSigns.heartRate = Number(visitData.vitalSigns.heartRate);
+        }
+        if (visitData.vitalSigns.temperature !== undefined && visitData.vitalSigns.temperature !== null && !isNaN(Number(visitData.vitalSigns.temperature))) {
+          cleanedData.vitalSigns.temperature = Number(visitData.vitalSigns.temperature);
+        }
+        if (visitData.vitalSigns.weight !== undefined && visitData.vitalSigns.weight !== null && !isNaN(Number(visitData.vitalSigns.weight))) {
+          cleanedData.vitalSigns.weight = Number(visitData.vitalSigns.weight);
+        }
+        if (visitData.vitalSigns.height !== undefined && visitData.vitalSigns.height !== null && !isNaN(Number(visitData.vitalSigns.height))) {
+          cleanedData.vitalSigns.height = Number(visitData.vitalSigns.height);
+        }
+      }
+      
+      console.log('EHR Service: Cleaned document data to save:', cleanedData);
+      
+      const docRef = await addDoc(collection(this.db, `ehr/${currentUser.uid}/doctorVisits`), cleanedData);
+      console.log('EHR Service: Doctor visit added successfully with ID:', docRef.id);
     } catch (error) {
-      console.error('Error adding doctor visit:', error);
+      console.error('EHR Service: Detailed error adding doctor visit:', error);
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
       throw error;
     }
   }

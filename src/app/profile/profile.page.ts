@@ -568,6 +568,12 @@ export class ProfilePage implements OnInit {
     this.showEditEmergencyModal = false;
     // Optionally reset to original value if user cancels
     // You could store original value before opening modal if needed
+    console.log('Emergency instruction modal closed');
+  }
+
+  // Alternative close method for back button specifically
+  onEmergencyModalBackButton() {
+    this.closeEmergencyInstructionModal();
   }
 
   async saveEmergencyInstruction() {
@@ -1056,12 +1062,25 @@ export class ProfilePage implements OnInit {
   // EHR Methods
   async loadEHRData() {
     try {
+      // Load doctor visits from their subcollection
+      this.doctorVisits = await this.ehrService.getDoctorVisits();
+      
+      // Load medical history from their subcollection
+      this.medicalHistory = await this.ehrService.getMedicalHistory();
+      
+      // Load emergency contacts from their subcollection
+      this.emergencyContacts = await this.ehrService.getEmergencyContacts();
+      
+      // Load EHR access list from main EHR record
       const ehrRecord = await this.ehrService.getEHRRecord();
-      if (ehrRecord) {
-        this.doctorVisits = ehrRecord.doctorVisits || [];
-        this.medicalHistory = ehrRecord.medicalHistory || [];
-        this.emergencyContacts = ehrRecord.emergencyContacts || [];
-      }
+      this.ehrAccessList = ehrRecord?.accessibleBy || [];
+      
+      console.log('Loaded EHR data:');
+      console.log('- Doctor visits:', this.doctorVisits.length);
+      console.log('- Medical history:', this.medicalHistory.length);
+      console.log('- Emergency contacts:', this.emergencyContacts.length);
+      console.log('- EHR access list:', this.ehrAccessList.length);
+      
     } catch (error) {
       console.error('Error loading EHR data:', error);
     }
@@ -1193,12 +1212,30 @@ export class ProfilePage implements OnInit {
   }
 
   async grantEHRAccess() {
-    // TODO: Implement EHR access granting
-    console.log('Grant EHR access not implemented yet');
+    if (!this.newProviderEmail || !this.newProviderEmail.trim()) {
+      this.presentToast('Please enter provider email');
+      return;
+    }
+
+    try {
+      await this.ehrService.grantEHRAccess(this.newProviderEmail.trim());
+      await this.loadEHRData(); // Refresh the access list
+      this.newProviderEmail = ''; // Clear the input
+      this.presentToast('EHR access granted successfully');
+    } catch (error) {
+      console.error('Error granting EHR access:', error);
+      this.presentToast('Error granting EHR access');
+    }
   }
 
-  async revokeEHRAccess(provider: any) {
-    // TODO: Implement EHR access revocation
-    console.log('Revoke EHR access not implemented yet');
+  async revokeEHRAccess(providerEmail: string) {
+    try {
+      await this.ehrService.revokeEHRAccess(providerEmail);
+      await this.loadEHRData(); // Refresh the access list
+      this.presentToast('EHR access revoked successfully');
+    } catch (error) {
+      console.error('Error revoking EHR access:', error);
+      this.presentToast('Error revoking EHR access');
+    }
   }
 }

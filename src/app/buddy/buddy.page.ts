@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BuddyService } from '../service/buddy.service';
 import { AuthService } from '../service/auth.service';
 import { UserService } from '../service/user.service';
-import { ToastController } from '@ionic/angular';
+import { ToastController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 
 @Component({
@@ -34,6 +34,7 @@ export class BuddyPage implements OnInit {
     private authService: AuthService,
     private userService: UserService,
     private toastController: ToastController,
+    private modalController: ModalController,
     private router: Router
   ) {}
 
@@ -139,8 +140,27 @@ export class BuddyPage implements OnInit {
     }
   }
 
-  openModal() {
+  async openModal() {
+    // For now, just show the manual buddy entry modal
     this.showModal = true;
+  }
+
+  async openInviteBuddyModal() {
+    const toast = await this.toastController.create({
+      message: 'Invite buddy feature coming soon!',
+      duration: 2000,
+      color: 'primary'
+    });
+    await toast.present();
+  }
+
+  async openInvitationsModal() {
+    const toast = await this.toastController.create({
+      message: 'Invitations feature coming soon!',
+      duration: 2000,
+      color: 'primary'
+    });
+    await toast.present();
   }
 
   closeModal() {

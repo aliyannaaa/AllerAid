@@ -48,6 +48,48 @@ ion-alert .alert-checkbox-label {
   color: #AB7082 !important;
 }
 
+// Allergen Alert Styles
+.alert-success .alert-wrapper {
+  --background: #d4edda !important;
+  border-left: 4px solid #28a745 !important;
+}
+
+.alert-success .alert-head {
+  color: #155724 !important;
+}
+
+.alert-success .alert-message {
+  color: #155724 !important;
+}
+
+.alert-warning .alert-wrapper {
+  --background: #fff3cd !important;
+  border-left: 4px solid #ffc107 !important;
+}
+
+.alert-warning .alert-head {
+  color: #856404 !important;
+}
+
+.alert-warning .alert-message {
+  color: #856404 !important;
+}
+
+.alert-danger .alert-wrapper {
+  --background: #f8d7da !important;
+  border-left: 4px solid #dc3545 !important;
+}
+
+.alert-danger .alert-head {
+  color: #721c24 !important;
+  font-weight: bold !important;
+}
+
+.alert-danger .alert-message {
+  color: #721c24 !important;
+  font-weight: 500 !important;
+}
+
 // For the popover interface (used by ion-select on desktop)
 ion-popover .select-interface-option {
   --background: #faeaee !important;

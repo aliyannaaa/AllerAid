@@ -50,6 +50,73 @@
     --color: #fff !important;
   }
 
+  // Allergen Status Styling
+  .status-message {
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    ion-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    &.safe {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+
+      ion-icon {
+        color: #28a745;
+      }
+    }
+
+    &.warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+
+      ion-icon {
+        color: #ffc107;
+      }
+    }
+  }
+
+  .allergen-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ingredients-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+
+    .ingredients-text {
+      font-size: 13px;
+      line-height: 1.4;
+      color: #666;
+      margin-top: 8px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 3px solid #e87388;
+    }
+  }
+
   ion-card {
     background: #fff6f7;
     border-radius: 20px;

@@ -28,6 +28,30 @@ export interface Buddy {
   isEmergencyContact?: boolean;
 }
 
+export interface BuddyInvitation {
+  id?: string;
+  fromUserId: string;
+  fromUserName: string;
+  fromUserEmail: string;
+  toUserId: string;
+  toUserEmail: string;
+  toUserName: string;
+  message: string;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
+export interface BuddyRelation {
+  id?: string;
+  user1Id: string;
+  user2Id: string;
+  status: 'pending' | 'accepted';
+  invitationId: string;
+  createdAt: Date;
+  acceptedAt?: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -158,6 +182,207 @@ export class BuddyService {
     } catch (error) {
       console.error('Error responding to emergency:', error);
       throw error;
+    }
+  }
+
+  // INVITATION METHODS
+
+  // Send buddy invitation
+  async sendBuddyInvitation(
+    toUserId: string, 
+    toUserEmail: string, 
+    toUserName: string, 
+    message: string
+  ): Promise<void> {
+    try {
+      // Get current user info (you'll need to inject AuthService)
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      
+      const invitation: Omit<BuddyInvitation, 'id'> = {
+        fromUserId: currentUser.uid,
+        fromUserName: currentUser.fullName || `${currentUser.firstName} ${currentUser.lastName}`,
+        fromUserEmail: currentUser.email,
+        toUserId: toUserId,
+        toUserEmail: toUserEmail,
+        toUserName: toUserName,
+        message: message,
+        status: 'pending',
+        createdAt: new Date()
+      };
+
+      await addDoc(collection(this.db, 'buddy_invitations'), invitation);
+    } catch (error) {
+      console.error('Error sending buddy invitation:', error);
+      throw error;
+    }
+  }
+
+  // Get received invitations for current user
+  async getReceivedInvitations(userId: string): Promise<BuddyInvitation[]> {
+    try {
+      const q = query(
+        collection(this.db, 'buddy_invitations'),
+        where('toUserId', '==', userId),
+        where('status', '==', 'pending')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          id: doc.id, 
+          ...data,
+          createdAt: data['createdAt']?.toDate()
+        } as BuddyInvitation;
+      });
+    } catch (error) {
+      console.error('Error getting received invitations:', error);
+      return [];
+    }
+  }
+
+  // Get sent invitations for current user
+  async getSentInvitations(userId: string): Promise<BuddyInvitation[]> {
+    try {
+      const q = query(
+        collection(this.db, 'buddy_invitations'),
+        where('fromUserId', '==', userId)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          id: doc.id, 
+          ...data,
+          createdAt: data['createdAt']?.toDate(),
+          respondedAt: data['respondedAt']?.toDate()
+        } as BuddyInvitation;
+      });
+    } catch (error) {
+      console.error('Error getting sent invitations:', error);
+      return [];
+    }
+  }
+
+  // Accept buddy invitation
+  async acceptBuddyInvitation(invitationId: string): Promise<void> {
+    try {
+      // Update invitation status
+      const invitationRef = doc(this.db, 'buddy_invitations', invitationId);
+      await updateDoc(invitationRef, {
+        status: 'accepted',
+        respondedAt: new Date()
+      });
+
+      // Get invitation details
+      const invitationSnap = await getDoc(invitationRef);
+      if (invitationSnap.exists()) {
+        const invitation = invitationSnap.data() as BuddyInvitation;
+        
+        // Create buddy relation
+        const relation: Omit<BuddyRelation, 'id'> = {
+          user1Id: invitation.fromUserId,
+          user2Id: invitation.toUserId,
+          status: 'accepted',
+          invitationId: invitationId,
+          createdAt: new Date(),
+          acceptedAt: new Date()
+        };
+        
+        await addDoc(collection(this.db, 'buddy_relations'), relation);
+      }
+    } catch (error) {
+      console.error('Error accepting buddy invitation:', error);
+      throw error;
+    }
+  }
+
+  // Decline buddy invitation
+  async declineBuddyInvitation(invitationId: string): Promise<void> {
+    try {
+      const invitationRef = doc(this.db, 'buddy_invitations', invitationId);
+      await updateDoc(invitationRef, {
+        status: 'declined',
+        respondedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error declining buddy invitation:', error);
+      throw error;
+    }
+  }
+
+  // Check if there's already a buddy relation between two users
+  async checkBuddyRelation(otherUserId: string): Promise<BuddyRelation | null> {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const currentUserId = currentUser.uid;
+      
+      // Check for relations in both directions
+      const q1 = query(
+        collection(this.db, 'buddy_relations'),
+        where('user1Id', '==', currentUserId),
+        where('user2Id', '==', otherUserId)
+      );
+      
+      const q2 = query(
+        collection(this.db, 'buddy_relations'),
+        where('user1Id', '==', otherUserId),
+        where('user2Id', '==', currentUserId)
+      );
+      
+      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      
+      if (!snapshot1.empty) {
+        return { id: snapshot1.docs[0].id, ...snapshot1.docs[0].data() } as BuddyRelation;
+      }
+      
+      if (!snapshot2.empty) {
+        return { id: snapshot2.docs[0].id, ...snapshot2.docs[0].data() } as BuddyRelation;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error checking buddy relation:', error);
+      return null;
+    }
+  }
+
+  // Get all connected buddies (from buddy relations)
+  async getConnectedBuddies(userId: string): Promise<any[]> {
+    try {
+      const q1 = query(
+        collection(this.db, 'buddy_relations'),
+        where('user1Id', '==', userId),
+        where('status', '==', 'accepted')
+      );
+      
+      const q2 = query(
+        collection(this.db, 'buddy_relations'),
+        where('user2Id', '==', userId),
+        where('status', '==', 'accepted')
+      );
+      
+      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      
+      const connectedUserIds: string[] = [];
+      
+      snapshot1.docs.forEach(doc => {
+        const data = doc.data();
+        connectedUserIds.push(data['user2Id']);
+      });
+      
+      snapshot2.docs.forEach(doc => {
+        const data = doc.data();
+        connectedUserIds.push(data['user1Id']);
+      });
+      
+      // Here you would typically fetch user details for these IDs
+      // For now, return the IDs
+      return connectedUserIds.map(id => ({ id, connected: true }));
+    } catch (error) {
+      console.error('Error getting connected buddies:', error);
+      return [];
     }
   }
 }

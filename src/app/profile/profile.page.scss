@@ -4,42 +4,47 @@
   align-items: center;
   margin-top: 30px;
 }
-.profile-avatar{
-    display: flex; 
-    justify-content: center; 
-    margin-top: 40px;
+
+.profile-avatar {
+  display: flex; 
+  justify-content: center; 
+  margin-top: 40px;
 }
+
 .profile-stats {
   display: flex;
   justify-content: space-between;
   background: #f8f2f5;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  margin: 0 16px 0 16px;
+  margin: 20px 16px 0;
   padding: 12px 0;
-  margin-top: 20px;
 }
+
 .stat {
   flex: 1;
   text-align: center;
 }
+
 .stat-label {
   color: #888;
   font-size: 15px;
   font-weight: 400;
 }
+
 .stat-value {
   font-size: 20px;
   font-weight: 700;
   color: #333;
 }
+
 .profile-tabs {
   display: flex;
   justify-content: space-between;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.07);
-  margin: 20px 12px 0 12px;
+  margin: 20px 12px 0;
   padding: 6px 4px;
   gap: 10px;
 }
@@ -53,32 +58,33 @@
   font-size: 17px;
   font-weight: 700;
   color: #222;
-  transition: background 0.2s, color 0.2s;
+  transition: all 0.2s;
   cursor: pointer;
   outline: none;
+  
+  &.active {
+    background: #f5aab7;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
 }
 
-.tab.active {
-  background: #f5aab7;
-  color: #222;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-}
 .section-title {
   font-weight: 700;
   font-size: 18px;
-  margin-top: 24px;
-  margin-bottom: 8px;
+  margin: 24px 0 8px;
   display: flex;
   align-items: center;
   color: #222;
+  
+  ion-icon {
+    color: #0a3977;
+    font-size: 18px;
+    margin-left: 4px;
+  }
 }
-.section-title ion-icon {
-  color: #0a3977;
-  font-size: 18px;
-  margin-left: 4px;
-}
-.allergy-list-container {
-  margin-bottom: 18px;
+
+.profile-section {
+  padding: 20px 18px 0;
 }
 
 .allergy-list-scrollable {
@@ -86,34 +92,20 @@
   align-items: center;
   gap: 10px;
   overflow-x: auto;
-  padding: 4px 0 8px 0;
+  padding: 4px 0 8px;
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
+  
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+  }
 }
 
-.allergy-list-scrollable::-webkit-scrollbar {
-  height: 6px;
-}
-
-.allergy-list-scrollable::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.allergy-list-scrollable::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-.allergy-list-scrollable::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
-}
-
-.allergy-list {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
 .allergy-chip {
   background: #b3dbfc;
   color: #222;
@@ -121,49 +113,60 @@
   padding: 6px 18px;
   font-size: 16px;
   font-weight: 500;
-  display: inline-block;
   white-space: nowrap;
   flex-shrink: 0;
 }
-.add-allergy {
-  font-size: 22px;
-  color: #222;
-  margin-left: 4px;
-  cursor: pointer;
-}
+
 .emergency-box {
   background: #b3dbfc;
   border-radius: 12px;
   padding: 14px 16px;
   margin-top: 10px;
   color: #222;
+  
+  b {
+    font-weight: 700;
+    color: #0a3977;
+  }
 }
-.emergency-box b {
-  font-weight: 700;
-  color: #0a3977;
-}
-.profile-section {
-  padding: 20px 18px 0 18px;
-}
-.medication-card {
+
+// Consolidated card styles
+.medication-card, 
+.health-record-card, 
+.emergency-setting-card {
   border: 1.5px solid #bbb;
   border-radius: 12px;
-  padding: 16px 18px 14px 18px;
-  margin-bottom: 18px;
   background: #fff;
+  margin-bottom: 12px;
+}
+
+.medication-card, 
+.health-record-card {
+  padding: 16px 18px 14px;
+  margin-bottom: 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
+
+.emergency-setting-card {
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .medication-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2px;
 }
+
 .medication-title {
   font-size: 18px;
   font-weight: 700;
   color: #222;
 }
+
 .medication-status {
   font-size: 15px;
   font-weight: 600;
@@ -173,62 +176,34 @@
   padding: 4px 16px;
   margin-left: 8px;
 }
-.medication-status.active {
-  background: #b3dbfc;
-}
-.medication-detail {
-  font-size: 15px;
-  color: #444;
-  margin-bottom: 2px;
-}
-.plus-divider {
-  text-align: center;
-  font-size: 28px;
-  color: #444;
-  margin: 18px 0 18px 0;
-  font-weight: 400;
-}
-.health-record-card {
-  border: 1.5px solid #bbb;
-  border-radius: 12px;
-  padding: 14px 18px 12px 18px;
-  background: #fff;
-  margin-bottom: 10px;
-}
-.health-record-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 2px;
-}
+
+.medication-detail, 
 .health-record-detail {
   font-size: 15px;
   color: #444;
-}
-.emergency-settings-title {
-  font-weight: 700;
-  font-size: 17px;
-  margin-bottom: 12px;
-  margin-top: 24px;
+  margin-bottom: 2px;
 }
 
-.emergency-setting-card {
-  border: 1.5px solid #bbb;
-  border-radius: 12px;
+// Layout containers
+.medications-list,
+.medication-search,
+.medication-filters {
+  margin: 0 16px 16px;
+}
+
+.medication-dashboard {
+  margin: 0 16px 16px;
   background: #fff;
-  padding: 12px 16px 10px 16px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.emergency-setting-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.medication-search {
+  margin-bottom: 8px;
 }
 
+// Emergency styles
 .emergency-setting-title {
   font-weight: 700;
   font-size: 16px;
@@ -240,26 +215,11 @@
   color: #444;
 }
 
-.emergency-message-title {
-  font-weight: 700;
-  font-size: 19px;
-  margin: 22px 0 10px 0;
-  display: flex;
-  align-items: center;
-}
-
-.emergency-message-title ion-icon {
-  color: #0a3977;
-  font-size: 18px;
-  margin-left: 4px;
-}
-
 .emergency-message-card {
   background: #e6eef6;
   border-radius: 12px;
-  padding: 18px 18px 12px 18px;
+  padding: 18px 18px 12px;
   margin-bottom: 10px;
-  margin-top: 0;
 }
 
 .emergency-message-row {
@@ -277,365 +237,83 @@
   color: #444;
 }
 
-.emergency-testing-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0a3977;
-  margin: 24px 16px 12px 16px;
+// EHR Styles
+.ehr-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.emergency-test-buttons {
-  margin: 0 16px 20px 16px;
-  
-  ion-button {
-    margin-bottom: 12px;
-    --border-radius: 12px;
-    height: 48px;
-    
-    &:last-child {
-      margin-bottom: 0;
-    }
-    
-    ion-icon {
-      margin-right: 8px;
-    }
-  }
-}
-
-.examples-container {
-  .example-section {
-    margin-bottom: 24px;
-    
-    h3 {
-      color: #0a3977;
-      font-size: 16px;
-      margin-bottom: 12px;
-    }
-  }
-  
-  .example-card {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      background: #e9ecef;
-      border-color: #0a3977;
-    }
-    
-    p {
-      margin: 0;
-      line-height: 1.4;
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    ion-icon {
-      margin-left: 8px;
-      font-size: 16px;
-    }
-  }
-  
-  .tips-section {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 20px;
-    
-    h3 {
-      color: #856404;
-      font-size: 16px;
-      margin-bottom: 12px;
-    }
-    
-    ul {
-      margin: 0;
-      padding-left: 20px;
-      
-      li {
-        margin-bottom: 6px;
-        color: #856404;
-        font-size: 14px;
-      }
-    }
-  }
-}
-
-.emergency-instructions-display {
-  margin: 0 16px 16px 16px;
-  
-  .instruction-card {
-    background: #e6f3ff;
-    border: 1px solid #b3d9ff;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
-    
-    .instruction-header {
-      color: #0a3977;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    
-    .instruction-text {
-      color: #333;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-  }
-  
-  .no-instructions-card {
-    background: #f8f9fa;
-    border: 1px dashed #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-  }
-}
-
-.instructions-list {
-  .instruction-item {
-    display: flex;
-    align-items: flex-start;
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
-    
-    .instruction-content {
-      flex: 1;
-      
-      strong {
-        color: #0a3977;
-      }
-      
-      p {
-        margin: 4px 0 0 0;
-        font-size: 14px;
-        color: #333;
-      }
-    }
-    
-    ion-button {
-      margin-left: 8px;
-    }
-  }
-  
-  .no-instructions {
-    padding: 20px;
-    text-align: center;
-  }
-}
-
-.medications-list {
-  margin: 0 16px 16px 16px;
-  
-  .medication-card {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    
-    .medication-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-      
-      .medication-title {
-        font-weight: 600;
-        color: #0a3977;
-        font-size: 16px;
-        flex: 1;
-        margin-right: 8px;
-      }
-      
-      .medication-actions {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
-        
-        ion-chip {
-          --background: rgba(var(--ion-color-primary-rgb), 0.1);
-          --color: var(--ion-color-primary);
-          margin: 0;
-          font-size: 11px;
-          height: 20px;
-        }
-        
-        .action-buttons {
-          display: flex;
-          gap: 4px;
-        }
-        
-        ion-button {
-          --padding-start: 4px;
-          --padding-end: 4px;
-          height: 28px;
-          width: 28px;
-        }
-      }
-    }
-    
-    .medication-detail {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 4px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      b {
-        color: #333;
-      }
-    }
-  }
-  
-  .no-medications {
-    background: #f8f9fa;
-    border: 1px dashed #dee2e6;
-    border-radius: 12px;
-    margin-bottom: 12px;
-  }
-}
-
-.medication-filters {
-  margin: 0 16px 16px 16px;
-  
-  ion-segment {
-    --background: #f8f9fa;
-    border-radius: 8px;
-    
-    ion-segment-button {
-      --color: #666;
-      --color-checked: #0a3977;
-      --background-checked: #fff;
-      font-size: 12px;
-      
-      ion-label {
-        font-weight: 500;
-      }
-    }
-  }
-}
-
-// Enhanced Medication Styles
-.medication-dashboard {
-  margin: 0 16px 16px 16px;
-  background: #fff;
+.ehr-stat-card {
+  background: #f8f9fa;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  
-  .dashboard-stats {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    
-    .stat-card {
-      text-align: center;
-      flex: 1;
-      padding: 12px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 8px;
-      margin: 0 4px;
-      
-      .stat-number {
-        font-size: 24px;
-        font-weight: 700;
-        color: #0a3977;
-        margin-bottom: 4px;
-      }
-      
-      .stat-label {
-        font-size: 12px;
-        color: #666;
-        text-transform: uppercase;
-      }
-    }
-  }
-  
-  .quick-actions {
-    display: flex;
-    gap: 8px;
-    
-    .quick-action-btn {
-      flex: 1;
-      height: 36px;
-      font-size: 12px;
-    }
-  }
+  text-align: center;
+  border: 1px solid #e9ecef;
 }
 
-.medication-search {
-  margin: 0 16px 8px 16px;
-  
-  ion-searchbar {
-    --background: #fff;
-    --border-radius: 12px;
-    --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
+.ehr-stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #AB7082;
+  margin-bottom: 4px;
 }
 
-.medication-card {
-  &.emergency-medication {
-    border-left: 4px solid #ff6b6b !important;
-    background: linear-gradient(135deg, #fff 0%, #fff5f5 100%) !important;
+.ehr-stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.visit-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.visit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.visit-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+}
+
+.visit-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.visit-detail {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.vital-signs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+
+// Mobile responsive
+@media (max-width: 480px) {
+  .vital-signs-grid {
+    grid-template-columns: 1fr;
   }
   
-  .medication-header {
-    .medication-title-section {
-      flex: 1;
-      
-      .medication-title {
-        display: block;
-        margin-bottom: 4px;
-      }
-      
-      .medication-type-info {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: #666;
-        
-        ion-icon {
-          font-size: 14px;
-        }
-      }
-    }
-  }
-  
-  .medication-details {
-    .medication-detail {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      ion-icon {
-        font-size: 16px;
-        color: #888;
-        min-width: 16px;
-      }
-      
-      .expiring-warning {
-        color: #ff9500;
-        font-weight: 600;
-        font-size: 12px;
-      }
-    }
+  .ehr-overview {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

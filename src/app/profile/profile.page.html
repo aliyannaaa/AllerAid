@@ -42,8 +42,15 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Edit Allergies</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="showEditAllergiesModal = false" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
                 <ion-buttons slot="end">
-                  <ion-button (click)="showEditAllergiesModal = false">Close</ion-button>
+                  <ion-button (click)="showEditAllergiesModal = false" fill="clear">
+                    <ion-icon name="close"></ion-icon>
+                  </ion-button>
                 </ion-buttons>
               </ion-toolbar>
             </ion-header>
@@ -68,11 +75,6 @@
             <span *ngIf="userAllergies.length === 0" class="no-data">No allergies recorded</span>
           </div>
         </div>
-
-        <ion-button expand="block" fill="outline" (click)="scanProduct()" class="scan-button">
-          <ion-icon name="scan-outline" slot="start"></ion-icon>
-          Scan Product for Allergens
-        </ion-button>
         
         <div class="section-title">
           Emergency Instructions
@@ -84,6 +86,11 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Emergency Instructions</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="onEmergencyModalBackButton()" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
                 <ion-buttons slot="end">
                   <ion-button (click)="closeEmergencyInstructionModal()" fill="clear">
                     <ion-icon name="close"></ion-icon>
@@ -326,12 +333,6 @@
             </div>
           </div>
         </div>
-
-        <div class="section-title" style="margin-top: 0;">Health Records</div>
-        <div class="health-record-card">
-          <div class="health-record-title">Allergy Test Result</div>
-          <div class="health-record-detail">Confirmed peanut allergy (Grade 4)</div>
-        </div>
       </ng-container>
 
       <ng-container *ngIf="selectedTab === 'ehr'">
@@ -564,6 +565,11 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Emergency Instructions</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="showManageInstructionsModal = false" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
                 <ion-buttons slot="end">
                   <ion-button (click)="showManageInstructionsModal = false" fill="clear">
                     <ion-icon name="close"></ion-icon>
@@ -659,8 +665,15 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Edit Emergency Message</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="showEditEmergencyMessageModal = false" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
                 <ion-buttons slot="end">
-                  <ion-button (click)="showEditEmergencyMessageModal = false">Close</ion-button>
+                  <ion-button (click)="showEditEmergencyMessageModal = false" fill="clear">
+                    <ion-icon name="close"></ion-icon>
+                  </ion-button>
                 </ion-buttons>
               </ion-toolbar>
             </ion-header>
@@ -735,6 +748,11 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Emergency Instruction Examples</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="showExamplesModal = false" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
                 <ion-buttons slot="end">
                   <ion-button (click)="showExamplesModal = false" fill="clear">
                     <ion-icon name="close"></ion-icon>
