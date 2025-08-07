@@ -26,6 +26,53 @@ export interface MedicalHistory {
   updatedAt?: Date;
 }
 
+export interface AllergicReaction {
+  id?: string;
+  patientId: string;
+  allergen: string;
+  reactionDate: string;
+  severity: 'mild' | 'moderate' | 'severe' | 'life-threatening';
+  symptoms: string[];
+  treatment: string;
+  outcome: 'resolved' | 'ongoing' | 'hospitalized';
+  treatmentEffectiveness: 'very-effective' | 'effective' | 'partially-effective' | 'ineffective';
+  doctorId?: string;
+  doctorName?: string;
+  location?: string;
+  notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface TreatmentOutcome {
+  id?: string;
+  patientId: string;
+  doctorVisitId?: string;
+  treatmentType: string;
+  medicationsPrescribed: string[];
+  patientResponse: 'excellent' | 'good' | 'fair' | 'poor';
+  sideEffects?: string[];
+  followUpRequired: boolean;
+  followUpDate?: string;
+  doctorNotes: string;
+  patientFeedback?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface DoctorPatient {
+  patientId: string;
+  patientName: string;
+  patientEmail: string;
+  dateOfBirth: string;
+  primaryAllergies: string[];
+  lastVisit?: string;
+  nextAppointment?: string;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  totalVisits: number;
+  accessGrantedDate: Date;
+}
+
 export interface EmergencyContact {
   id?: string;
   patientId: string;
@@ -64,6 +111,35 @@ export interface DoctorVisit {
   updatedAt?: Date;
 }
 
+export interface HealthcareProvider {
+  email: string;
+  role: 'doctor' | 'nurse';
+  name: string;
+  license?: string;
+  specialty?: string;
+  hospital?: string;
+  grantedAt: Date;
+  grantedBy: string; // Patient ID who granted access
+}
+
+export interface AccessRequest {
+  id?: string;
+  patientId: string;
+  patientName: string;
+  patientEmail: string;
+  doctorEmail: string;
+  doctorName: string;
+  doctorRole: 'doctor' | 'nurse';
+  specialty?: string;
+  originalVisitName: string; // Name as entered in the visit
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  requestDate: Date;
+  responseDate?: Date;
+  expiryDate: Date; // Auto-expire after 30 days
+  message?: string; // Optional message from patient
+  notes?: string; // Doctor's notes when responding
+}
+
 export interface EHRRecord {
   id?: string;
   patientId: string;
@@ -82,7 +158,8 @@ export interface EHRRecord {
   medicalHistory: MedicalHistory[];
   emergencyContacts: EmergencyContact[];
   doctorVisits: DoctorVisit[];
-  accessibleBy: string[]; // User IDs who can access this EHR
+  accessibleBy: string[]; // Legacy: User IDs who can access this EHR
+  healthcareProviders: HealthcareProvider[]; // Enhanced: Healthcare providers with roles
   lastUpdated?: Date;
   createdAt?: Date;
 }
@@ -215,6 +292,45 @@ export class EHRService {
   }
 
   /**
+   * Update medical history entry
+   */
+  async updateMedicalHistory(historyId: string, historyData: Omit<MedicalHistory, 'id' | 'patientId'>): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const historyRef = doc(this.db, `ehr/${currentUser.uid}/medicalHistory`, historyId);
+      await updateDoc(historyRef, {
+        ...historyData,
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error updating medical history:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete medical history entry
+   */
+  async deleteMedicalHistory(historyId: string): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const historyRef = doc(this.db, `ehr/${currentUser.uid}/medicalHistory`, historyId);
+      await deleteDoc(historyRef);
+    } catch (error) {
+      console.error('Error deleting medical history:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Add emergency contact
    */
   async addEmergencyContact(contactData: Omit<EmergencyContact, 'id' | 'patientId'>): Promise<void> {
@@ -258,6 +374,45 @@ export class EHRService {
       })) as EmergencyContact[];
     } catch (error) {
       console.error('Error fetching emergency contacts:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update emergency contact
+   */
+  async updateEmergencyContact(contactId: string, contactData: Partial<Omit<EmergencyContact, 'id' | 'patientId'>>): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const contactRef = doc(this.db, `ehr/${currentUser.uid}/emergencyContacts/${contactId}`);
+      await updateDoc(contactRef, {
+        ...contactData,
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error updating emergency contact:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete emergency contact
+   */
+  async deleteEmergencyContact(contactId: string): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const contactRef = doc(this.db, `ehr/${currentUser.uid}/emergencyContacts/${contactId}`);
+      await deleteDoc(contactRef);
+    } catch (error) {
+      console.error('Error deleting emergency contact:', error);
       throw error;
     }
   }
@@ -318,6 +473,10 @@ export class EHRService {
       
       const docRef = await addDoc(collection(this.db, `ehr/${currentUser.uid}/doctorVisits`), cleanedData);
       console.log('EHR Service: Doctor visit added successfully with ID:', docRef.id);
+      
+      // Auto-grant access to doctor if they exist in the system
+      await this.autoGrantDoctorAccess(cleanedData.doctorName, cleanedData.specialty);
+      
     } catch (error) {
       console.error('EHR Service: Detailed error adding doctor visit:', error);
       if (error instanceof Error) {
@@ -395,7 +554,133 @@ export class EHRService {
   }
 
   /**
-   * Grant access to EHR for healthcare provider
+   * Grant access to EHR for healthcare provider with role
+   */
+  async grantHealthcareProviderAccess(
+    providerEmail: string, 
+    role: 'doctor' | 'nurse',
+    providerName: string,
+    license?: string,
+    specialty?: string,
+    hospital?: string
+  ): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const ehrRecord = await this.getEHRRecord();
+      let healthcareProviders: HealthcareProvider[] = [];
+      
+      if (ehrRecord) {
+        healthcareProviders = ehrRecord.healthcareProviders || [];
+        
+        // Check if provider already has access
+        const existingProvider = healthcareProviders.find(p => p.email === providerEmail);
+        if (existingProvider) {
+          // Update existing provider
+          existingProvider.role = role;
+          existingProvider.name = providerName;
+          existingProvider.license = license;
+          existingProvider.specialty = specialty;
+          existingProvider.hospital = hospital;
+        } else {
+          // Add new provider
+          healthcareProviders.push({
+            email: providerEmail,
+            role: role,
+            name: providerName,
+            license: license,
+            specialty: specialty,
+            hospital: hospital,
+            grantedAt: new Date(),
+            grantedBy: currentUser.uid
+          });
+        }
+        
+        await this.createOrUpdateEHR({
+          healthcareProviders: healthcareProviders
+        });
+      }
+    } catch (error) {
+      console.error('Error granting healthcare provider access:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Revoke access from healthcare provider
+   */
+  async revokeHealthcareProviderAccess(providerEmail: string): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const ehrRecord = await this.getEHRRecord();
+      if (ehrRecord && ehrRecord.healthcareProviders) {
+        const updatedProviders = ehrRecord.healthcareProviders.filter(
+          provider => provider.email !== providerEmail
+        );
+        
+        await this.createOrUpdateEHR({
+          healthcareProviders: updatedProviders
+        });
+      }
+    } catch (error) {
+      console.error('Error revoking healthcare provider access:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get healthcare providers with access
+   */
+  async getHealthcareProviders(): Promise<HealthcareProvider[]> {
+    const ehrRecord = await this.getEHRRecord();
+    return ehrRecord?.healthcareProviders || [];
+  }
+
+  /**
+   * Check if a healthcare provider has specific permission
+   */
+  hasPermission(provider: HealthcareProvider, permission: string): boolean {
+    const permissions = {
+      doctor: {
+        viewFullEHR: true,
+        viewMedicalHistory: true,
+        viewMedications: true,
+        viewAllergies: true,
+        viewEmergencyContacts: true,
+        addDoctorVisit: true,
+        editDoctorVisit: true,
+        deleteDoctorVisit: true,
+        prescribeMedications: true,
+        editMedicalHistory: true,
+        addEmergencyContact: true
+      },
+      nurse: {
+        viewFullEHR: true,
+        viewMedicalHistory: true,
+        viewMedications: true,
+        viewAllergies: true,
+        viewEmergencyContacts: true,
+        addDoctorVisit: false,
+        editDoctorVisit: false,  
+        deleteDoctorVisit: false,
+        prescribeMedications: false,
+        editMedicalHistory: false,
+        addEmergencyContact: true
+      }
+    };
+
+    return permissions[provider.role]?.[permission as keyof typeof permissions.doctor] || false;
+  }
+
+  /**
+   * Grant access to EHR for healthcare provider (legacy method - maintained for compatibility)
    */
   async grantEHRAccess(providerEmail: string): Promise<void> {
     const currentUser = await this.authService.waitForAuthInit();
@@ -441,6 +726,647 @@ export class EHRService {
     } catch (error) {
       console.error('Error revoking EHR access:', error);
       throw error;
+    }
+  }
+
+  // ============= PROFESSIONAL WORKFLOW FEATURES =============
+
+  /**
+   * Add allergic reaction record - for tracking patient reactions
+   */
+  async addAllergicReaction(reactionData: Omit<AllergicReaction, 'id' | 'patientId'>): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      await addDoc(collection(this.db, `ehr/${currentUser.uid}/allergicReactions`), {
+        ...reactionData,
+        patientId: currentUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error adding allergic reaction:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get allergic reactions for analysis
+   */
+  async getAllergicReactions(): Promise<AllergicReaction[]> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const reactionsQuery = query(
+        collection(this.db, `ehr/${currentUser.uid}/allergicReactions`),
+        orderBy('reactionDate', 'desc')
+      );
+      const reactionsSnapshot = await getDocs(reactionsQuery);
+
+      return reactionsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as AllergicReaction[];
+    } catch (error) {
+      console.error('Error fetching allergic reactions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add treatment outcome for tracking effectiveness
+   */
+  async addTreatmentOutcome(outcomeData: Omit<TreatmentOutcome, 'id' | 'patientId'>): Promise<void> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      await addDoc(collection(this.db, `ehr/${currentUser.uid}/treatmentOutcomes`), {
+        ...outcomeData,
+        patientId: currentUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error adding treatment outcome:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get treatment outcomes for analysis
+   */
+  async getTreatmentOutcomes(): Promise<TreatmentOutcome[]> {
+    const currentUser = await this.authService.waitForAuthInit();
+    if (!currentUser) {
+      throw new Error('User not logged in');
+    }
+
+    try {
+      const outcomesQuery = query(
+        collection(this.db, `ehr/${currentUser.uid}/treatmentOutcomes`),
+        orderBy('createdAt', 'desc')
+      );
+      const outcomesSnapshot = await getDocs(outcomesQuery);
+
+      return outcomesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as TreatmentOutcome[];
+    } catch (error) {
+      console.error('Error fetching treatment outcomes:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get patient list for doctor dashboard - Professional Workflow Feature
+   */
+  async getDoctorPatients(doctorEmail: string): Promise<DoctorPatient[]> {
+    try {
+      // Query all EHR records where doctor has access
+      const ehrQuery = query(
+        collection(this.db, 'ehr'),
+        where('healthcareProviders', 'array-contains', { email: doctorEmail, role: 'doctor' })
+      );
+      const ehrSnapshot = await getDocs(ehrQuery);
+
+      const patients: DoctorPatient[] = [];
+
+      for (const ehrDoc of ehrSnapshot.docs) {
+        const ehrData = ehrDoc.data() as EHRRecord;
+        
+        // Get patient's recent visits
+        const visitsQuery = query(
+          collection(this.db, `ehr/${ehrData.patientId}/doctorVisits`),
+          orderBy('visitDate', 'desc')
+        );
+        const visitsSnapshot = await getDocs(visitsQuery);
+        const visits = visitsSnapshot.docs.map(doc => doc.data()) as DoctorVisit[];
+
+        // Get patient's allergic reactions
+        const reactionsQuery = query(
+          collection(this.db, `ehr/${ehrData.patientId}/allergicReactions`),
+          orderBy('reactionDate', 'desc')
+        );
+        const reactionsSnapshot = await getDocs(reactionsQuery);
+        const reactions = reactionsSnapshot.docs.map(doc => doc.data()) as AllergicReaction[];
+
+        // Calculate risk level based on allergies and recent reactions
+        const riskLevel = this.calculatePatientRiskLevel(ehrData.allergies, reactions);
+
+        // Find provider access date
+        const provider = ehrData.healthcareProviders?.find(p => p.email === doctorEmail);
+
+        patients.push({
+          patientId: ehrData.patientId,
+          patientName: `${ehrData.personalInfo?.firstName || ''} ${ehrData.personalInfo?.lastName || ''}`.trim(),
+          patientEmail: ehrData.personalInfo?.email || '',
+          dateOfBirth: ehrData.personalInfo?.dateOfBirth || '',
+          primaryAllergies: ehrData.allergies?.map(a => a.label || a.name).slice(0, 3) || [],
+          lastVisit: visits[0]?.visitDate || undefined,
+          nextAppointment: visits.find(v => v.nextAppointment)?.nextAppointment || undefined,
+          riskLevel: riskLevel,
+          totalVisits: visits.length,
+          accessGrantedDate: provider?.grantedAt || new Date()
+        });
+      }
+
+      return patients.sort((a, b) => {
+        // Sort by risk level first, then by last visit
+        const riskOrder = { 'critical': 0, 'high': 1, 'medium': 2, 'low': 3 };
+        if (riskOrder[a.riskLevel] !== riskOrder[b.riskLevel]) {
+          return riskOrder[a.riskLevel] - riskOrder[b.riskLevel];
+        }
+        return new Date(b.lastVisit || 0).getTime() - new Date(a.lastVisit || 0).getTime();
+      });
+
+    } catch (error) {
+      console.error('Error fetching doctor patients:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate patient risk level based on allergies and reactions
+   */
+  private calculatePatientRiskLevel(allergies: any[], reactions: AllergicReaction[]): 'low' | 'medium' | 'high' | 'critical' {
+    // Check for recent severe reactions
+    const recentSevereReactions = reactions.filter(r => {
+      const reactionDate = new Date(r.reactionDate);
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      return reactionDate > sixMonthsAgo && (r.severity === 'severe' || r.severity === 'life-threatening');
+    });
+
+    if (recentSevereReactions.length > 0) {
+      return 'critical';
+    }
+
+    // Check for high-risk allergies
+    const highRiskAllergens = ['peanuts', 'shellfish', 'insectStings', 'medication'];
+    const hasHighRiskAllergies = allergies.some(a => 
+      highRiskAllergens.includes(a.name) && a.checked
+    );
+
+    // Check for multiple allergies
+    const allergyCount = allergies.filter(a => a.checked).length;
+
+    if (hasHighRiskAllergies && allergyCount >= 3) {
+      return 'high';
+    } else if (hasHighRiskAllergies || allergyCount >= 2) {
+      return 'medium';
+    } else {
+      return 'low';
+    }
+  }
+
+  /**
+   * Get comprehensive patient analysis for doctors
+   */
+  async getPatientAnalysis(patientId: string): Promise<{
+    personalInfo: any;
+    allergies: any[];
+    recentReactions: AllergicReaction[];
+    treatmentHistory: TreatmentOutcome[];
+    visitHistory: DoctorVisit[];
+    medicalHistory: MedicalHistory[];
+    riskFactors: string[];
+    recommendations: string[];
+  }> {
+    try {
+      // Get patient's EHR record
+      const ehrQuery = query(
+        collection(this.db, 'ehr'),
+        where('patientId', '==', patientId)
+      );
+      const ehrSnapshot = await getDocs(ehrQuery);
+
+      if (ehrSnapshot.empty) {
+        throw new Error('Patient not found');
+      }
+
+      const ehrData = ehrSnapshot.docs[0].data() as EHRRecord;
+
+      // Get all patient data
+      const [reactions, outcomes, visits, medicalHistory] = await Promise.all([
+        this.getAllergicReactionsForPatient(patientId),
+        this.getTreatmentOutcomesForPatient(patientId),
+        this.getDoctorVisitsForPatient(patientId),
+        this.getMedicalHistoryForPatient(patientId)
+      ]);
+
+      // Generate risk factors and recommendations
+      const riskFactors = this.generateRiskFactors(ehrData, reactions, outcomes);
+      const recommendations = this.generateRecommendations(ehrData, reactions, outcomes, visits);
+
+      return {
+        personalInfo: ehrData.personalInfo,
+        allergies: ehrData.allergies || [],
+        recentReactions: reactions.slice(0, 5), // Last 5 reactions
+        treatmentHistory: outcomes.slice(0, 10), // Last 10 treatments
+        visitHistory: visits.slice(0, 10), // Last 10 visits
+        medicalHistory: medicalHistory,
+        riskFactors,
+        recommendations
+      };
+
+    } catch (error) {
+      console.error('Error getting patient analysis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Helper methods for patient data retrieval
+   */
+  private async getAllergicReactionsForPatient(patientId: string): Promise<AllergicReaction[]> {
+    const reactionsQuery = query(
+      collection(this.db, `ehr/${patientId}/allergicReactions`),
+      orderBy('reactionDate', 'desc')
+    );
+    const reactionsSnapshot = await getDocs(reactionsQuery);
+    return reactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as AllergicReaction[];
+  }
+
+  private async getTreatmentOutcomesForPatient(patientId: string): Promise<TreatmentOutcome[]> {
+    const outcomesQuery = query(
+      collection(this.db, `ehr/${patientId}/treatmentOutcomes`),
+      orderBy('createdAt', 'desc')
+    );
+    const outcomesSnapshot = await getDocs(outcomesQuery);
+    return outcomesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as TreatmentOutcome[];
+  }
+
+  private async getDoctorVisitsForPatient(patientId: string): Promise<DoctorVisit[]> {
+    const visitsQuery = query(
+      collection(this.db, `ehr/${patientId}/doctorVisits`),
+      orderBy('visitDate', 'desc')
+    );
+    const visitsSnapshot = await getDocs(visitsQuery);
+    return visitsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as DoctorVisit[];
+  }
+
+  private async getMedicalHistoryForPatient(patientId: string): Promise<MedicalHistory[]> {
+    const historyQuery = query(
+      collection(this.db, `ehr/${patientId}/medicalHistory`),
+      orderBy('diagnosisDate', 'desc')
+    );
+    const historySnapshot = await getDocs(historyQuery);
+    return historySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as MedicalHistory[];
+  }
+
+  /**
+   * Generate risk factors based on patient data
+   */
+  private generateRiskFactors(ehrData: EHRRecord, reactions: AllergicReaction[], outcomes: TreatmentOutcome[]): string[] {
+    const riskFactors: string[] = [];
+
+    // Multiple severe allergies
+    const severeAllergies = ehrData.allergies?.filter(a => a.checked && ['peanuts', 'shellfish', 'insectStings'].includes(a.name));
+    if (severeAllergies && severeAllergies.length >= 2) {
+      riskFactors.push('Multiple severe allergies');
+    }
+
+    // Recent severe reactions
+    const recentSevereReactions = reactions.filter(r => {
+      const reactionDate = new Date(r.reactionDate);
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      return reactionDate > sixMonthsAgo && (r.severity === 'severe' || r.severity === 'life-threatening');
+    });
+
+    if (recentSevereReactions.length > 0) {
+      riskFactors.push(`${recentSevereReactions.length} severe reaction(s) in last 6 months`);
+    }
+
+    // Poor treatment responses
+    const poorResponses = outcomes.filter(o => o.patientResponse === 'poor' || o.patientResponse === 'fair');
+    if (poorResponses.length >= 2) {
+      riskFactors.push('History of poor treatment responses');
+    }
+
+    // Chronic conditions
+    const chronicConditions = ehrData.medicalHistory?.filter(h => h.status === 'chronic');
+    if (chronicConditions && chronicConditions.length > 0) {
+      riskFactors.push(`${chronicConditions.length} chronic condition(s)`);
+    }
+
+    return riskFactors;
+  }
+
+  /**
+   * Generate recommendations based on patient data
+   */
+  private generateRecommendations(
+    ehrData: EHRRecord, 
+    reactions: AllergicReaction[], 
+    outcomes: TreatmentOutcome[], 
+    visits: DoctorVisit[]
+  ): string[] {
+    const recommendations: string[] = [];
+
+    // EpiPen recommendation for severe allergies
+    const severeAllergies = ehrData.allergies?.filter(a => a.checked && ['peanuts', 'shellfish', 'insectStings'].includes(a.name));
+    if (severeAllergies && severeAllergies.length > 0) {
+      recommendations.push('Ensure patient carries EpiPen at all times');
+      recommendations.push('Consider allergy bracelet/medical alert jewelry');
+    }
+
+    // Follow-up based on recent reactions
+    const recentReactions = reactions.filter(r => {
+      const reactionDate = new Date(r.reactionDate);
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      return reactionDate > oneMonthAgo;
+    });
+
+    if (recentReactions.length > 0) {
+      recommendations.push('Schedule follow-up within 2 weeks');
+      recommendations.push('Review trigger avoidance strategies');
+    }
+
+    // Regular monitoring for multiple allergies
+    const activeAllergies = ehrData.allergies?.filter(a => a.checked);
+    if (activeAllergies && activeAllergies.length >= 3) {
+      recommendations.push('Regular allergy specialist consultation recommended');
+    }
+
+    // Medication review if poor outcomes
+    const recentPoorOutcomes = outcomes.filter(o => 
+      o.patientResponse === 'poor' || o.patientResponse === 'fair'
+    ).slice(0, 2);
+
+    if (recentPoorOutcomes.length > 0) {
+      recommendations.push('Review current medication effectiveness');
+      recommendations.push('Consider alternative treatment options');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Create a pending access request instead of auto-granting access
+   */
+  private async autoGrantDoctorAccess(doctorName: string, specialty?: string): Promise<void> {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (!currentUser) return;
+
+      // Search for doctors in the users collection that match the name
+      const usersRef = collection(this.db, 'users');
+      const doctorQuery = query(
+        usersRef, 
+        where('role', '==', 'doctor')
+      );
+      
+      const doctorSnapshot = await getDocs(doctorQuery);
+      const doctors = doctorSnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      })) as any[];
+
+      // Try to match the doctor by name
+      const matchedDoctor = doctors.find(doctor => {
+        const fullName = `${doctor.firstName} ${doctor.lastName}`.toLowerCase();
+        const doctorNameClean = doctorName.toLowerCase()
+          .replace(/^dr\.?\s*/i, '') // Remove "Dr." prefix
+          .replace(/^nurse\s*/i, ''); // Remove "Nurse" prefix
+        
+        return fullName.includes(doctorNameClean) || doctorNameClean.includes(fullName);
+      });
+
+      if (matchedDoctor) {
+        console.log('EHR Service: Found matching doctor in system:', matchedDoctor.email);
+        
+        // Create a pending access request instead of auto-granting
+        await this.createAccessRequest(
+          matchedDoctor.email,
+          'doctor',
+          `${matchedDoctor.firstName} ${matchedDoctor.lastName}`,
+          specialty || matchedDoctor.specialty || 'General Medicine',
+          doctorName // Original name from visit
+        );
+        
+        console.log('EHR Service: Created access request for doctor:', matchedDoctor.email);
+      } else {
+        console.log('EHR Service: No matching doctor found in system for:', doctorName);
+      }
+
+    } catch (error) {
+      console.error('Error creating doctor access request:', error);
+      // Don't throw error - this is a background operation
+    }
+  }
+
+  /**
+   * Create an access request for doctor-patient relationship
+   */
+  private async createAccessRequest(
+    doctorEmail: string,
+    role: 'doctor' | 'nurse',
+    doctorName: string,
+    specialty: string,
+    originalVisitName: string
+  ): Promise<void> {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (!currentUser) return;
+
+      // Get patient info
+      const patientDoc = await getDoc(doc(this.db, `users/${currentUser.uid}`));
+      const patientData = patientDoc.data();
+
+      if (!patientData) return;
+
+      // Check if request already exists
+      const existingRequestQuery = query(
+        collection(this.db, 'accessRequests'),
+        where('patientId', '==', currentUser.uid),
+        where('doctorEmail', '==', doctorEmail),
+        where('status', '==', 'pending')
+      );
+      
+      const existingRequests = await getDocs(existingRequestQuery);
+      if (!existingRequests.empty) {
+        console.log('Access request already exists for this doctor');
+        return;
+      }
+
+      // Create expiry date (30 days from now)
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 30);
+
+      const accessRequest: Omit<AccessRequest, 'id'> = {
+        patientId: currentUser.uid,
+        patientName: `${patientData['firstName']} ${patientData['lastName']}`,
+        patientEmail: patientData['email'],
+        doctorEmail: doctorEmail,
+        doctorName: doctorName,
+        doctorRole: role,
+        specialty: specialty,
+        originalVisitName: originalVisitName,
+        status: 'pending',
+        requestDate: new Date(),
+        expiryDate: expiryDate,
+        message: `Patient ${patientData['firstName']} ${patientData['lastName']} has added you as their doctor in a visit record and would like to grant you access to their medical records.`
+      };
+
+      await addDoc(collection(this.db, 'accessRequests'), accessRequest);
+      console.log('Access request created successfully');
+
+    } catch (error) {
+      console.error('Error creating access request:', error);
+    }
+  }
+
+  /**
+   * Get pending access requests for a doctor
+   */
+  async getPendingAccessRequests(): Promise<AccessRequest[]> {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (!currentUser) {
+        return [];
+      }
+
+      // Get current user's email
+      const userDoc = await getDoc(doc(this.db, `users/${currentUser.uid}`));
+      const userData = userDoc.data();
+      
+      if (!userData?.['email']) {
+        return [];
+      }
+
+      const doctorEmail = userData['email'];
+
+      const requestsQuery = query(
+        collection(this.db, 'accessRequests'),
+        where('doctorEmail', '==', doctorEmail),
+        where('status', '==', 'pending'),
+        orderBy('requestDate', 'desc')
+      );
+
+      const requestsSnapshot = await getDocs(requestsQuery);
+      const requests = requestsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as AccessRequest[];
+
+      // Filter out expired requests
+      const now = new Date();
+      return requests.filter(request => new Date(request.expiryDate) > now);
+
+    } catch (error) {
+      console.error('Error fetching access requests:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Respond to an access request (accept/decline)
+   */
+  async respondToAccessRequest(
+    requestId: string, 
+    response: 'accepted' | 'declined', 
+    notes?: string
+  ): Promise<void> {
+    try {
+      const requestRef = doc(this.db, `accessRequests/${requestId}`);
+      const requestDoc = await getDoc(requestRef);
+      
+      if (!requestDoc.exists()) {
+        throw new Error('Access request not found');
+      }
+
+      const requestData = requestDoc.data() as AccessRequest;
+
+      // Update request status
+      await updateDoc(requestRef, {
+        status: response,
+        responseDate: new Date(),
+        notes: notes || ''
+      });
+
+      // If accepted, grant access to patient's EHR
+      if (response === 'accepted') {
+        // Get current user (doctor) info
+        const currentUser = await this.authService.waitForAuthInit();
+        if (!currentUser) throw new Error('User not logged in');
+
+        const doctorDoc = await getDoc(doc(this.db, `users/${currentUser.uid}`));
+        const doctorData = doctorDoc.data();
+
+        if (doctorData) {
+          // Use the patient's ID to grant access
+          const patientEHRRef = doc(this.db, `ehr/${requestData.patientId}`);
+          const patientEHR = await getDoc(patientEHRRef);
+
+          if (patientEHR.exists()) {
+            const ehrData = patientEHR.data() as EHRRecord;
+            const healthcareProviders = ehrData.healthcareProviders || [];
+
+            // Add doctor to healthcare providers
+            const newProvider: HealthcareProvider = {
+              email: requestData.doctorEmail,
+              role: requestData.doctorRole,
+              name: requestData.doctorName,
+              license: doctorData['license'],
+              specialty: requestData.specialty,
+              hospital: doctorData['hospital'],
+              grantedAt: new Date(),
+              grantedBy: requestData.patientId
+            };
+
+            healthcareProviders.push(newProvider);
+
+            await updateDoc(patientEHRRef, {
+              healthcareProviders: healthcareProviders,
+              lastUpdated: new Date()
+            });
+
+            console.log('Access granted successfully');
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Error responding to access request:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get access requests sent by current patient
+   */
+  async getMyAccessRequests(): Promise<AccessRequest[]> {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (!currentUser) return [];
+
+      const requestsQuery = query(
+        collection(this.db, 'accessRequests'),
+        where('patientId', '==', currentUser.uid),
+        orderBy('requestDate', 'desc')
+      );
+
+      const requestsSnapshot = await getDocs(requestsQuery);
+      return requestsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as AccessRequest[];
+
+    } catch (error) {
+      console.error('Error fetching my access requests:', error);
+      return [];
     }
   }
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserService, UserProfile } from '../service/user.service';
 import { AllergyService } from '../service/allergy.service';
 import { BuddyService } from '../service/buddy.service';
@@ -7,10 +8,13 @@ import { BarcodeService } from '../service/barcode.service';
 import { MedicalService, EmergencyMessage } from '../service/medical.service';
 import { EmergencyAlertService } from '../service/emergency-alert.service';
 import { MedicationService, Medication } from '../service/medication.service';
-import { EHRService, DoctorVisit, MedicalHistory, EmergencyContact } from '../service/ehr.service';
-import { ToastController, ModalController } from '@ionic/angular';
+import { EHRService, DoctorVisit, MedicalHistory, EmergencyContact, HealthcareProvider, AccessRequest } from '../service/ehr.service';
+import { ToastController, ModalController, AlertController } from '@ionic/angular';
 import { AddMedicationModal } from '../modals/add-medication.modal';
 import { AddDoctorVisitModal } from '../modals/add-doctor-visit.modal';
+import { AddMedicalHistoryModal } from '../modals/add-medical-history.modal';
+import { AddEmergencyContactModal } from '../modals/add-emergency-contact.modal';
+import { ImageViewerModal } from '../modals/image-viewer.modal';
 
 @Component({
   selector: 'app-profile',
@@ -18,16 +22,15 @@ import { AddDoctorVisitModal } from '../modals/add-doctor-visit.modal';
   styleUrls: ['./profile.page.scss'],
   standalone: false,
 })
-export class ProfilePage implements OnInit {
+export class ProfilePage implements OnInit, OnDestroy {
 
   selectedTab: 'overview' | 'health' | 'emergency' | 'ehr' = 'overview';
   showEditAllergiesModal = false;
-  showEditEmergencyModal = false;
   showEditEmergencyMessageModal = false;
   showExamplesModal = false;
   showManageInstructionsModal = false;
 
-  // Emergency instructions
+  // Emergency instructions (per-allergy specific)
   emergencyInstructions: any[] = [];
   selectedAllergyForInstruction: any = null;
   newInstructionText: string = '';
@@ -46,7 +49,6 @@ export class ProfilePage implements OnInit {
   filteredMedications: Medication[] = [];
   medicationFilter: string = 'all';
   medicationSearchTerm: string = '';
-  emergencyInstruction: string = '';
   emergencyMessage: EmergencyMessage = {
     name: '',
     allergies: '',
@@ -59,7 +61,14 @@ export class ProfilePage implements OnInit {
   medicalHistory: MedicalHistory[] = [];
   emergencyContacts: EmergencyContact[] = [];
   ehrAccessList: string[] = [];
+  healthcareProviders: HealthcareProvider[] = [];
+  pendingRequests: AccessRequest[] = [];
   newProviderEmail: string = '';
+  newProviderName: string = '';
+  newProviderRole: 'doctor' | 'nurse' = 'doctor';
+  newProviderLicense: string = '';
+  newProviderSpecialty: string = '';
+  newProviderHospital: string = '';
 
   allergiesCount = 0;
   medicationsCount = 0;
@@ -68,6 +77,8 @@ export class ProfilePage implements OnInit {
   allergyOptions: any[] = [];
 
   constructor(
+    private route: ActivatedRoute,
+    private router: Router,
     private userService: UserService,
     private allergyService: AllergyService,
     private buddyService: BuddyService,
@@ -78,16 +89,29 @@ export class ProfilePage implements OnInit {
     private medicationService: MedicationService,
     private ehrService: EHRService,
     private toastController: ToastController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private alertController: AlertController
   ) { }
 
   async ngOnInit() {
+    // Check for query parameters to set the selected tab
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.selectedTab = params['tab'];
+      }
+    });
+    
     await this.loadAllergyOptions();
     await this.loadUserData();
     await this.loadMedicalData();
     await this.loadEmergencyInstructions();
     await this.loadUserMedications();
     await this.loadEHRData();
+    
+    // Load access requests if user is a doctor or nurse
+    if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
+      await this.loadAccessRequests();
+    }
   }
 
   async loadAllergyOptions() {
@@ -194,9 +218,6 @@ export class ProfilePage implements OnInit {
         // Update allergy options based on user's allergies
         this.updateAllergyOptions();
         
-        // Set emergency instruction from user profile
-        this.emergencyInstruction = this.userProfile.emergencyInstruction || '';
-        
         // Load emergency message if exists
         if (this.userProfile.emergencyMessage) {
           this.emergencyMessage = this.userProfile.emergencyMessage;
@@ -232,6 +253,7 @@ export class ProfilePage implements OnInit {
     try {
       this.userMedications = await this.medicationService.getUserMedications(this.userProfile.uid);
       this.medicationsCount = this.userMedications.length;
+      this.clearMedicationCache(); // Clear cache when medications reload
       this.filterMedications(); // Apply current filter
     } catch (error) {
       console.error('Error loading medications:', error);
@@ -240,8 +262,19 @@ export class ProfilePage implements OnInit {
 
   /**
    * Filter medications based on selected filter
+   * Using memoization to improve performance
    */
+  private medicationFilterCache = new Map<string, Medication[]>();
+  
   filterMedications() {
+    const cacheKey = `${this.medicationFilter}-${this.medicationSearchTerm}`;
+    
+    // Check cache first
+    if (this.medicationFilterCache.has(cacheKey)) {
+      this.filteredMedications = this.medicationFilterCache.get(cacheKey)!;
+      return;
+    }
+
     let filtered = [...this.userMedications];
 
     // Apply search filter first if there's a search term
@@ -258,39 +291,61 @@ export class ProfilePage implements OnInit {
     // Apply category filter
     switch (this.medicationFilter) {
       case 'emergency':
-        this.filteredMedications = filtered.filter(med => 
+        filtered = filtered.filter(med => 
           med.category === 'emergency' || 
           med.category === 'allergy' ||
           med.emergencyMedication === true
         );
         break;
       case 'daily':
-        this.filteredMedications = filtered.filter(med => 
+        filtered = filtered.filter(med => 
           med.category === 'daily'
         );
         break;
       case 'active':
-        this.filteredMedications = filtered.filter(med => 
+        filtered = filtered.filter(med => 
           med.isActive
         );
         break;
       case 'expiring':
-        this.filteredMedications = filtered.filter(med => 
+        filtered = filtered.filter(med => 
           this.isExpiringSoon(med.expiryDate)
         );
         break;
       default:
-        this.filteredMedications = filtered;
+        // 'all' case - no additional filtering needed
         break;
     }
+
+    // Cache the result
+    this.medicationFilterCache.set(cacheKey, filtered);
+    this.filteredMedications = filtered;
   }
 
   /**
-   * Search medications
+   * Clear medication filter cache when medications change
    */
+  private clearMedicationCache() {
+    this.medicationFilterCache.clear();
+  }
+
+  /**
+   * Search medications with debouncing
+   */
+  private searchTimeout: any;
+  
   searchMedications(event: any) {
-    this.medicationSearchTerm = event.target.value;
-    this.filterMedications();
+    // Clear existing timeout
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    
+    // Set new timeout for debounced search
+    this.searchTimeout = setTimeout(() => {
+      this.medicationSearchTerm = event.target.value;
+      this.clearMedicationCache(); // Clear cache when search changes
+      this.filterMedications();
+    }, 300); // 300ms delay
   }
 
   /**
@@ -375,6 +430,22 @@ export class ProfilePage implements OnInit {
   }
 
   /**
+   * View medication image in full screen
+   */
+  async viewMedicationImage(imageUrl: string, title: string) {
+    const modal = await this.modalController.create({
+      component: ImageViewerModal,
+      componentProps: {
+        imageUrl: imageUrl,
+        title: title,
+        fileName: `${title.toLowerCase().replace(/\s+/g, '-')}.jpg`
+      }
+    });
+
+    await modal.present();
+  }
+
+  /**
    * View medication report
    */
   async viewMedicationReport() {
@@ -434,11 +505,6 @@ export class ProfilePage implements OnInit {
       const medicalProfile = await this.medicalService.getUserMedicalProfile(currentUser.uid);
       
       if (medicalProfile) {
-        // Update emergency instruction if it exists in medical profile
-        if (medicalProfile.emergencyInstruction) {
-          this.emergencyInstruction = medicalProfile.emergencyInstruction;
-        }
-        
         // Update emergency message if it exists in medical profile
         if (medicalProfile.emergencyMessage) {
           this.emergencyMessage = medicalProfile.emergencyMessage;
@@ -551,108 +617,21 @@ export class ProfilePage implements OnInit {
     }
   }
 
-  openEmergencyInstructionModal() {
-    // Load current emergency instruction from user profile if available
-    if (this.userProfile && this.userProfile.emergencyInstruction) {
-      this.emergencyInstruction = this.userProfile.emergencyInstruction;
-    } else if (!this.emergencyInstruction) {
-      // Initialize with empty string if no existing instruction
-      this.emergencyInstruction = '';
-    }
-    
-    this.showEditEmergencyModal = true;
-    console.log('Opening emergency instruction modal with:', this.emergencyInstruction);
-  }
-
-  closeEmergencyInstructionModal() {
-    this.showEditEmergencyModal = false;
-    // Optionally reset to original value if user cancels
-    // You could store original value before opening modal if needed
-    console.log('Emergency instruction modal closed');
-  }
-
-  // Alternative close method for back button specifically
-  onEmergencyModalBackButton() {
-    this.closeEmergencyInstructionModal();
-  }
-
-  async saveEmergencyInstruction() {
-    if (!this.userProfile) {
-      this.presentToast('User profile not loaded');
-      return;
-    }
-
-    // Validate that instruction is not empty
-    if (!this.emergencyInstruction || this.emergencyInstruction.trim().length === 0) {
-      this.presentToast('Please enter emergency instructions before saving');
-      return;
-    }
-
-    try {
-      // Trim whitespace
-      this.emergencyInstruction = this.emergencyInstruction.trim();
-
-      // Use the medical service to save emergency instruction
-      await this.medicalService.setEmergencyInstruction(this.userProfile.uid, this.emergencyInstruction);
-      
-      // Also update the user profile service for consistency
-      await this.userService.updateUserProfile(this.userProfile.uid, {
-        emergencyInstruction: this.emergencyInstruction
-      });
-      
-      // Close modal and show success message
-      this.showEditEmergencyModal = false;
-      this.presentToast('Emergency instructions saved successfully');
-      
-      console.log('Emergency instruction saved:', this.emergencyInstruction);
-    } catch (error) {
-      console.error('Error saving emergency instruction:', error);
-      this.presentToast('Error saving emergency instructions. Please try again.');
-    }
-  }
-
   /**
-   * Use pre-defined templates for emergency instructions
-   */
-  useTemplate(templateType: string) {
-    const userName = this.getUserDisplayName() || 'This person';
-    const allergies = this.getUserAllergiesDisplay() || 'multiple allergies';
-    
-    switch (templateType) {
-      case 'simple':
-        this.emergencyInstruction = `I have a severe ${allergies.toLowerCase()} allergy. Use my EpiPen and call 911 immediately.`;
-        break;
-        
-      case 'detailed':
-        this.emergencyInstruction = `${userName} is allergic to ${allergies.toLowerCase()}. If they are having trouble breathing, give them an EpiPen (in left pocket) immediately. Call emergency services (911). Stay with them until help arrives.`;
-        break;
-        
-      case 'medication':
-        this.emergencyInstruction = `I'm allergic to ${allergies.toLowerCase()}. If I collapse or stop responding, inject my EpiPen in the thigh and call emergency services. I also carry Benadryl in my pouch.`;
-        break;
-        
-      case 'child':
-        this.emergencyInstruction = `${userName} has a ${allergies.toLowerCase()} allergy. If symptoms like vomiting or hives appear, administer antihistamine. If breathing difficulty occurs, use EpiPen and call emergency help.`;
-        break;
-        
-      default:
-        this.emergencyInstruction = `I have allergies to ${allergies.toLowerCase()}. In case of emergency, use my EpiPen and call 911.`;
-    }
-  }
-
-  /**
-   * Get character count for emergency instruction
+   * Get character count for emergency instruction display
    */
   getCharacterCount(): number {
-    return this.emergencyInstruction ? this.emergencyInstruction.length : 0;
+    const displayText = this.getEmergencyInstructionDisplay();
+    return displayText ? displayText.length : 0;
   }
 
   /**
    * Test text-to-speech for emergency instruction
    */
   async testInstructionAudio() {
-    if (!this.emergencyInstruction) {
-      this.presentToast('Please enter emergency instructions first');
+    const instructionsText = this.getEmergencyInstructionDisplay();
+    if (!instructionsText) {
+      this.presentToast('Please add emergency instructions first');
       return;
     }
 
@@ -662,7 +641,7 @@ export class ProfilePage implements OnInit {
         // Stop any ongoing speech
         window.speechSynthesis.cancel();
         
-        const utterance = new SpeechSynthesisUtterance(this.emergencyInstruction);
+        const utterance = new SpeechSynthesisUtterance(instructionsText);
         utterance.rate = 0.8; // Slightly slower for clarity
         utterance.volume = 1.0;
         utterance.pitch = 1.0;
@@ -689,19 +668,20 @@ export class ProfilePage implements OnInit {
    * Copy emergency instructions to clipboard
    */
   async copyInstructions() {
-    if (!this.emergencyInstruction) {
+    const instructionsText = this.getEmergencyInstructionDisplay();
+    if (!instructionsText) {
       this.presentToast('No emergency instructions to copy');
       return;
     }
 
     try {
       if (navigator.clipboard) {
-        await navigator.clipboard.writeText(this.emergencyInstruction);
+        await navigator.clipboard.writeText(instructionsText);
         this.presentToast('Emergency instructions copied to clipboard');
       } else {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = this.emergencyInstruction;
+        textArea.value = instructionsText;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
@@ -786,11 +766,14 @@ export class ProfilePage implements OnInit {
   }
 
   getEmergencyInstructionDisplay(): string {
-    if (this.emergencyInstruction && this.emergencyInstruction.trim()) {
-      return this.emergencyInstruction;
+    // Use the per-allergy emergency instructions as the primary source
+    if (this.emergencyInstructions && this.emergencyInstructions.length > 0) {
+      return this.emergencyInstructions
+        .map(instruction => `${instruction.allergyName}: ${instruction.instruction}`)
+        .join(' | ');
     }
     
-    // Return empty string if no custom instruction is set
+    // Return empty string if no specific instructions are set
     return '';
   }
 
@@ -802,8 +785,18 @@ export class ProfilePage implements OnInit {
     return this.emergencyMessage.allergies || this.getUserAllergiesDisplay();
   }
 
+  /**
+   * Auto-generate emergency message instructions from per-allergy instructions
+   */
   getEmergencyMessageInstructions(): string {
-    return this.emergencyMessage.instructions || 'Use EpiPen immediately';
+    // Use the detailed per-allergy instructions if available
+    if (this.emergencyInstructions && this.emergencyInstructions.length > 0) {
+      const firstInstruction = this.emergencyInstructions[0];
+      return firstInstruction.instruction;
+    }
+    
+    // Fallback to basic instruction
+    return this.emergencyMessage.instructions || 'Use EpiPen immediately and call 911';
   }
 
   getEmergencyMessageLocation(): string {
@@ -846,12 +839,26 @@ export class ProfilePage implements OnInit {
         return;
       }
 
-      const emergencyData = await this.medicalService.getEmergencyData(this.userProfile.uid);
-      const alertMessage = this.medicalService.generateEmergencyAlertPayload(emergencyData);
+      const name = this.getEmergencyMessageName();
+      const allergies = this.getEmergencyMessageAllergies();
+      const instructions = this.getEmergencyMessageInstructions();
+      const location = this.getEmergencyMessageLocation();
       
-      // Show preview in an alert or modal
-      console.log('Emergency message preview:', alertMessage);
-      this.presentToast('Check console for emergency message preview');
+      const message = `🚨 EMERGENCY ALERT 🚨
+
+Name: ${name}
+Allergies: ${allergies}
+Instructions: ${instructions}
+Location: ${location}
+
+This message would be sent to emergency contacts and responders.`;
+      
+      const alert = await this.alertController.create({
+        header: 'Emergency Message Preview',
+        message: message,
+        buttons: ['OK']
+      });
+      await alert.present();
       
     } catch (error) {
       console.error('Error previewing emergency message:', error);
@@ -1075,11 +1082,15 @@ export class ProfilePage implements OnInit {
       const ehrRecord = await this.ehrService.getEHRRecord();
       this.ehrAccessList = ehrRecord?.accessibleBy || [];
       
+      // Load healthcare providers with roles
+      this.healthcareProviders = await this.ehrService.getHealthcareProviders();
+      
       console.log('Loaded EHR data:');
       console.log('- Doctor visits:', this.doctorVisits.length);
       console.log('- Medical history:', this.medicalHistory.length);
       console.log('- Emergency contacts:', this.emergencyContacts.length);
       console.log('- EHR access list:', this.ehrAccessList.length);
+      console.log('- Healthcare providers:', this.healthcareProviders.length);
       
     } catch (error) {
       console.error('Error loading EHR data:', error);
@@ -1193,8 +1204,18 @@ export class ProfilePage implements OnInit {
   }
 
   async openAddMedicalHistoryModal() {
-    // TODO: Create AddMedicalHistoryModal component
-    console.log('Add medical history modal not implemented yet');
+    const modal = await this.modalController.create({
+      component: AddMedicalHistoryModal,
+      componentProps: {}
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        this.loadEHRData(); // Refresh the data
+      }
+    });
+
+    return await modal.present();
   }
 
   getHistoryStatusColor(status: string): string {
@@ -1207,8 +1228,54 @@ export class ProfilePage implements OnInit {
   }
 
   async openAddEmergencyContactModal() {
-    // TODO: Create AddEmergencyContactModal component
-    console.log('Add emergency contact modal not implemented yet');
+    const modal = await this.modalController.create({
+      component: AddEmergencyContactModal,
+      componentProps: {}
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        this.loadEHRData(); // Refresh the data
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async editMedicalHistory(history: MedicalHistory) {
+    const modal = await this.modalController.create({
+      component: AddMedicalHistoryModal,
+      componentProps: {
+        medicalHistory: history,
+        isEditMode: true
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        this.loadEHRData(); // Refresh the data
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async editEmergencyContact(contact: EmergencyContact) {
+    const modal = await this.modalController.create({
+      component: AddEmergencyContactModal,
+      componentProps: {
+        emergencyContact: contact,
+        isEditMode: true
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        this.loadEHRData(); // Refresh the data
+      }
+    });
+
+    return await modal.present();
   }
 
   async grantEHRAccess() {
@@ -1228,6 +1295,92 @@ export class ProfilePage implements OnInit {
     }
   }
 
+  /**
+   * Grant enhanced healthcare provider access with role
+   */
+  async grantHealthcareProviderAccess() {
+    if (!this.newProviderEmail?.trim() || !this.newProviderName?.trim()) {
+      this.presentToast('Please enter provider email and name');
+      return;
+    }
+
+    try {
+      await this.ehrService.grantHealthcareProviderAccess(
+        this.newProviderEmail.trim(),
+        this.newProviderRole,
+        this.newProviderName.trim(),
+        this.newProviderLicense?.trim(),
+        this.newProviderSpecialty?.trim(),
+        this.newProviderHospital?.trim()
+      );
+      
+      await this.loadEHRData(); // Refresh the data
+      
+      // Clear the form
+      this.newProviderEmail = '';
+      this.newProviderName = '';
+      this.newProviderRole = 'doctor';
+      this.newProviderLicense = '';
+      this.newProviderSpecialty = '';
+      this.newProviderHospital = '';
+      
+      this.presentToast('Healthcare provider access granted successfully');
+    } catch (error) {
+      console.error('Error granting healthcare provider access:', error);
+      this.presentToast('Error granting healthcare provider access');
+    }
+  }
+
+  /**
+   * Revoke healthcare provider access
+   */
+  async revokeHealthcareProviderAccess(providerEmail: string) {
+    try {
+      await this.ehrService.revokeHealthcareProviderAccess(providerEmail);
+      await this.loadEHRData(); // Refresh the data
+      this.presentToast('Healthcare provider access revoked successfully');
+    } catch (error) {
+      console.error('Error revoking healthcare provider access:', error);
+      this.presentToast('Error revoking healthcare provider access');
+    }
+  }
+
+  /**
+   * Get role display name
+   */
+  getRoleDisplayName(role: 'doctor' | 'nurse'): string {
+    return role === 'doctor' ? 'Doctor' : 'Nurse';
+  }
+
+  /**
+   * Get role color for chips
+   */
+  getRoleColor(role: 'doctor' | 'nurse'): string {
+    return role === 'doctor' ? 'primary' : 'secondary';
+  }
+
+  /**
+   * Navigate to doctor dashboard for professional workflow
+   */
+  async navigateToDoctorDashboard() {
+    try {
+      // Check if current user has professional role
+      const currentUser = await this.authService.waitForAuthInit();
+      if (currentUser && this.userProfile) {
+        if (this.userProfile.role === 'doctor' || this.userProfile.role === 'nurse') {
+          await this.router.navigate(['/doctor-dashboard']);
+        } else {
+          this.presentToast('Access denied. Professional privileges required.');
+        }
+      } else {
+        this.presentToast('Please log in to access professional dashboard');
+      }
+    } catch (error) {
+      console.error('Error navigating to doctor dashboard:', error);
+      this.presentToast('Error accessing professional dashboard');
+    }
+  }
+
   async revokeEHRAccess(providerEmail: string) {
     try {
       await this.ehrService.revokeEHRAccess(providerEmail);
@@ -1236,6 +1389,146 @@ export class ProfilePage implements OnInit {
     } catch (error) {
       console.error('Error revoking EHR access:', error);
       this.presentToast('Error revoking EHR access');
+    }
+  }
+
+  /**
+   * Load pending access requests for doctors/nurses
+   */
+  async loadAccessRequests() {
+    try {
+      console.log('Loading access requests for healthcare provider');
+      this.pendingRequests = await this.ehrService.getPendingAccessRequests();
+      console.log('Loaded access requests:', this.pendingRequests.length);
+    } catch (error) {
+      console.error('Error loading access requests:', error);
+      this.presentToast('Error loading access requests');
+    }
+  }
+
+  /**
+   * Accept an access request from a patient
+   */
+  async acceptAccessRequest(request: AccessRequest) {
+    const alert = await this.alertController.create({
+      header: 'Accept Access Request',
+      message: `Accept access to ${request.patientName}'s medical records? You will be able to view their complete EHR including allergies, medications, and visit history.`,
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: 'Optional notes about accepting this patient...'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Accept Patient',
+          handler: async (data) => {
+            try {
+              await this.ehrService.respondToAccessRequest(request.id!, 'accepted', data.notes);
+              await this.presentToast(`Access granted to ${request.patientName}`);
+              await this.loadAccessRequests(); // Refresh the list
+            } catch (error) {
+              console.error('Error accepting request:', error);
+              await this.presentToast('Error accepting request. Please try again.');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Decline an access request from a patient
+   */
+  async declineAccessRequest(request: AccessRequest) {
+    const alert = await this.alertController.create({
+      header: 'Decline Access Request',
+      message: `Decline access request from ${request.patientName}? They will be notified that you declined to access their medical records.`,
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: 'Optional reason for declining (patient will not see this)...'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Decline Request',
+          handler: async (data) => {
+            try {
+              await this.ehrService.respondToAccessRequest(request.id!, 'declined', data.notes);
+              await this.presentToast(`Request from ${request.patientName} declined`);
+              await this.loadAccessRequests(); // Refresh requests list
+            } catch (error) {
+              console.error('Error declining request:', error);
+              await this.presentToast('Error declining request. Please try again.');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Get human-readable age of the request
+   */
+  getRequestAge(requestDate: Date | any): string {
+    const now = new Date();
+    const reqDate = new Date(requestDate);
+    const diffTime = Math.abs(now.getTime() - reqDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} week(s) ago`;
+    return `${Math.floor(diffDays / 30)} month(s) ago`;
+  }
+
+  /**
+   * Get human-readable expiry date
+   */
+  getExpiryDate(expiryDate: Date | any): string {
+    const expiry = new Date(expiryDate);
+    const now = new Date();
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays < 7) return `In ${diffDays} days`;
+    if (diffDays < 30) return `In ${Math.floor(diffDays / 7)} week(s)`;
+    return `In ${Math.floor(diffDays / 30)} month(s)`;
+  }
+
+  /**
+   * Cleanup method to prevent memory leaks
+   */
+  ngOnDestroy() {
+    // Clear any timeouts
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    
+    // Clear caches
+    this.clearMedicationCache();
+    
+    // Stop any ongoing speech synthesis
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
     }
   }
 }

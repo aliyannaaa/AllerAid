@@ -11,6 +11,12 @@ import {
   orderBy,
   Timestamp 
 } from 'firebase/firestore';
+import { 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject 
+} from 'firebase/storage';
 import { FirebaseService } from './firebase.service';
 import { AuthService } from './auth.service';
 
@@ -48,6 +54,11 @@ export interface Medication {
   reminderEnabled?: boolean;
   reminderTimes?: string[];
   allergicReaction?: boolean;
+  // Prescription image fields
+  prescriptionImageUrl?: string;
+  prescriptionImageName?: string;
+  medicationImageUrl?: string;
+  medicationImageName?: string;
   emergencyMedication?: boolean;
   requiresRefrigeration?: boolean;
   withFood?: boolean;
@@ -59,24 +70,112 @@ export interface Medication {
 })
 export class MedicationService {
   private db;
+  private storage;
 
   constructor(
     private firebaseService: FirebaseService,
     private authService: AuthService
   ) {
     this.db = this.firebaseService.getDb();
+    this.storage = this.firebaseService.getStorage();
+  }
+
+  /**
+   * Check if Firebase Storage is accessible
+   */
+  private async checkStorageAccess(): Promise<boolean> {
+    try {
+      // Try to create a reference to test access
+      const testRef = ref(this.storage, 'test/access-check.txt');
+      return true;
+    } catch (error) {
+      console.warn('Firebase Storage access check failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Upload image to Firebase Storage and return download URL
+   */
+  private async uploadImageToStorage(file: File, path: string): Promise<string> {
+    try {
+      console.log(`Attempting to upload ${file.name} (${file.size} bytes) to ${path}`);
+      const storageRef = ref(this.storage, path);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log('Image uploaded successfully:', downloadURL);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading image to Firebase Storage:', error);
+      
+      // Provide more specific error information
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+        
+        // Check for specific Firebase Storage errors
+        if (error.message.includes('storage/unauthorized')) {
+          console.error('Firebase Storage: Unauthorized access - check security rules');
+        } else if (error.message.includes('storage/quota-exceeded')) {
+          console.error('Firebase Storage: Quota exceeded');
+        } else if (error.message.includes('storage/invalid-argument')) {
+          console.error('Firebase Storage: Invalid file or path');
+        }
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Convert data URL to File object
+   */
+  private dataURLtoFile(dataURL: string, filename: string): File {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   }
 
   /**
    * Add a new medication for the current user
    */
-  async addMedication(medication: Medication): Promise<void> {
+  async addMedication(medication: Medication, prescriptionImageData?: string, medicationImageData?: string): Promise<void> {
     const currentUser = await this.authService.waitForAuthInit();
     if (!currentUser) {
       throw new Error('User not logged in');
     }
 
+    console.log('Current user authenticated:', {
+      uid: currentUser.uid,
+      email: currentUser.email
+    });
+
     try {
+      // For now, use compressed base64 storage due to Firebase Storage access issues
+      // TODO: Fix Firebase Storage rules and re-enable cloud storage
+      
+      if (prescriptionImageData) {
+        console.log('Storing prescription image as compressed base64');
+        console.log('Prescription image size:', prescriptionImageData.length, 'characters');
+        medication.prescriptionImageUrl = prescriptionImageData;
+      }
+
+      if (medicationImageData) {
+        console.log('Storing medication image as compressed base64');
+        console.log('Medication image size:', medicationImageData.length, 'characters');
+        medication.medicationImageUrl = medicationImageData;
+      }
+
+      console.log('Adding medication to Firestore...');
       const medsRef = collection(this.db, `users/${currentUser.uid}/medications`);
       await addDoc(medsRef, {
         ...medication,
@@ -84,9 +183,13 @@ export class MedicationService {
         updatedAt: Timestamp.now()
       });
       
-      console.log('Medication added successfully');
+      console.log('Medication added successfully with compressed images');
     } catch (error) {
       console.error('Error adding medication:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error name:', error.name);
+      }
       throw error;
     }
   }

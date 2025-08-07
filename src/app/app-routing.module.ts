@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { RoleGuard } from './guards/role.guard';
 
 
 const routes: Routes = [
@@ -71,6 +72,12 @@ const routes: Routes = [
     path: 'responder-map',
     loadChildren: () => import('./responder-map/responder-map.module').then( m => m.ResponderMapPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'doctor-dashboard',
+    loadChildren: () => import('./pages/doctor-dashboard/doctor-dashboard.module').then( m => m.DoctorDashboardPageModule),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['doctor', 'nurse'] }
   },
 
 

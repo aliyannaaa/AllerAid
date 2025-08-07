@@ -50,6 +50,12 @@ export class RegistrationPage {
           role: this.role
         });
         
+        // If healthcare professional, mark onboarding as completed since they don't need allergy setup
+        if (this.role === 'doctor' || this.role === 'nurse') {
+          await this.userService.markAllergyOnboardingCompleted(userCredential.user.uid);
+          console.log('Healthcare professional onboarding marked as completed');
+        }
+        
         console.log('User profile created in Firestore');
         this.presentToast('Registration successful! Please log in.');
         this.navCtrl.navigateForward('/login');

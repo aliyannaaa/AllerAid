@@ -57,16 +57,22 @@ export class LoginPage {
           // Update last login timestamp
           await this.userService.updateLastLogin(userCredential.user.uid);
           
-          // Check if user has completed allergy onboarding
-          const hasCompletedOnboarding = await this.userService.hasCompletedAllergyOnboarding(userCredential.user.uid);
-          
-          if (hasCompletedOnboarding) {
-            this.presentToast('Login successful');
-            this.navCtrl.navigateForward('/tabs/home');
+          // Check user role for routing - healthcare professionals skip onboarding
+          if (userProfile.role === 'doctor' || userProfile.role === 'nurse') {
+            this.presentToast(`Welcome back, ${userProfile.role === 'doctor' ? 'Dr.' : 'Nurse'} ${userProfile.firstName}`);
+            this.navCtrl.navigateForward('/doctor-dashboard');
           } else {
-            // First-time user or user who hasn't completed onboarding
-            this.presentToast('Welcome! Please complete your allergy profile');
-            this.navCtrl.navigateForward('/allergy-onboarding');
+            // For patients and caregivers, check if they've completed allergy onboarding
+            const hasCompletedOnboarding = await this.userService.hasCompletedAllergyOnboarding(userCredential.user.uid);
+            
+            if (hasCompletedOnboarding) {
+              this.presentToast('Login successful');
+              this.navCtrl.navigateForward('/tabs/home');
+            } else {
+              // First-time user or user who hasn't completed onboarding
+              this.presentToast('Welcome! Please complete your allergy profile');
+              this.navCtrl.navigateForward('/allergy-onboarding');
+            }
           }
         } else {
           // If profile still doesn't exist, redirect to onboarding

@@ -196,6 +196,20 @@
   margin-bottom: 2px;
 }
 
+.medication-images {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  
+  img {
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+}
+
 .visit-detail {
   font-size: 14px;
   color: #666;
@@ -309,4 +323,75 @@
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
+}
+
+// Medical History & Emergency Contact Cards - Optimized
+.medical-history-list, .emergency-contacts-list {
+  margin-bottom: 24px;
+}
+
+.history-card, .contact-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(171, 112, 130, 0.1);
+    border-color: #AB7082;
+    transform: translateY(-2px);
+  }
+}
+
+.history-header, .contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.history-condition, .contact-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.history-date, .contact-relationship {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.contact-relationship {
+  font-style: italic;
+}
+
+.history-notes, .contact-phone, .contact-email {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.contact-phone, .contact-email {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  
+  ion-icon {
+    margin-right: 8px;
+    color: #AB7082;
+  }
+}
+
+.no-history, .no-contacts {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+  font-style: italic;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px dashed #ddd;
 }

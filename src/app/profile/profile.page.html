@@ -77,102 +77,17 @@
         </div>
         
         <div class="section-title">
-          Emergency Instructions
-          <ion-icon name="pencil-outline" (click)="openEmergencyInstructionModal()" style="margin-left: 8px; cursor: pointer;"></ion-icon>
+          Emergency Instructions Overview
         </div>
-
-        <ion-modal [isOpen]="showEditEmergencyModal" (didDismiss)="showEditEmergencyModal = false">
-          <ng-template>
-            <ion-header>
-              <ion-toolbar>
-                <ion-title>Emergency Instructions</ion-title>
-                <ion-buttons slot="start">
-                  <ion-button (click)="onEmergencyModalBackButton()" fill="clear">
-                    <ion-icon name="arrow-back-outline"></ion-icon>
-                  </ion-button>
-                </ion-buttons>
-                <ion-buttons slot="end">
-                  <ion-button (click)="closeEmergencyInstructionModal()" fill="clear">
-                    <ion-icon name="close"></ion-icon>
-                  </ion-button>
-                </ion-buttons>
-              </ion-toolbar>
-            </ion-header>
-            <ion-content class="ion-padding">
-              <div style="margin-bottom: 16px;">
-                <p style="color: #666; font-size: 14px;">
-                  Provide specific instructions for emergency responders about your allergies and required treatments.
-                </p>
-              </div>
-
-              <!-- Quick Templates Section -->
-              <div style="margin-bottom: 20px;">
-                <ion-label style="font-weight: 600; color: #0a3977;">Quick Templates:</ion-label>
-                <div class="template-buttons" style="margin-top: 8px;">
-                  <ion-button size="small" fill="outline" (click)="useTemplate('simple')" style="margin: 4px;">
-                    Simple
-                  </ion-button>
-                  <ion-button size="small" fill="outline" (click)="useTemplate('detailed')" style="margin: 4px;">
-                    Detailed
-                  </ion-button>
-                  <ion-button size="small" fill="outline" (click)="useTemplate('medication')" style="margin: 4px;">
-                    With Medication
-                  </ion-button>
-                  <ion-button size="small" fill="outline" (click)="useTemplate('child')" style="margin: 4px;">
-                    Child/Elderly
-                  </ion-button>
-                </div>
-              </div>
-              
-              <ion-item lines="none" style="--padding-start: 0;">
-                <ion-label position="stacked">Emergency Instructions</ion-label>
-                <ion-textarea 
-                  placeholder="Choose a template above or write custom instructions..."
-                  [(ngModel)]="emergencyInstruction"
-                  rows="8"
-                  autoGrow="true"
-                  style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-top: 8px;">
-                </ion-textarea>
-              </ion-item>
-
-              <!-- Character count and validation -->
-              <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-                <small style="color: #666;">{{ getCharacterCount() }}/500 characters</small>
-                <ion-button size="small" fill="clear" (click)="testInstructionAudio()" [disabled]="!emergencyInstruction">
-                  <ion-icon name="volume-high-outline" slot="start"></ion-icon>
-                  Test Audio
-                </ion-button>
-              </div>
-
-              <div style="margin-top: 24px;">
-                <ion-button 
-                  expand="block" 
-                  (click)="saveEmergencyInstruction()" 
-                  [disabled]="!emergencyInstruction || emergencyInstruction.trim().length === 0">
-                  <ion-icon name="save-outline" slot="start"></ion-icon>
-                  Save Instructions
-                </ion-button>
-                
-                <ion-button 
-                  expand="block" 
-                  fill="outline" 
-                  (click)="closeEmergencyInstructionModal()" 
-                  style="margin-top: 8px;">
-                  Cancel
-                </ion-button>
-              </div>
-            </ion-content>
-          </ng-template>
-        </ion-modal>
 
         <div class="emergency-box">
           <div *ngIf="getEmergencyInstructionDisplay(); else noInstructionTemplate">
             <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
               <strong>Emergency Instructions:</strong>
               <div style="display: flex; gap: 8px;">
-                <ion-button size="small" fill="clear" (click)="testInstructionAudio()">
-                  <ion-icon name="volume-high-outline" slot="start"></ion-icon>
-                  Play Audio
+                <ion-button size="small" fill="outline" (click)="selectTab('emergency')">
+                  <ion-icon name="create-outline" slot="start"></ion-icon>
+                  Edit in Emergency Tab
                 </ion-button>
                 <ion-button size="small" fill="clear" (click)="copyInstructions()">
                   <ion-icon name="copy-outline" slot="start"></ion-icon>
@@ -180,11 +95,17 @@
                 </ion-button>
               </div>
             </div>
-            <div style="line-height: 1.5; color: #333; background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #e55e76;">
-              {{ getEmergencyInstructionDisplay() }}
+            
+            <!-- Show individual emergency instructions if available -->
+            <div *ngIf="emergencyInstructions.length > 0">
+              <div *ngFor="let instruction of emergencyInstructions" class="instruction-overview-item" style="margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #e55e76;">
+                <div style="font-weight: 600; color: #d32f2f; margin-bottom: 4px;">{{ instruction.allergyName }}</div>
+                <div style="line-height: 1.5; color: #333;">{{ instruction.instruction }}</div>
+              </div>
             </div>
+            
             <div style="margin-top: 8px; font-size: 12px; color: #666;">
-              {{ getCharacterCount() }} characters • Audio enabled
+              {{ emergencyInstructions.length }} allergy-specific instructions • View-only in Overview
             </div>
           </div>
           <ng-template #noInstructionTemplate>
@@ -194,12 +115,12 @@
                 No emergency instructions set
               </div>
               <div style="color: #999; font-size: 12px; margin-bottom: 16px;">
-                Emergency instructions help responders know exactly what to do in case of an allergic reaction.
+                Emergency instructions help responders know exactly what to do for each of your allergies.
               </div>
               <ion-button 
                 fill="outline" 
                 size="small" 
-                (click)="openEmergencyInstructionModal()">
+                (click)="selectTab('emergency')">
                 <ion-icon name="add-outline" slot="start"></ion-icon>
                 Set Emergency Instructions
               </ion-button>
@@ -296,6 +217,21 @@
             </div>
             
             <div class="medication-details">
+              <div class="medication-images" *ngIf="medication.prescriptionImageUrl || medication.medicationImageUrl" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <div *ngIf="medication.prescriptionImageUrl" style="flex: 1;">
+                  <p style="font-size: 12px; color: #666; margin-bottom: 4px;">Prescription</p>
+                  <img [src]="medication.prescriptionImageUrl" 
+                       style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;"
+                       (click)="viewMedicationImage(medication.prescriptionImageUrl, 'Prescription Image')">
+                </div>
+                <div *ngIf="medication.medicationImageUrl" style="flex: 1;">
+                  <p style="font-size: 12px; color: #666; margin-bottom: 4px;">Medication</p>
+                  <img [src]="medication.medicationImageUrl" 
+                       style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;"
+                       (click)="viewMedicationImage(medication.medicationImageUrl, 'Medication Image')">
+                </div>
+              </div>
+              
               <div class="medication-detail" *ngIf="medication.dosage">
                 <ion-icon name="flask-outline"></ion-icon>
                 <b>Dosage:</b> {{ medication.dosage }}
@@ -337,22 +273,6 @@
 
       <ng-container *ngIf="selectedTab === 'ehr'">
         <div class="section-title">Electronic Health Record (EHR)</div>
-
-        <!-- EHR Overview Stats -->
-        <div class="ehr-overview">
-          <div class="ehr-stat-card">
-            <div class="ehr-stat-number">{{ doctorVisits.length }}</div>
-            <div class="ehr-stat-label">Doctor Visits</div>
-          </div>
-          <div class="ehr-stat-card">
-            <div class="ehr-stat-number">{{ medicalHistory.length }}</div>
-            <div class="ehr-stat-label">Medical History</div>
-          </div>
-          <div class="ehr-stat-card">
-            <div class="ehr-stat-number">{{ emergencyContacts.length }}</div>
-            <div class="ehr-stat-label">Emergency Contacts</div>
-          </div>
-        </div>
 
         <!-- Doctor Visits Section -->
         <div class="section-title">
@@ -443,7 +363,7 @@
         </div>
 
         <div class="medical-history-list">
-          <div *ngFor="let history of medicalHistory" class="history-card">
+          <div *ngFor="let history of medicalHistory" class="history-card" (click)="editMedicalHistory(history)">
             <div class="history-header">
               <div class="history-condition">{{ history.condition }}</div>
               <ion-chip [color]="getHistoryStatusColor(history.status)" size="small">
@@ -466,7 +386,7 @@
         </div>
 
         <div class="emergency-contacts-list">
-          <div *ngFor="let contact of emergencyContacts" class="contact-card">
+          <div *ngFor="let contact of emergencyContacts" class="contact-card" (click)="editEmergencyContact(contact)">
             <div class="contact-header">
               <div class="contact-name">{{ contact.name }}</div>
               <ion-chip *ngIf="contact.isPrimary" color="primary" size="small">Primary</ion-chip>
@@ -523,6 +443,84 @@
                 (click)="revokeEHRAccess(provider)">
                 <ion-icon name="trash-outline"></ion-icon>
               </ion-button>
+            </div>
+          </div>
+
+          <!-- Professional Workflow Access -->
+          <div class="professional-access-section" 
+               *ngIf="userProfile?.role === 'doctor' || userProfile?.role === 'nurse'"
+               style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e0e0e0;">
+            <h4 style="margin-bottom: 12px; color: var(--ion-color-primary);">Professional Features</h4>
+            <p style="font-size: 13px; color: #666; margin-bottom: 16px;">
+              Access advanced professional workflow features for healthcare providers.
+            </p>
+            <ion-chip 
+              color="primary" 
+              style="margin-bottom: 12px;">
+              <ion-icon name="medical-outline"></ion-icon>
+              <ion-label>{{ userProfile?.role === 'doctor' ? 'Doctor' : 'Nurse' }} Access</ion-label>
+            </ion-chip>
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="primary"
+              (click)="navigateToDoctorDashboard()">
+              <ion-icon name="medical-outline" slot="start"></ion-icon>
+              {{ userProfile?.role === 'doctor' ? 'Doctor Dashboard' : 'Nurse Dashboard' }}
+            </ion-button>
+
+            <!-- Access Requests Section for Healthcare Providers -->
+            <div *ngIf="pendingRequests.length > 0" style="margin-top: 20px;">
+              <h5 style="color: var(--ion-color-primary); margin-bottom: 12px;">
+                <ion-icon name="mail-outline" style="margin-right: 8px;"></ion-icon>
+                Pending Access Requests ({{ pendingRequests.length }})
+              </h5>
+              
+              <div *ngFor="let request of pendingRequests" 
+                   style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; margin-bottom: 12px; border-left: 4px solid #ffc409;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div>
+                    <strong style="color: #2d5aa0;">{{ request.patientName }}</strong>
+                    <div style="font-size: 12px; color: #666;">{{ request.patientEmail }}</div>
+                  </div>
+                  <ion-chip color="warning" size="small">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <ion-label>{{ getRequestAge(request.requestDate) }}</ion-label>
+                  </ion-chip>
+                </div>
+
+                <p style="font-size: 13px; margin: 8px 0; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #3880ff;">
+                  {{ request.message }}
+                </p>
+
+                <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                  <ion-button 
+                    size="small" 
+                    fill="solid" 
+                    color="success"
+                    (click)="acceptAccessRequest(request)">
+                    <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                    Accept
+                  </ion-button>
+                  
+                  <ion-button 
+                    size="small" 
+                    fill="outline" 
+                    color="danger"
+                    (click)="declineAccessRequest(request)">
+                    <ion-icon name="close-outline" slot="start"></ion-icon>
+                    Decline
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Debug section for testing -->
+            <div *ngIf="pendingRequests.length === 0" style="margin-top: 20px;">
+              <h5 style="color: var(--ion-color-medium); margin-bottom: 12px;">
+                <ion-icon name="mail-outline" style="margin-right: 8px;"></ion-icon>
+                No Pending Access Requests
+              </h5>
             </div>
           </div>
         </div>

@@ -43,12 +43,16 @@
       <ion-card-content>
         <p><strong>Allergens:</strong> 
           <span *ngIf="userAllergies.length > 0">
-            {{ getAllergensDisplay() }}
+            {{ userAllergies.length }} recorded
           </span>
           <span *ngIf="userAllergies.length === 0">None recorded</span>
         </p>
         <p><strong>Buddies:</strong> {{ getBuddiesCount() }}</p>
-        <p><strong>Emergency Contact:</strong> {{ getEmergencyContactStatus() }}</p>
+        <p><strong>Emergency Contact:</strong> 
+          <span>
+            {{ getEmergencyContactStatus() }}
+          </span>
+        </p>
       </ion-card-content>
     </ion-card>
   </div>

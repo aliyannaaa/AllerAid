@@ -5,6 +5,8 @@ import { AuthService } from '../service/auth.service';
 import { BuddyService } from '../service/buddy.service';
 import { EmergencyService } from '../service/emergency.service';
 import { UserService } from '../service/user.service';
+import { AllergyService } from '../service/allergy.service';
+import { EHRService, EmergencyContact } from '../service/ehr.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -16,6 +18,7 @@ import { Subscription } from 'rxjs';
 export class HomePage implements OnInit, OnDestroy {
   userBuddies: any[] = [];
   userAllergies: any[] = [];
+  emergencyContacts: EmergencyContact[] = [];
   userName: string = '';
   emergencyInstruction: string = '';
   currentEmergencyId: string | null = null;
@@ -31,12 +34,19 @@ export class HomePage implements OnInit, OnDestroy {
     private authService: AuthService,
     private buddyService: BuddyService,
     private emergencyService: EmergencyService,
-    private userService: UserService
+    private userService: UserService,
+    private allergyService: AllergyService,
+    private ehrService: EHRService
   ) {}
 
   async ngOnInit() {
     await this.loadUserData();
     this.listenForEmergencyResponses();
+  }
+
+  async ionViewWillEnter() {
+    // Refresh data every time the user comes back to this page
+    await this.loadUserData();
   }
 
   ngOnDestroy() {
@@ -58,8 +68,21 @@ export class HomePage implements OnInit, OnDestroy {
         // Load user buddies
         this.userBuddies = await this.buddyService.getUserBuddies(currentUser.uid);
         
-        // Load user allergies
-        this.userAllergies = await this.userService.getUserAllergies(currentUser.uid) || [];
+        // Load user allergies using the same logic as profile page
+        const userAllergyDocs = await this.allergyService.getUserAllergies(currentUser.uid);
+        this.userAllergies = [];
+        
+        // Flatten the allergies from documents and filter only checked ones
+        userAllergyDocs.forEach((allergyDoc: any) => {
+          if (allergyDoc.allergies && Array.isArray(allergyDoc.allergies)) {
+            // Only include allergies that are checked
+            const checkedAllergies = allergyDoc.allergies.filter((allergy: any) => allergy.checked);
+            this.userAllergies.push(...checkedAllergies);
+          }
+        });
+
+        // Load emergency contacts
+        this.emergencyContacts = await this.ehrService.getEmergencyContacts();
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -229,7 +252,19 @@ export class HomePage implements OnInit, OnDestroy {
   }
   
   getEmergencyContactStatus(): string {
-    return this.userBuddies.length > 0 ? 'Configured' : 'Not set';
+    if (this.emergencyContacts.length === 0) {
+      return 'Not set up';
+    }
+    const primaryContact = this.emergencyContacts.find(contact => contact.isPrimary);
+    if (primaryContact) {
+      return `${primaryContact.name} (Primary)`;
+    }
+    return `${this.emergencyContacts.length} contact${this.emergencyContacts.length > 1 ? 's' : ''}`;
+  }
+
+  editEmergencyContacts() {
+    // Navigate to profile page with EHR tab
+    this.router.navigate(['/profile'], { queryParams: { tab: 'ehr' } });
   }
   
   async presentToast(message: string) {

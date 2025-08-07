@@ -6,15 +6,21 @@ import {
   getFirestore
 } from 'firebase/firestore';
 
+import {
+  getStorage
+} from 'firebase/storage';
+
 @Injectable({
   providedIn: 'root'
 })
 export class FirebaseService {
   private db;
+  private storage;
 
   constructor() {
     const app = initializeApp(firebaseConfig);
     this.db = getFirestore(app);
+    this.storage = getStorage(app);
   }
 
   // This service can be used for general Firebase operations
@@ -23,5 +29,9 @@ export class FirebaseService {
   
   getDb() {
     return this.db;
+  }
+
+  getStorage() {
+    return this.storage;
   }
 }

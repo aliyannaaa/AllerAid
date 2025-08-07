@@ -314,4 +314,21 @@ export class UserService {
       throw error;
     }
   }
+
+  // Get all doctors and nurses for doctor visit selection
+  async getDoctorsAndNurses(): Promise<(UserProfile & { specialty?: string })[]> {
+    try {
+      const usersRef = collection(this.db, 'users');
+      const q = query(usersRef, where('role', 'in', ['doctor', 'nurse']));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        ...(doc.data() as UserProfile),
+        specialty: doc.data()['specialty'] || 'General Medicine'
+      }));
+    } catch (error) {
+      console.error('Error getting doctors and nurses:', error);
+      return [];
+    }
+  }
 }

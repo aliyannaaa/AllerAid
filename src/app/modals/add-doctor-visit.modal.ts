@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { EHRService, DoctorVisit } from '../service/ehr.service';
+import { UserService } from '../service/user.service';
 
 @Component({
   selector: 'app-add-doctor-visit',
@@ -33,6 +34,10 @@ export class AddDoctorVisitModal implements OnInit {
   };
 
   isEditMode = false;
+  doctorInputMode: 'dropdown' | 'manual' = 'dropdown';
+  availableDoctors: { name: string; specialty: string; email: string; }[] = [];
+  selectedDoctorEmail = '';
+  manualDoctorName = '';
 
   visitTypes = [
     { value: 'routine', label: 'Routine Check-up' },
@@ -61,10 +66,14 @@ export class AddDoctorVisitModal implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private ehrService: EHRService,
+    private userService: UserService,
     private toastController: ToastController
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Load available doctors from the system
+    await this.loadAvailableDoctors();
+    
     // If editing an existing visit, populate the form
     if (this.visit) {
       this.isEditMode = true;
@@ -82,7 +91,56 @@ export class AddDoctorVisitModal implements OnInit {
         vitalSigns: { ...this.visit.vitalSigns },
         notes: this.visit.notes || ''
       };
+      
+      // Check if the doctor is in our available doctors list
+      const existingDoctor = this.availableDoctors.find(d => 
+        d.name === this.visit?.doctorName || d.email === this.visit?.doctorName
+      );
+      
+      if (existingDoctor) {
+        this.doctorInputMode = 'dropdown';
+        this.selectedDoctorEmail = existingDoctor.email;
+      } else {
+        this.doctorInputMode = 'manual';
+        this.manualDoctorName = this.visit.doctorName;
+      }
     }
+  }
+
+  async loadAvailableDoctors() {
+    try {
+      // Get all users with doctor or nurse role
+      const doctors = await this.userService.getDoctorsAndNurses();
+      this.availableDoctors = doctors.map(doctor => ({
+        name: `${doctor.role === 'doctor' ? 'Dr.' : 'Nurse'} ${doctor.firstName} ${doctor.lastName}`,
+        specialty: doctor.specialty || 'General Medicine',
+        email: doctor.email
+      }));
+    } catch (error) {
+      console.error('Error loading available doctors:', error);
+      // If we can't load doctors, default to manual input
+      this.doctorInputMode = 'manual';
+    }
+  }
+
+  switchInputMode(mode: 'dropdown' | 'manual') {
+    this.doctorInputMode = mode;
+    this.selectedDoctorEmail = '';
+    this.manualDoctorName = '';
+    this.visitData.doctorName = '';
+    this.visitData.specialty = '';
+  }
+
+  onDoctorSelection() {
+    const selectedDoctor = this.availableDoctors.find(d => d.email === this.selectedDoctorEmail);
+    if (selectedDoctor) {
+      this.visitData.doctorName = selectedDoctor.name;
+      this.visitData.specialty = selectedDoctor.specialty;
+    }
+  }
+
+  onManualDoctorInput() {
+    this.visitData.doctorName = this.manualDoctorName;
   }
 
   dismiss() {
