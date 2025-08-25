@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { AllergyService } from './service/allergy.service';
-import { AuthService } from './service/auth.service';
+import { AllergyService } from './core/services/allergy.service';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',

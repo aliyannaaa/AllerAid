@@ -1,0 +1,1012 @@
+// Consolidated header and layout styles
+.profile-header { display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
+.profile-avatar { display: flex; justify-content: center; margin-top: 40px; }
+.profile-stats { display: flex; justify-content: space-between; background: #f8f2f5; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin: 20px 16px 0; padding: 12px 0; }
+.stat { flex: 1; text-align: center; &-label { color: #888; font-size: 15px; font-weight: 400; } &-value { font-size: 20px; font-weight: 700; color: #333; } }
+.profile-tabs { display: flex; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.07); margin: 20px 12px 0; padding: 6px 4px; gap: 10px; }
+.tab { flex: 1; background: #f8e9ee; border: none; border-radius: 8px; padding: 10px 0; font-size: 17px; font-weight: 700; color: #222; transition: all 0.2s; &.active { background: #f5aab7; box-shadow: 0 2px 6px rgba(0,0,0,0.04); } }
+.section-title { font-weight: 700; font-size: 18px; margin: 24px 0 8px; display: flex; align-items: center; color: #222; ion-icon { color: #0a3977; font-size: 18px; margin-left: 4px; } }
+.profile-section { padding: 20px 18px 0; }
+
+// Consolidated component styles
+.allergy-list-scrollable { display: flex; align-items: center; gap: 10px; overflow-x: auto; padding: 4px 0 8px; &::-webkit-scrollbar { height: 6px; &-thumb { background: #ccc; border-radius: 3px; } } }
+.allergy-chip { background: #b3dbfc; color: #222; border-radius: 16px; padding: 6px 18px; font-size: 16px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.emergency-box { background: #b3dbfc; border-radius: 12px; padding: 14px 16px; margin-top: 10px; color: #222; b { font-weight: 700; color: #0a3977; } }
+
+// Cards - consolidated styles
+.medication-card, 
+.emergency-setting-card {
+  border: 1.5px solid #bbb;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.medication-card {
+  padding: 16px 18px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  
+  // Mobile responsive padding and margins
+  @media (max-width: 768px) {
+    padding: 12px 14px 10px;
+    margin-bottom: 14px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 12px 8px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+}
+
+.emergency-setting-card {
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+
+// Medication styles
+.medication-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none; // Prevent text selection on tap
+  -webkit-tap-highlight-color: rgba(0, 123, 255, 0.1); // Custom tap highlight
+  
+  // Hover effects for card interaction
+  &:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.1);
+    transform: translateY(-1px);
+    
+    // Show that card is interactive
+    .medication-title-section .medication-title {
+      color: #007bff;
+    }
+    
+    // Disable hover effects on touch devices to avoid sticky hover states
+    @media (hover: none) and (pointer: coarse) {
+      border-color: #bbb;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      transform: none;
+      
+      .medication-title-section .medication-title {
+        color: #222;
+      }
+    }
+  }
+  
+  // Active state for touch devices
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  // Enhanced expanded state
+  &.expanded {
+    border-color: #007bff;
+    box-shadow: 0 4px 16px rgba(0,123,255,0.15);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    
+    // Make chevron button more prominent when expanded
+    .action-buttons ion-button[title*="show/hide"] {
+      --background: rgba(0, 123, 255, 0.2);
+      --color: #0056b3;
+    }
+    
+    .medication-title-section .medication-title {
+      color: #0056b3;
+    }
+  }
+  
+  // Mobile responsiveness
+  @media (max-width: 768px) {
+    padding: 12px 14px 10px;
+    margin-bottom: 12px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 12px 8px;
+    margin-bottom: 10px;
+  }
+}
+
+.medication-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0;
+  
+  // Mobile adjustments
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+.medication-title-section {
+  flex: 1;
+  
+  .medication-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222;
+    display: block;
+    margin-bottom: 4px;
+    
+    // Mobile font sizing
+    @media (max-width: 768px) {
+      font-size: 16px;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 15px;
+      line-height: 1.3;
+    }
+  }
+  
+  .medication-summary {
+    font-size: 14px;
+    color: #666;
+    
+    @media (max-width: 480px) {
+      font-size: 13px;
+    }
+    
+    .dosage {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .frequency {
+      font-weight: 400;
+    }
+  }
+}
+
+.medication-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  // Mobile layout adjustments
+  @media (max-width: 480px) {
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    
+    // Enhanced chevron button styling
+    ion-button[title*="show/hide"] {
+      --background: rgba(0, 123, 255, 0.1);
+      --background-hover: rgba(0, 123, 255, 0.2);
+      --background-activated: rgba(0, 123, 255, 0.3);
+      --border-radius: 8px;
+      --color: #007bff;
+      
+      // Add subtle animation to indicate interactivity
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+        --background: rgba(0, 123, 255, 0.15);
+      }
+      
+      // Mobile: larger touch target and better visual feedback
+      @media (max-width: 480px) {
+        --min-height: 36px;
+        --min-width: 36px;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+      
+      ion-icon {
+        font-size: 18px;
+        transition: transform 0.2s ease;
+        
+        @media (max-width: 480px) {
+          font-size: 16px;
+        }
+      }
+      
+      // Add subtle rotation animation when expanding/collapsing
+      &:active ion-icon {
+        transform: rotate(180deg);
+      }
+    }
+    
+    // Larger touch targets on mobile for all buttons
+    @media (max-width: 480px) {
+      gap: 2px;
+      
+      ion-button {
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --min-height: 36px;
+        --min-width: 36px;
+      }
+    }
+  }
+}
+
+.medication-details-expanded {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+  
+  // Mobile adjustments
+  @media (max-width: 480px) {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  
+  .medication-images {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    
+    // Mobile: stack images vertically on very small screens
+    @media (max-width: 360px) {
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .image-container {
+      flex: 1;
+      
+      .image-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 6px;
+        font-weight: 500;
+        
+        @media (max-width: 480px) {
+          font-size: 11px;
+          margin-bottom: 4px;
+        }
+      }
+      
+      .medication-image {
+        width: 100%;
+        max-height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        
+        // Smaller images on mobile
+        @media (max-width: 480px) {
+          max-height: 100px;
+          border-radius: 6px;
+        }
+        
+        &:hover {
+          transform: scale(1.02);
+          
+          // Disable hover scale on touch devices
+          @media (max-width: 768px) {
+            transform: none;
+          }
+        }
+      }
+    }
+  }
+  
+  .medication-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin-bottom: 12px;
+    
+    // Mobile: single column layout
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    
+    // Very small screens: reduce gap further
+    @media (max-width: 360px) {
+      gap: 4px;
+    }
+  }
+  
+  .medication-detail {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: #555;
+    gap: 8px;
+    
+    // Mobile font and spacing adjustments
+    @media (max-width: 480px) {
+      font-size: 13px;
+      gap: 6px;
+    }
+    
+    @media (max-width: 360px) {
+      font-size: 12px;
+      gap: 4px;
+    }
+    
+    &.full-width {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      
+      @media (max-width: 480px) {
+        margin-top: 6px;
+      }
+    }
+    
+    ion-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      color: #666;
+      
+      @media (max-width: 480px) {
+        font-size: 14px;
+      }
+    }
+    
+    b {
+      color: #333;
+      margin-right: 4px;
+      
+      @media (max-width: 480px) {
+        margin-right: 2px;
+      }
+    }
+  }
+  
+  .medication-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    
+    @media (max-width: 480px) {
+      gap: 4px;
+      margin-top: 8px;
+    }
+    
+    ion-chip {
+      font-size: 11px;
+      height: 24px;
+      
+      @media (max-width: 480px) {
+        font-size: 10px;
+        height: 22px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+      }
+      
+      ion-icon {
+        font-size: 14px;
+        margin-right: 4px;
+        
+        @media (max-width: 480px) {
+          font-size: 12px;
+          margin-right: 2px;
+        }
+      }
+    }
+  }
+}
+
+
+
+// Layout containers and emergency styles
+.medications-list,
+.medication-search,
+.medication-filters {
+  margin: 0 16px 16px;
+  
+  // Mobile: reduce side margins
+  @media (max-width: 768px) {
+    margin: 0 12px 12px;
+  }
+  
+  @media (max-width: 480px) {
+    margin: 0 8px 10px;
+  }
+}
+
+
+
+.medication-search {
+  margin-bottom: 8px;
+  
+  // Mobile: better touch targets and spacing
+  ion-searchbar {
+    @media (max-width: 480px) {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      font-size: 16px; // Prevents zoom on iOS
+    }
+  }
+}
+
+.medication-filters {
+  // Mobile: ensure segment buttons are readable
+  ion-segment {
+    @media (max-width: 480px) {
+      ion-segment-button {
+        min-height: 44px; // Better touch target
+        
+        ion-label {
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+    }
+    
+    @media (max-width: 360px) {
+      ion-segment-button {
+        ion-label {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+// Additional responsive utilities for very small screens
+@media (max-width: 360px) {
+  .medication-card {
+    border-radius: 8px;
+    
+    .medication-title {
+      font-size: 14px !important;
+    }
+  }
+}
+
+// Landscape mobile optimization
+@media (max-height: 500px) and (orientation: landscape) {
+  .medication-card {
+    margin-bottom: 8px;
+    
+    .medication-details-expanded {
+      margin-top: 8px;
+      padding-top: 8px;
+      
+      .medication-images .image-container .medication-image {
+        max-height: 80px;
+      }
+    }
+  }
+}
+
+.emergency-setting-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #222;
+}
+
+.emergency-setting-desc {
+  font-size: 14px;
+  color: #444;
+}
+
+.emergency-message-card {
+  background: #e6eef6;
+  border-radius: 12px;
+  padding: 18px 18px 12px;
+  margin-bottom: 10px;
+}
+
+.emergency-message-row {
+  display: flex;
+  margin-bottom: 6px;
+}
+
+.emergency-message-label {
+  font-weight: 700;
+  min-width: 100px;
+  color: #222;
+}
+
+.emergency-message-value {
+  color: #444;
+}
+
+
+
+
+
+// EHR Section Styles
+.ehr-header {
+  text-align: center;
+  margin-bottom: 24px;
+  
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+  .ehr-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+  }
+}
+
+.ehr-section-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e0e0e0;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+  
+  .card-header {
+    background: #f8f9fa;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+      
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+      }
+    }
+    
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 32px;
+      font-size: 14px;
+    }
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+}
+
+// Visit Summary Cards
+.visit-summary-card, .history-summary-card {
+  background: #fafbfc;
+  border: 1px solid #e1e8ed;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  // Mobile responsive padding
+  @media (max-width: 480px) {
+    padding: 20px 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
+  
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+  
+  // Hover effects for better interactivity
+  &:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+    transform: translateY(-2px);
+    
+    // Disable hover on touch devices
+    @media (hover: none) and (pointer: coarse) {
+      border-color: #e1e8ed;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+  
+  // Active state for touch feedback
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+.visit-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+  
+  // Mobile responsive layout
+  @media (max-width: 480px) {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  
+  .visit-summary-info {
+    flex: 1;
+    min-width: 0; // Allow text truncation if needed
+    
+    h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 4px 0;
+      line-height: 1.3;
+      
+      @media (max-width: 480px) {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+    }
+    
+    .visit-date {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+      
+      @media (max-width: 480px) {
+        font-size: 15px;
+      }
+    }
+  }
+  
+  .visit-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0; // Prevent shrinking
+    
+    @media (max-width: 480px) {
+      gap: 12px;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    
+    ion-chip {
+      margin: 0;
+      font-size: 12px;
+      
+      @media (max-width: 480px) {
+        font-size: 13px;
+        order: 2; // Place chip below menu button on mobile
+      }
+    }
+    
+    .menu-toggle-btn {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      --color: #666;
+      height: 40px;
+      width: 40px;
+      border-radius: 8px;
+      
+      // Mobile responsive sizing
+      @media (max-width: 480px) {
+        height: 44px; // Larger touch target on mobile
+        width: 44px;
+        --padding-start: 10px;
+        --padding-end: 10px;
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+      }
+      
+      ion-icon {
+        font-size: 18px;
+        
+        @media (max-width: 480px) {
+          font-size: 20px;
+        }
+      }
+      
+      &:hover {
+        --color: var(--ion-color-primary);
+        --background: rgba(var(--ion-color-primary-rgb), 0.1);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+      }
+    }
+  }
+}
+
+.visit-summary-diagnosis {
+  font-size: 14px;
+  color: #555;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.visit-click-hint,
+.history-click-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e9ecef;
+  font-size: 12px;
+  color: #007bff;
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 14px;
+  }
+  
+  // Hide on hover to make room for hover effects
+  .visit-summary-card:hover &,
+  .history-summary-card:hover & {
+    color: #0056b3;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 13px;
+    margin-top: 10px;
+    padding-top: 10px;
+    
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+}
+
+// History Summary Cards
+.history-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  
+  h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  ion-chip {
+    margin: 0;
+  }
+}
+
+.history-date {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.history-notes {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.history-summary-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+  
+  ion-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 32px;
+  }
+}
+
+// View All Link
+.view-all-link {
+  text-align: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+  
+  ion-button {
+    font-size: 14px;
+    --color: var(--ion-color-medium);
+  }
+}
+
+// Empty States
+.empty-state {
+  text-align: center;
+  padding: 32px 20px;
+  
+  .empty-icon {
+    font-size: 48px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  
+  .empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+  }
+  
+  .empty-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+  }
+  
+  ion-button {
+    --padding-start: 16px;
+    --padding-end: 16px;
+  }
+}
+
+// Provider Access Styles
+.access-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.provider-input {
+  --background: #f8f9fa;
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  margin-bottom: 16px;
+  
+  ion-label {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  ion-input {
+    --padding-start: 0;
+    --padding-end: 8px;
+  }
+  
+  ion-button {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    height: 36px;
+    margin: 0;
+  }
+}
+
+.current-access {
+  h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+}
+
+.access-list {
+  .access-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .provider-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      ion-icon {
+        color: var(--ion-color-medium);
+      }
+      
+      span {
+        font-size: 14px;
+        color: #333;
+      }
+    }
+    
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 32px;
+    }
+  }
+}
+
+.no-access {
+  text-align: center;
+  padding: 20px;
+  
+  .empty-subtitle {
+    margin: 0;
+  }
+}
+
+// Access Request Cards
+.access-request-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--ion-color-warning);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    
+    .patient-info {
+      strong {
+        color: var(--ion-color-primary);
+        font-size: 16px;
+      }
+      
+      .patient-email {
+        font-size: 12px;
+        color: #666;
+        margin-top: 2px;
+      }
+    }
+  }
+  
+  .request-message {
+    font-size: 14px;
+    margin: 12px 0;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid var(--ion-color-primary);
+    line-height: 1.4;
+  }
+  
+  .request-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    
+    ion-button {
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
+  }
+}
+
+

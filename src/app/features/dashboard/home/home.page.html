@@ -1,0 +1,54 @@
+<ion-toolbar class="dark-toolbar">
+  <ion-buttons slot="start">
+    <ion-menu-button></ion-menu-button>
+  </ion-buttons>
+
+  <ion-title>AllerAid</ion-title>
+
+  <ion-buttons slot="end">
+    <ion-button fill="clear" size="small" (click)="openNotifications()">
+      <img src="assets/icon/bell.png" alt="bell" style="width: 24px; height: 24px;" />
+    </ion-button>
+  </ion-buttons>
+</ion-toolbar>
+
+<ion-content class="ion-padding" [scrollY]="true">
+  <div class="wrapper scrollable-content">
+    <h2 class="page-title">Welcome, {{ userName }}!</h2>
+
+    <div class="emergency-wrapper">
+      <div class="circle-button" (click)="triggerEmergency()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <h2 class="emergency-title">EMERGENCY</h2>
+        <p class="instruction-text">Press the button or shake</p>
+      </div>
+      <p class="bottom-text">Press the button above in case of emergency</p>
+    </div>
+
+    <!-- Show the emergency response notification when a buddy responds -->
+    <app-emergency-response-notification 
+      *ngIf="respondingBuddy"
+      [responderName]="respondingBuddy.responderName"
+      [estimatedTime]="respondingBuddy.estimatedTime"
+      [distance]="respondingBuddy.distance"
+      [estimatedMinutes]="respondingBuddy.estimatedArrival"
+      (viewMap)="openResponderMap(respondingBuddy)"
+      (dismiss)="respondingBuddy = null">
+    </app-emergency-response-notification>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Health Overview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Allergens:</strong> 
+          <span *ngIf="userAllergies.length > 0">
+            {{ userAllergies.length }} recorded
+          </span>
+          <span *ngIf="userAllergies.length === 0">None recorded</span>
+        </p>
+        <p><strong>Buddies:</strong> {{ getBuddiesCount() }}</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

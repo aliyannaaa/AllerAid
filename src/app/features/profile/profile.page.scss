@@ -1,0 +1,183 @@
+// Optimized Profile Page Styles - Concise Version
+
+// Basic Layout
+.profile-header { display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
+.profile-avatar { display: flex; justify-content: center; margin-top: 40px; }
+.profile-stats { display: flex; justify-content: space-between; background: #f8f2f5; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin: 20px 16px 0; padding: 12px 0; }
+.stat { flex: 1; text-align: center; &-label { color: #888; font-size: 15px; } &-value { font-size: 20px; font-weight: 700; color: #333; } }
+.profile-tabs { display: flex; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.07); margin: 20px 12px 0; padding: 6px 4px; gap: 10px; }
+.tab { flex: 1; background: #f8e9ee; border: none; border-radius: 8px; padding: 10px 0; font-size: 17px; font-weight: 700; color: #222; transition: all 0.2s; &.active { background: #f5aab7; box-shadow: 0 2px 6px rgba(0,0,0,0.04); } }
+.section-title { font-weight: 700; font-size: 18px; margin: 24px 0 8px; display: flex; align-items: center; color: #222; ion-icon { color: #0a3977; font-size: 18px; margin-left: 4px; } }
+.profile-section { padding: 20px 18px 0; }
+
+// Components
+.allergy-list-scrollable { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 8px; }
+.allergy-chip { background: #b3dbfc; color: #222; border-radius: 16px; padding: 6px 18px; font-size: 16px; font-weight: 500; white-space: nowrap; }
+.emergency-box { background: #b3dbfc; border-radius: 12px; padding: 14px 16px; margin-top: 10px; color: #222; b { font-weight: 700; color: #0a3977; } }
+
+// Cards Base
+.medication-card, .emergency-setting-card { border: 1.5px solid #bbb; border-radius: 12px; background: #fff; margin-bottom: 12px; }
+.emergency-setting-card { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+
+// Medication Cards
+.medication-card { 
+  padding: 16px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: all 0.3s ease;
+  &:hover { border-color: #007bff; box-shadow: 0 4px 12px rgba(0,123,255,0.1); transform: translateY(-1px); }
+  &.expanded { border-color: #007bff; box-shadow: 0 4px 16px rgba(0,123,255,0.15); }
+}
+.medication-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.medication-title-section { flex: 1; .medication-title { font-size: 18px; font-weight: 700; color: #222; margin-bottom: 4px; } }
+.medication-summary { font-size: 14px; color: #666; .dosage { font-weight: 600; color: #333; } }
+.medication-actions { display: flex; align-items: center; gap: 8px; }
+.action-buttons { display: flex; gap: 4px; }
+
+// Expandable Details
+.medication-details-expanded { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e9ecef; }
+.medication-images { display: flex; gap: 12px; margin-bottom: 16px; .image-container { flex: 1; .image-label { font-size: 12px; color: #666; margin-bottom: 6px; } .medication-image { width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; } } }
+.medication-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 12px; }
+.medication-detail { display: flex; align-items: center; font-size: 14px; color: #555; gap: 8px; &.full-width { grid-column: 1 / -1; margin-top: 8px; } ion-icon { font-size: 16px; color: #666; } b { color: #333; } }
+.medication-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; ion-chip { font-size: 11px; height: 24px; ion-icon { font-size: 14px; } } }
+
+// Search & Filters
+.medications-list, .medication-search, .medication-filters { margin: 0 16px 16px; }
+
+// Emergency Settings
+.emergency-setting-title { font-weight: 700; font-size: 16px; color: #222; }
+.emergency-setting-desc { font-size: 14px; color: #444; }
+.emergency-message-card { background: #e6eef6; border-radius: 12px; padding: 18px; margin-bottom: 10px; }
+.emergency-message-row { display: flex; margin-bottom: 6px; }
+.emergency-message-label { font-weight: 700; min-width: 100px; color: #222; }
+.emergency-message-value { color: #444; }
+
+// EHR Section
+.ehr-header { text-align: center; margin-bottom: 24px; h2 { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 8px; } .ehr-subtitle { font-size: 16px; color: #666; margin: 0; } }
+.ehr-section-card { background: #fff; border-radius: 16px; border: 1.5px solid #e0e0e0; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); .card-header { background: #f8f9fa; padding: 16px 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; .card-title { display: flex; align-items: center; gap: 12px; h3 { font-size: 18px; font-weight: 600; color: #333; margin: 0; } } } .card-content { padding: 20px; } }
+
+// Visit Cards
+.visit-summary-card, .history-summary-card { 
+  background: #fafbfc; border: 1px solid #e1e8ed; border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease;
+  &:hover { border-color: #007bff; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1); transform: translateY(-2px); }
+  &:active { transform: scale(0.98); }
+}
+.visit-summary-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; .visit-summary-info { flex: 1; h4 { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 4px 0; } .visit-date { font-size: 14px; color: #666; margin: 0; } } .visit-header-actions { display: flex; align-items: center; gap: 8px; .menu-toggle-btn { --color: #666; height: 40px; width: 40px; border-radius: 8px; } } }
+.visit-summary-diagnosis { font-size: 14px; color: #555; margin: 8px 0; }
+.visit-click-hint { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e9ecef; font-size: 12px; color: #007bff; font-weight: 500; ion-icon { font-size: 14px; } }
+
+// History Cards
+.history-summary-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  margin-bottom: 8px; 
+  gap: 12px; 
+  
+  .history-summary-info { 
+    flex: 1; 
+    h4 { 
+      font-size: 16px; 
+      font-weight: 600; 
+      color: #333; 
+      margin: 0 0 4px 0; 
+    } 
+  }
+  
+  .history-header-actions { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    
+    .menu-toggle-btn { 
+      --color: #666; 
+      height: 40px; 
+      width: 40px; 
+      border-radius: 8px; 
+    } 
+  } 
+}
+.history-date { font-size: 14px; color: #666; margin: 0 0 8px 0; }
+.history-notes { font-size: 14px; color: #555; margin: 0; }
+.history-click-hint { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e9ecef; font-size: 12px; color: #007bff; font-weight: 500; ion-icon { font-size: 14px; } }
+
+// View All & Empty States
+.view-all-link { text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e9ecef; }
+.empty-state { 
+  text-align: center; 
+  padding: 32px 20px; 
+  background: transparent !important;
+  animation: none !important;
+  
+  .empty-icon { 
+    font-size: 48px; 
+    color: #ccc; 
+    margin-bottom: 16px; 
+    animation: none !important;
+  } 
+  
+  .empty-title { 
+    font-size: 16px; 
+    font-weight: 600; 
+    color: #333; 
+    margin: 0 0 8px 0; 
+    animation: none !important;
+    background: transparent !important;
+  } 
+  
+  .empty-subtitle { 
+    font-size: 14px; 
+    color: #666; 
+    margin: 0 0 20px 0; 
+    animation: none !important;
+    background: transparent !important;
+  }
+
+  // Ensure no skeleton effects
+  * {
+    animation: none !important;
+    background: transparent !important;
+  }
+
+  ion-button {
+    background: var(--ion-color-primary) !important;
+    color: white !important;
+  }
+}
+
+.loading-state {
+  padding: 20px;
+  
+  ion-skeleton-text {
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+}
+
+// Provider Access
+.access-description { font-size: 14px; color: #666; margin: 0 0 20px 0; }
+.provider-input { --background: #f8f9fa; --border-radius: 12px; margin-bottom: 16px; }
+.current-access h4 { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 12px 0; }
+.access-list .access-item { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; .provider-info { display: flex; align-items: center; gap: 8px; span { font-size: 14px; color: #333; } } }
+.access-request-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--ion-color-warning); .request-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; .patient-info strong { color: var(--ion-color-primary); font-size: 16px; } .patient-email { font-size: 12px; color: #666; margin-top: 2px; } } .request-message { font-size: 14px; margin: 12px 0; padding: 12px; background: white; border-radius: 8px; border-left: 3px solid var(--ion-color-primary); } .request-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; } }
+
+// Mobile Optimizations
+@media (max-width: 768px) {
+  .profile-stats { margin: 20px 12px 0; }
+  .medications-list, .medication-search, .medication-filters { margin: 0 12px 12px; }
+  .medication-card { padding: 12px 14px; margin-bottom: 14px; }
+  .medication-details-grid { grid-template-columns: 1fr; gap: 6px; }
+  .visit-summary-card, .history-summary-card { padding: 14px; }
+}
+
+@media (max-width: 480px) {
+  .profile-stats { margin: 20px 8px 0; padding: 10px 0; }
+  .medications-list, .medication-search, .medication-filters { margin: 0 8px 10px; }
+  .medication-card { padding: 10px 12px; border-radius: 10px; }
+  .medication-header { flex-direction: column; align-items: stretch; gap: 8px; }
+  .medication-title { font-size: 16px !important; }
+  .medication-summary { font-size: 13px; }
+  .medication-actions { justify-content: space-between; }
+  .medication-details-expanded { margin-top: 12px; padding-top: 12px; }
+  .medication-images { flex-direction: column; gap: 8px; }
+  .medication-images .medication-image { max-height: 100px; }
+  .visit-click-hint, .history-click-hint { font-size: 13px; margin-top: 10px; padding-top: 10px; }
+}
+
