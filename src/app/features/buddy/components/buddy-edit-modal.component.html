@@ -22,6 +22,10 @@
             <ion-input [(ngModel)]="editLastName" name="editLastName" required></ion-input>
           </ion-item>
           <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input [(ngModel)]="editEmail" name="editEmail" type="email" required></ion-input>
+          </ion-item>
+          <ion-item>
             <ion-label position="stacked">Relationship</ion-label>
             <ion-select [(ngModel)]="editRelationship" name="editRelationship" required placeholder="Select Relationship">
               <ion-select-option value="" disabled hidden>Select Relationship</ion-select-option>

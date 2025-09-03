@@ -11,7 +11,8 @@ import {
   BuddyModalComponent,
   BuddyActionsModalComponent,
   BuddyEditModalComponent,
-  BuddyDeleteConfirmModalComponent 
+  BuddyDeleteConfirmModalComponent,
+  BuddyDetailsModalComponent
 } from './components';
 import { BuddyInvitationsModal } from './components/buddy-invitations-modal.component';
 
@@ -20,7 +21,8 @@ import { BuddyInvitationsModal } from './components/buddy-invitations-modal.comp
     CommonModule,
     FormsModule,
     IonicModule,
-    BuddyPageRoutingModule
+    BuddyPageRoutingModule,
+    BuddyDetailsModalComponent
   ],
   declarations: [
     BuddyPage,

@@ -510,6 +510,7 @@ export class EHRService {
 
   /**
    * Grant access to EHR for healthcare provider with role
+   * Now includes validation to ensure provider exists in system
    */
   async grantHealthcareProviderAccess(
     providerEmail: string, 
@@ -525,39 +526,38 @@ export class EHRService {
     }
 
     try {
-      const ehrRecord = await this.getEHRRecord();
-      let healthcareProviders: HealthcareProvider[] = [];
+      // First, verify that the provider exists in the system with the correct role
+      const usersRef = collection(this.db, 'users');
+      const providerQuery = query(
+        usersRef,
+        where('email', '==', providerEmail.toLowerCase()),
+        where('role', 'in', ['doctor', 'nurse'])
+      );
       
-      if (ehrRecord) {
-        healthcareProviders = ehrRecord.healthcareProviders || [];
-        
-        // Check if provider already has access
-        const existingProvider = healthcareProviders.find(p => p.email === providerEmail);
-        if (existingProvider) {
-          // Update existing provider
-          existingProvider.role = role;
-          existingProvider.name = providerName;
-          existingProvider.license = license;
-          existingProvider.specialty = specialty;
-          existingProvider.hospital = hospital;
-        } else {
-          // Add new provider
-          healthcareProviders.push({
-            email: providerEmail,
-            role: role,
-            name: providerName,
-            license: license,
-            specialty: specialty,
-            hospital: hospital,
-            grantedAt: new Date(),
-            grantedBy: currentUser.uid
-          });
-        }
-        
-        await this.createOrUpdateEHR({
-          healthcareProviders: healthcareProviders
-        });
+      const providerSnapshot = await getDocs(providerQuery);
+      
+      if (providerSnapshot.empty) {
+        throw new Error('Healthcare provider not found in system. Provider must be registered as a doctor or nurse.');
       }
+      
+      const providerData = providerSnapshot.docs[0].data();
+      
+      // Verify the role matches what's in the system
+      if (providerData['role'] !== role) {
+        throw new Error(`Provider is registered as ${providerData['role']}, not ${role}`);
+      }
+
+      // Create access request instead of immediately granting access
+      await this.createAccessRequest(
+        providerEmail,
+        role,
+        providerName || `${providerData['firstName']} ${providerData['lastName']}`,
+        specialty || providerData['specialty'] || '',
+        providerName // Original name as entered
+      );
+      
+      console.log('Access request created for verified healthcare provider:', providerEmail);
+
     } catch (error) {
       console.error('Error granting healthcare provider access:', error);
       throw error;
@@ -1121,7 +1121,7 @@ export class EHRService {
   /**
    * Create an access request for doctor-patient relationship
    */
-  private async createAccessRequest(
+  async createAccessRequest(
     doctorEmail: string,
     role: 'doctor' | 'nurse',
     doctorName: string,
