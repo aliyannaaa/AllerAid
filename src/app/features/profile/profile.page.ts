@@ -15,6 +15,7 @@ import { AddDoctorVisitModal } from '../../shared/modals/add-doctor-visit.modal'
 import { AddMedicalHistoryModal } from '../../shared/modals/add-medical-history.modal';
 import { ImageViewerModal } from '../../shared/modals/image-viewer.modal';
 import { IonList, IonItem, IonIcon, IonLabel } from '@ionic/angular/standalone';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -24,7 +25,7 @@ import { IonList, IonItem, IonIcon, IonLabel } from '@ionic/angular/standalone';
 })
 export class ProfilePage implements OnInit, OnDestroy {
 
-  selectedTab: 'overview' | 'health' | 'emergency' | 'ehr' = 'overview';
+  selectedTab: 'overview' | 'health' | 'emergency' | 'ehr' | 'dashboard' | 'professional' | 'patients' | 'settings' = 'overview';
   showEditAllergiesModal = false;
   showEditEmergencyMessageModal = false;
   showExamplesModal = false;
@@ -44,6 +45,44 @@ export class ProfilePage implements OnInit, OnDestroy {
     powerButtonAlert: true,
     audioInstructions: true
   };
+
+  // Professional settings for doctors/nurses
+  professionalSettings = {
+    accessRequestNotifications: true,
+    patientUpdateNotifications: true,
+    emergencyAlerts: true,
+    workingHours: '9:00 AM - 5:00 PM',
+    contactPreference: 'Email'
+  };
+
+  // Buddy settings for emergency responders
+  buddySettings = {
+    emergencyNotifications: true,
+    locationSharing: true
+  };
+
+  // Doctor statistics
+  doctorStats = {
+    activePatients: 0,
+    pendingRequests: 0,
+    recentConsultations: 0,
+    criticalPatients: 0,
+    highRiskPatients: 0,
+    upcomingAppointments: 0
+  };
+
+  // Buddy statistics
+  buddyStats = {
+    protectedPatients: 0,
+    emergencyResponses: 0,
+    invitations: 0
+  };
+
+  // Professional credentials
+  professionalCredentials: any[] = [];
+
+  // Recent activity for professionals
+  recentActivity: any[] = [];
 
   userProfile: UserProfile | null = null;
   userAllergies: any[] = [];
@@ -76,6 +115,7 @@ export class ProfilePage implements OnInit, OnDestroy {
   isLoadingDoctorVisits: boolean = true;
   isLoadingMedicalHistory: boolean = true;
   isLoadingMedications: boolean = true;
+  isLoadingEHR: boolean = false;
 
   // Expanded states for EHR sections
   isDoctorVisitsExpanded: boolean = false;
@@ -109,11 +149,14 @@ export class ProfilePage implements OnInit, OnDestroy {
   ) { }
 
   async ngOnInit() {
-    console.log('Profile page ngOnInit - Initial loading states:', {
-      doctorVisits: this.isLoadingDoctorVisits,
-      medicalHistory: this.isLoadingMedicalHistory,
-      medications: this.isLoadingMedications
-    });
+    // Only show debug logs in development
+    if (!environment.production) {
+      console.log('Profile page ngOnInit - Initial loading states:', {
+        doctorVisits: this.isLoadingDoctorVisits,
+        medicalHistory: this.isLoadingMedicalHistory,
+        medications: this.isLoadingMedications
+      });
+    }
     
     // Check for query parameters to set the selected tab
     this.route.queryParams.subscribe(params => {
@@ -121,7 +164,7 @@ export class ProfilePage implements OnInit, OnDestroy {
         this.selectedTab = params['tab'];
       }
     });
-    
+
     await this.loadAllergyOptions();
     await this.loadUserData();
     await this.loadMedicalData();
@@ -132,10 +175,18 @@ export class ProfilePage implements OnInit, OnDestroy {
     // Load access requests if user is a doctor or nurse
     if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
       await this.loadAccessRequests();
+      await this.loadDoctorStats();
+      await this.loadRecentActivity();
+      await this.loadProfessionalCredentials();
+      this.setDefaultTabForRole();
+    } else if (this.userProfile?.role === 'buddy') {
+      await this.loadBuddyStats();
+      this.setDefaultTabForRole();
+    } else {
+      // Regular user - set default tab
+      this.selectedTab = 'overview';
     }
-  }
-
-  async ionViewWillEnter() {
+  }  async ionViewWillEnter() {
     // Reset loading states when refreshing data
     this.isLoadingDoctorVisits = true;
     this.isLoadingMedicalHistory = true;
@@ -173,10 +224,14 @@ export class ProfilePage implements OnInit, OnDestroy {
       } else {
         // No fallback - only show admin-configured allergies
         this.allergyOptions = [];
-        console.log('No allergy options configured by admin');
+        if (!environment.production) {
+          console.log('No allergy options configured by admin');
+        }
       }
       
-      console.log('Loaded allergy options:', this.allergyOptions);
+      if (!environment.production) {
+        console.log('Loaded allergy options:', this.allergyOptions);
+      }
     } catch (error) {
       console.error('Error loading allergy options:', error);
       // No fallback options - empty array if error occurs
@@ -191,12 +246,16 @@ export class ProfilePage implements OnInit, OnDestroy {
       const currentUser = await this.authService.waitForAuthInit();
       
       if (!currentUser) {
-        console.log('No authenticated user found');
+        if (!environment.production) {
+          console.log('No authenticated user found');
+        }
         this.presentToast('Please log in to view your profile');
         return;
       }
       
-      console.log('Loading profile data for user:', currentUser.uid); // Debug log
+      if (!environment.production) {
+        console.log('Loading profile data for user:', currentUser.uid);
+      }
       
       // Load user profile
       this.userProfile = await this.userService.getUserProfile(currentUser.uid);
@@ -204,7 +263,10 @@ export class ProfilePage implements OnInit, OnDestroy {
       if (this.userProfile) {
         // Load user allergies
         const userAllergyDocs = await this.allergyService.getUserAllergies(currentUser.uid);
-        console.log('User allergy docs:', userAllergyDocs); // Debug log
+        
+        if (!environment.production) {
+          console.log('User allergy docs:', userAllergyDocs);
+        }
         
         this.userAllergies = [];
         
@@ -217,7 +279,9 @@ export class ProfilePage implements OnInit, OnDestroy {
           }
         });
         
-        console.log('Processed user allergies:', this.userAllergies); // Debug log
+        if (!environment.production) {
+          console.log('Processed user allergies:', this.userAllergies);
+        }
         this.allergiesCount = this.userAllergies.length;
         
         // Load user buddies
@@ -471,7 +535,9 @@ export class ProfilePage implements OnInit, OnDestroy {
       const currentUser = await this.authService.waitForAuthInit();
       
       if (!currentUser) {
-        console.log('No authenticated user found for medical data');
+        if (!environment.production) {
+          console.log('No authenticated user found for medical data');
+        }
         return;
       }
 
@@ -492,7 +558,9 @@ export class ProfilePage implements OnInit, OnDestroy {
           };
         }
         
-        console.log('Loaded medical data:', medicalProfile);
+        if (!environment.production) {
+          console.log('Loaded medical data:', medicalProfile);
+        }
       }
     } catch (error) {
       console.error('Error loading medical data:', error);
@@ -501,7 +569,9 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   updateAllergyOptions() {
-    console.log('Updating allergy options with user allergies:', this.userAllergies); // Debug log
+    if (!environment.production) {
+      console.log('Updating allergy options with user allergies:', this.userAllergies);
+    }
     
     // Reset all options first
     this.allergyOptions.forEach(option => {
@@ -518,7 +588,9 @@ export class ProfilePage implements OnInit, OnDestroy {
       );
       
       if (userAllergy) {
-        console.log(`Setting ${option.name} to checked with value:`, userAllergy.value); // Debug log
+        if (!environment.production) {
+          console.log(`Setting ${option.name} to checked with value:`, userAllergy.value);
+        }
         option.checked = true;
         if (option.hasInput && userAllergy.value) {
           option.value = userAllergy.value;
@@ -526,10 +598,12 @@ export class ProfilePage implements OnInit, OnDestroy {
       }
     });
     
-    console.log('Updated allergy options:', this.allergyOptions); // Debug log
+    if (!environment.production) {
+      console.log('Updated allergy options:', this.allergyOptions);
+    }
   }
 
-  selectTab(tab: 'overview' | 'health' | 'emergency' | 'ehr') {
+  selectTab(tab: 'overview' | 'health' | 'emergency' | 'ehr' | 'dashboard' | 'professional' | 'patients' | 'settings') {
     this.selectedTab = tab;
   }
 
@@ -543,8 +617,10 @@ export class ProfilePage implements OnInit, OnDestroy {
         return;
       }
 
-      console.log('Saving allergies for user:', currentUser.uid); // Debug log
-      console.log('Current allergy options:', this.allergyOptions); // Debug log
+      if (!environment.production) {
+        console.log('Saving allergies for user:', currentUser.uid);
+        console.log('Current allergy options:', this.allergyOptions);
+      }
       
       // Prepare allergies for saving (same format as onboarding page)
       const sanitizedAllergies = this.allergyOptions.map(allergy => {
@@ -564,7 +640,9 @@ export class ProfilePage implements OnInit, OnDestroy {
         return cleanAllergy;
       });
       
-      console.log('Sanitized allergies:', sanitizedAllergies); // Debug log
+      if (!environment.production) {
+        console.log('Sanitized allergies:', sanitizedAllergies);
+      }
       
       // Check if user already has allergy data
       const userAllergies = await this.allergyService.getUserAllergies(currentUser.uid);
@@ -573,11 +651,15 @@ export class ProfilePage implements OnInit, OnDestroy {
         // User has existing allergy data - update it
         const allergyDocId = userAllergies[0].id;
         await this.allergyService.updateUserAllergies(allergyDocId, sanitizedAllergies);
-        console.log('Updated user allergies');
+        if (!environment.production) {
+          console.log('Updated user allergies');
+        }
       } else {
         // No existing data - create new record
         await this.allergyService.addUserAllergies(currentUser.uid, sanitizedAllergies);
-        console.log('Created new user allergies record');
+        if (!environment.production) {
+          console.log('Created new user allergies record');
+        }
       }
       
       // Reload user data to refresh the display
@@ -1091,27 +1173,42 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   // EHR Methods
   async loadEHRData() {
-    console.log('loadEHRData called - Before loading, states:', {
-      doctorVisits: this.isLoadingDoctorVisits,
-      medicalHistory: this.isLoadingMedicalHistory,
-      doctorVisitsLength: this.doctorVisits.length
-    });
+    // Prevent multiple simultaneous loading calls
+    if (this.isLoadingEHR) {
+      if (!environment.production) {
+        console.log('loadEHRData already in progress, skipping...');
+      }
+      return;
+    }
+    
+    if (!environment.production) {
+      console.log('loadEHRData called - Before loading, states:', {
+        doctorVisits: this.isLoadingDoctorVisits,
+        medicalHistory: this.isLoadingMedicalHistory,
+        doctorVisitsLength: this.doctorVisits.length
+      });
+    }
     
     try {
       // Set loading states
+      this.isLoadingEHR = true;
       this.isLoadingDoctorVisits = true;
       this.isLoadingMedicalHistory = true;
       
-      console.log('loadEHRData - Loading states set to true:', {
-        doctorVisits: this.isLoadingDoctorVisits,
-        medicalHistory: this.isLoadingMedicalHistory
-      });
+      if (!environment.production) {
+        console.log('loadEHRData - Loading states set to true:', {
+          doctorVisits: this.isLoadingDoctorVisits,
+          medicalHistory: this.isLoadingMedicalHistory
+        });
+      }
       
       // Load doctor visits from their subcollection
       this.doctorVisits = await this.ehrService.getDoctorVisits();
       this.isLoadingDoctorVisits = false;
       
-      console.log('Doctor visits loaded:', this.doctorVisits.length, 'Loading state:', this.isLoadingDoctorVisits);
+      if (!environment.production) {
+        console.log('Doctor visits loaded:', this.doctorVisits.length, 'Loading state:', this.isLoadingDoctorVisits);
+      }
       
       // Load medical history from their subcollection
       this.medicalHistory = await this.ehrService.getMedicalHistory();
@@ -1124,22 +1221,27 @@ export class ProfilePage implements OnInit, OnDestroy {
       // Load healthcare providers with roles
       this.healthcareProviders = await this.ehrService.getHealthcareProviders();
       
-      console.log('Loaded EHR data:');
-      console.log('- Doctor visits:', this.doctorVisits.length, this.doctorVisits);
-      console.log('- Medical history:', this.medicalHistory.length, this.medicalHistory);
-      console.log('- EHR access list:', this.ehrAccessList.length);
-      console.log('- Healthcare providers:', this.healthcareProviders.length);
-      console.log('- Loading states:', {
-        doctorVisits: this.isLoadingDoctorVisits,
-        medicalHistory: this.isLoadingMedicalHistory,
-        medications: this.isLoadingMedications
-      });
+      if (!environment.production) {
+        console.log('Loaded EHR data:');
+        console.log('- Doctor visits:', this.doctorVisits.length, this.doctorVisits);
+        console.log('- Medical history:', this.medicalHistory.length, this.medicalHistory);
+        console.log('- EHR access list:', this.ehrAccessList.length);
+        console.log('- Healthcare providers:', this.healthcareProviders.length);
+        console.log('- Loading states:', {
+          doctorVisits: this.isLoadingDoctorVisits,
+          medicalHistory: this.isLoadingMedicalHistory,
+          medications: this.isLoadingMedications
+        });
+      }
       
     } catch (error) {
       console.error('Error loading EHR data:', error);
       // Set loading states to false even on error
       this.isLoadingDoctorVisits = false;
       this.isLoadingMedicalHistory = false;
+    } finally {
+      // Always reset the loading guard
+      this.isLoadingEHR = false;
     }
   }
 
@@ -1396,10 +1498,14 @@ export class ProfilePage implements OnInit, OnDestroy {
       this.newProviderSpecialty = '';
       this.newProviderHospital = '';
       
-      this.presentToast('Healthcare provider access granted successfully');
+      this.presentToast('Access request sent to healthcare provider. They must accept before gaining access.');
     } catch (error) {
-      console.error('Error granting healthcare provider access:', error);
-      this.presentToast('Error granting healthcare provider access');
+      console.error('Error sending access request:', error);
+      if (error instanceof Error) {
+        this.presentToast(`Error: ${error.message}`);
+      } else {
+        this.presentToast('Error sending access request to healthcare provider');
+      }
     }
   }
 
@@ -1462,9 +1568,13 @@ export class ProfilePage implements OnInit, OnDestroy {
    */
   async loadAccessRequests() {
     try {
-      console.log('Loading access requests for healthcare provider');
+      if (!environment.production) {
+        console.log('Loading access requests for healthcare provider');
+      }
       this.pendingRequests = await this.ehrService.getPendingAccessRequests();
-      console.log('Loaded access requests:', this.pendingRequests.length);
+      if (!environment.production) {
+        console.log('Loaded access requests:', this.pendingRequests.length);
+      }
     } catch (error) {
       console.error('Error loading access requests:', error);
       this.presentToast('Error loading access requests');
@@ -1677,6 +1787,228 @@ export class ProfilePage implements OnInit, OnDestroy {
     });
 
     return await popover.present();
+  }
+
+  /**
+   * Set default tab based on user role
+   */
+  setDefaultTabForRole() {
+    if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
+      this.selectedTab = 'dashboard';
+    } else if (this.userProfile?.role === 'buddy') {
+      this.selectedTab = 'dashboard';
+    } else {
+      this.selectedTab = 'overview';
+    }
+  }
+
+  /**
+   * Load doctor/nurse statistics
+   */
+  async loadDoctorStats() {
+    try {
+      if (this.userProfile?.email) {
+        // Get patients for this doctor
+        const patients = await this.ehrService.getDoctorPatients(this.userProfile.email);
+        this.doctorStats.activePatients = patients.length;
+        this.doctorStats.criticalPatients = patients.filter(p => p.riskLevel === 'critical').length;
+        this.doctorStats.highRiskPatients = patients.filter(p => p.riskLevel === 'high').length;
+        
+        // Count upcoming appointments
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        this.doctorStats.upcomingAppointments = patients.filter(p => 
+          p.nextAppointment && new Date(p.nextAppointment) <= nextWeek
+        ).length;
+
+        this.doctorStats.pendingRequests = this.pendingRequests.length;
+        this.doctorStats.recentConsultations = Math.floor(Math.random() * 10); // Placeholder
+      }
+    } catch (error) {
+      console.error('Error loading doctor stats:', error);
+    }
+  }
+
+  /**
+   * Load buddy statistics
+   */
+  async loadBuddyStats() {
+    try {
+      // Placeholder implementation - would integrate with buddy service
+      this.buddyStats = {
+        protectedPatients: 0,
+        emergencyResponses: 0,
+        invitations: 0
+      };
+    } catch (error) {
+      console.error('Error loading buddy stats:', error);
+    }
+  }
+
+  /**
+   * Load recent activity for professionals
+   */
+  async loadRecentActivity() {
+    try {
+      // Placeholder implementation - would load from service
+      this.recentActivity = [
+        {
+          type: 'access_granted',
+          description: 'Access granted to new patient',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+        },
+        {
+          type: 'patient_update',
+          description: 'Patient updated allergy information',
+          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000) // 5 hours ago
+        }
+      ].slice(0, 5); // Show only recent 5
+    } catch (error) {
+      console.error('Error loading recent activity:', error);
+      this.recentActivity = [];
+    }
+  }
+
+  /**
+   * Load professional credentials
+   */
+  async loadProfessionalCredentials() {
+    try {
+      // Placeholder implementation - would load from user profile
+      this.professionalCredentials = [];
+    } catch (error) {
+      console.error('Error loading professional credentials:', error);
+      this.professionalCredentials = [];
+    }
+  }
+
+  /**
+   * Get activity icon based on activity type
+   */
+  getActivityIcon(type: string): string {
+    switch (type) {
+      case 'access_granted': return 'person-add-outline';
+      case 'patient_update': return 'refresh-outline';
+      case 'access_request': return 'mail-outline';
+      default: return 'information-circle-outline';
+    }
+  }
+
+  /**
+   * Get activity color based on activity type
+   */
+  getActivityColor(type: string): string {
+    switch (type) {
+      case 'access_granted': return 'success';
+      case 'patient_update': return 'primary';
+      case 'access_request': return 'warning';
+      default: return 'medium';
+    }
+  }
+
+  /**
+   * Get time ago string for activity
+   */
+  getTimeAgo(timestamp: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - timestamp.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return timestamp.toLocaleDateString();
+  }
+
+  /**
+   * Navigate to responder dashboard for buddies
+   */
+  navigateToResponderDashboard() {
+    this.router.navigate(['/tabs/responder-dashboard']);
+  }
+
+  /**
+   * Edit professional information
+   */
+  editProfessionalInfo() {
+    // Placeholder - would open professional info edit modal
+    this.presentToast('Professional info editing - to be implemented');
+  }
+
+  /**
+   * Manage certifications
+   */
+  manageCertifications() {
+    // Placeholder - would open certifications management modal
+    this.presentToast('Certification management - to be implemented');
+  }
+
+  /**
+   * Edit working hours
+   */
+  editWorkingHours() {
+    // Placeholder - would open working hours edit modal
+    this.presentToast('Working hours editing - to be implemented');
+  }
+
+  /**
+   * Edit contact preference
+   */
+  editContactPreference() {
+    // Placeholder - would open contact preference modal
+    this.presentToast('Contact preference editing - to be implemented');
+  }
+
+  /**
+   * Change password
+   */
+  changePassword() {
+    // Placeholder - would open password change modal
+    this.presentToast('Password change - to be implemented');
+  }
+
+  /**
+   * Logout functionality
+   */
+  async logout() {
+    try {
+      await this.authService.signOut();
+      this.presentToast('Logged out successfully');
+      this.router.navigate(['/login'], { replaceUrl: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      this.presentToast('Error logging out');
+    }
+  }
+
+  /**
+   * Format date for display
+   */
+  formatDate(date: string | Date): string {
+    if (!date) return 'Not specified';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  /**
+   * Save professional settings
+   */
+  saveProfessionalSettings() {
+    // Placeholder - would save to user profile
+    this.presentToast('Professional settings saved');
+  }
+
+  /**
+   * Save buddy settings
+   */
+  saveBuddySettings() {
+    // Placeholder - would save to user profile
+    this.presentToast('Buddy settings saved');
   }
 
   /**

@@ -23,6 +23,12 @@ export interface UserProfile {
   role: string;
   avatar?: string;
   phone?: string; // Added for buddy users
+  
+  // Healthcare professional fields
+  license?: string; // Medical license number
+  specialty?: string; // Medical specialty
+  hospital?: string; // Hospital or practice name
+  
   emergencyInstruction?: string;
   emergencyMessage?: {
     name: string;

@@ -10,7 +10,8 @@
       <div class="profile-name">{{ getUserDisplayName() }}</div>
     </div>
 
-    <div class="profile-stats">
+    <!-- Patient Profile Stats -->
+    <div class="profile-stats" *ngIf="userProfile?.role === 'user'">
       <div class="stat">
         <div class="stat-label">Allergies</div>
         <div class="stat-value">{{ allergiesCount }}</div>
@@ -25,17 +26,68 @@
       </div>
     </div>
 
-    <div class="profile-tabs">
+    <!-- Doctor/Nurse Profile Stats -->
+    <div class="profile-stats" *ngIf="userProfile?.role === 'doctor' || userProfile?.role === 'nurse'">
+      <div class="stat">
+        <div class="stat-label">Active Patients</div>
+        <div class="stat-value">{{ doctorStats.activePatients }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Pending Requests</div>
+        <div class="stat-value">{{ doctorStats.pendingRequests }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Recent Consultations</div>
+        <div class="stat-value">{{ doctorStats.recentConsultations }}</div>
+      </div>
+    </div>
+
+    <!-- Buddy Profile Stats -->
+    <div class="profile-stats" *ngIf="userProfile?.role === 'buddy'">
+      <div class="stat">
+        <div class="stat-label">Protected Patients</div>
+        <div class="stat-value">{{ buddyStats.protectedPatients }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Emergency Responses</div>
+        <div class="stat-value">{{ buddyStats.emergencyResponses }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Invitations</div>
+        <div class="stat-value">{{ buddyStats.invitations }}</div>
+      </div>
+    </div>
+
+    <!-- Patient Profile Tabs -->
+    <div class="profile-tabs" *ngIf="userProfile?.role === 'user'">
       <button class="tab" [class.active]="selectedTab === 'overview'" (click)="selectTab('overview')">Overview</button>
       <button class="tab" [class.active]="selectedTab === 'health'" (click)="selectTab('health')">Health</button>
       <button class="tab" [class.active]="selectedTab === 'ehr'" (click)="selectTab('ehr')">EHR</button>
       <button class="tab" [class.active]="selectedTab === 'emergency'" (click)="selectTab('emergency')">Emergency</button>
     </div>
+
+    <!-- Doctor/Nurse Profile Tabs -->
+    <div class="profile-tabs" *ngIf="userProfile?.role === 'doctor' || userProfile?.role === 'nurse'">
+      <button class="tab" [class.active]="selectedTab === 'dashboard'" (click)="selectTab('dashboard')">Dashboard</button>
+      <button class="tab" [class.active]="selectedTab === 'professional'" (click)="selectTab('professional')">Professional Info</button>
+      <button class="tab" [class.active]="selectedTab === 'patients'" (click)="selectTab('patients')">Patient Access</button>
+      <button class="tab" [class.active]="selectedTab === 'settings'" (click)="selectTab('settings')">Settings</button>
+    </div>
+
+    <!-- Buddy Profile Tabs -->
+    <div class="profile-tabs" *ngIf="userProfile?.role === 'buddy'">
+      <button class="tab" [class.active]="selectedTab === 'dashboard'" (click)="selectTab('dashboard')">Dashboard</button>
+      <button class="tab" [class.active]="selectedTab === 'patients'" (click)="selectTab('patients')">My Patients</button>
+      <button class="tab" [class.active]="selectedTab === 'emergency'" (click)="selectTab('emergency')">Emergency</button>
+      <button class="tab" [class.active]="selectedTab === 'settings'" (click)="selectTab('settings')">Settings</button>
+    </div>
     <div class="profile-section">
-      <ng-container *ngIf="selectedTab === 'overview'">
-        <div class="section-title">
-          Allergies <ion-icon name="settings-outline" (click)="showEditAllergiesModal = true"></ion-icon>
-        </div>
+      <!-- PATIENT PROFILE CONTENT -->
+      <div *ngIf="userProfile?.role === 'user'">
+        <ng-container *ngIf="selectedTab === 'overview'">
+          <div class="section-title">
+            Allergies <ion-icon name="settings-outline" (click)="showEditAllergiesModal = true"></ion-icon>
+          </div>
 
         <ion-modal [isOpen]="showEditAllergiesModal" (didDismiss)="showEditAllergiesModal = false">
           <ng-template>
@@ -475,7 +527,7 @@
           </div>
 
           <div class="card-content">
-            <p class="access-description">Grant healthcare providers secure access to your EHR for coordinated care.</p>
+            <p class="access-description">Send access requests to verified healthcare providers for coordinated care.</p>
             
             <div class="add-provider-section">
               <ion-item lines="none" class="provider-input">
@@ -485,15 +537,62 @@
                   placeholder="doctor@example.com"
                   type="email">
                 </ion-input>
-                <ion-button 
-                  slot="end" 
-                  fill="solid" 
-                  size="small"
-                  (click)="grantEHRAccess()"
-                  [disabled]="!newProviderEmail">
-                  Grant Access
-                </ion-button>
               </ion-item>
+              
+              <ion-item lines="none" class="provider-input">
+                <ion-label position="stacked">Provider Name</ion-label>
+                <ion-input 
+                  [(ngModel)]="newProviderName" 
+                  placeholder="Dr. Sarah Johnson">
+                </ion-input>
+              </ion-item>
+              
+              <ion-item lines="none">
+                <ion-label position="stacked">Provider Role</ion-label>
+                <ion-select [(ngModel)]="newProviderRole" interface="popover">
+                  <ion-select-option value="doctor">Doctor</ion-select-option>
+                  <ion-select-option value="nurse">Nurse</ion-select-option>
+                </ion-select>
+              </ion-item>
+              
+              <!-- Optional Fields -->
+              <ion-item lines="none" class="provider-input">
+                <ion-label position="stacked">License Number <span class="optional-label">(Optional)</span></ion-label>
+                <ion-input 
+                  [(ngModel)]="newProviderLicense" 
+                  placeholder="e.g., MD12345">
+                </ion-input>
+              </ion-item>
+              
+              <ion-item lines="none" class="provider-input">
+                <ion-label position="stacked">Specialty <span class="optional-label">(Optional)</span></ion-label>
+                <ion-input 
+                  [(ngModel)]="newProviderSpecialty" 
+                  placeholder="e.g., Cardiology, Family Medicine">
+                </ion-input>
+              </ion-item>
+              
+              <ion-item lines="none" class="provider-input">
+                <ion-label position="stacked">Hospital/Clinic <span class="optional-label">(Optional)</span></ion-label>
+                <ion-input 
+                  [(ngModel)]="newProviderHospital" 
+                  placeholder="e.g., City General Hospital">
+                </ion-input>
+              </ion-item>
+              
+              <ion-button 
+                expand="block" 
+                fill="solid" 
+                (click)="grantHealthcareProviderAccess()"
+                [disabled]="!newProviderEmail || !newProviderName">
+                <ion-icon name="paper-plane-outline" slot="start"></ion-icon>
+                Send Access Request
+              </ion-button>
+              
+              <p class="help-text">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                The provider must be registered in the system and will need to accept your request.
+              </p>
             </div>
 
             <div class="current-access" *ngIf="ehrAccessList.length > 0">
@@ -1027,6 +1126,463 @@
           </ng-template>
         </ion-modal>
       </ng-container>
+      </div> <!-- End Patient Profile Content -->
+
+      <!-- DOCTOR/NURSE PROFILE CONTENT -->
+      <div *ngIf="userProfile?.role === 'doctor' || userProfile?.role === 'nurse'">
+        <ng-container *ngIf="selectedTab === 'dashboard'">
+          <div class="section-title">
+            Professional Dashboard
+          </div>
+
+          <div class="doctor-dashboard-card">
+            <div class="dashboard-header">
+              <ion-icon name="medical-outline" color="primary"></ion-icon>
+              <h3>{{ userProfile?.role === 'doctor' ? 'Doctor' : 'Nurse' }} Dashboard</h3>
+            </div>
+            
+            <div class="dashboard-quick-stats">
+              <div class="quick-stat">
+                <div class="stat-number">{{ doctorStats.activePatients }}</div>
+                <div class="stat-label">Active Patients</div>
+              </div>
+              <div class="quick-stat">
+                <div class="stat-number">{{ doctorStats.pendingRequests }}</div>
+                <div class="stat-label">Pending Requests</div>
+              </div>
+              <div class="quick-stat">
+                <div class="stat-number">{{ doctorStats.recentConsultations }}</div>
+                <div class="stat-label">Recent Consultations</div>
+              </div>
+            </div>
+
+            <ion-button 
+              expand="block" 
+              fill="solid" 
+              color="primary"
+              (click)="navigateToDoctorDashboard()">
+              <ion-icon name="medical-outline" slot="start"></ion-icon>
+              Access Full Dashboard
+            </ion-button>
+          </div>
+
+          <div class="recent-activity-card">
+            <div class="card-header">
+              <ion-icon name="time-outline" color="medium"></ion-icon>
+              <h3>Recent Activity</h3>
+            </div>
+            
+            <div class="activity-list" *ngIf="recentActivity.length > 0">
+              <div *ngFor="let activity of recentActivity" class="activity-item">
+                <ion-icon [name]="getActivityIcon(activity.type)" [color]="getActivityColor(activity.type)"></ion-icon>
+                <div class="activity-content">
+                  <div class="activity-description">{{ activity.description }}</div>
+                  <div class="activity-time">{{ getTimeAgo(activity.timestamp) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="recentActivity.length === 0" class="no-activity">
+              <ion-icon name="document-outline" color="medium"></ion-icon>
+              <p>No recent activity</p>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'professional'">
+          <div class="section-title">
+            Professional Information
+          </div>
+
+          <div class="professional-info-card">
+            <div class="card-header">
+              <ion-icon name="person-outline" color="primary"></ion-icon>
+              <h3>Professional Details</h3>
+              <ion-button fill="clear" size="small" (click)="editProfessionalInfo()">
+                <ion-icon name="create-outline"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <div class="professional-details">
+              <div class="detail-row">
+                <span class="label">Full Name:</span>
+                <span class="value">{{ userProfile?.firstName }} {{ userProfile?.lastName }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Professional Email:</span>
+                <span class="value">{{ userProfile?.email }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Role:</span>
+                <ion-chip [color]="userProfile?.role === 'doctor' ? 'primary' : 'secondary'">
+                  <ion-icon name="medical-outline"></ion-icon>
+                  <ion-label>{{ userProfile?.role === 'doctor' ? 'Doctor' : 'Nurse' }}</ion-label>
+                </ion-chip>
+              </div>
+              <div class="detail-row">
+                <span class="label">License Number:</span>
+                <span class="value">{{ userProfile?.license || 'Not provided' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Specialty:</span>
+                <span class="value">{{ userProfile?.specialty || 'General Practice' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Hospital/Practice:</span>
+                <span class="value">{{ userProfile?.hospital || 'Not specified' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="credentials-card">
+            <div class="card-header">
+              <ion-icon name="school-outline" color="tertiary"></ion-icon>
+              <h3>Credentials & Certifications</h3>
+              <ion-button fill="clear" size="small" (click)="manageCertifications()">
+                <ion-icon name="add-outline"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <div class="credentials-list" *ngIf="professionalCredentials.length > 0">
+              <div *ngFor="let credential of professionalCredentials" class="credential-item">
+                <ion-icon name="ribbon-outline" color="tertiary"></ion-icon>
+                <div class="credential-content">
+                  <div class="credential-name">{{ credential.name }}</div>
+                  <div class="credential-issuer">{{ credential.issuer }}</div>
+                  <div class="credential-date">Issued: {{ formatDate(credential.dateIssued) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="professionalCredentials.length === 0" class="no-credentials">
+              <ion-icon name="school-outline" color="medium"></ion-icon>
+              <p>No credentials added</p>
+              <ion-button fill="outline" size="small" (click)="manageCertifications()">
+                <ion-icon name="add-outline" slot="start"></ion-icon>
+                Add Certification
+              </ion-button>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'patients'">
+          <div class="section-title">
+            Patient Access Management
+          </div>
+
+          <div class="access-requests-card">
+            <div class="card-header">
+              <ion-icon name="mail-outline" color="warning"></ion-icon>
+              <h3>Pending Access Requests</h3>
+              <ion-badge *ngIf="pendingRequests.length > 0" color="warning">{{ pendingRequests.length }}</ion-badge>
+            </div>
+            
+            <div class="requests-list" *ngIf="pendingRequests.length > 0">
+              <div *ngFor="let request of pendingRequests" class="access-request-card">
+                <div class="request-header">
+                  <div class="patient-info">
+                    <strong>{{ request.patientName }}</strong>
+                    <div class="patient-email">{{ request.patientEmail }}</div>
+                  </div>
+                  <ion-chip color="warning" size="small">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <ion-label>{{ getRequestAge(request.requestDate) }}</ion-label>
+                  </ion-chip>
+                </div>
+
+                <div class="request-details">
+                  <div class="request-message">{{ request.message }}</div>
+                  <div class="request-specialty">
+                    <ion-chip color="tertiary" size="small">
+                      <ion-icon name="medical-outline"></ion-icon>
+                      <ion-label>{{ request.specialty }}</ion-label>
+                    </ion-chip>
+                  </div>
+                  <div class="expiry-info">
+                    <ion-text color="medium">
+                      <small>Expires: {{ getExpiryDate(request.expiryDate) }}</small>
+                    </ion-text>
+                  </div>
+                </div>
+
+                <div class="request-actions">
+                  <ion-button 
+                    size="small" 
+                    fill="solid" 
+                    color="success"
+                    (click)="acceptAccessRequest(request)">
+                    <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                    Accept
+                  </ion-button>
+                  
+                  <ion-button 
+                    size="small" 
+                    fill="outline" 
+                    color="danger"
+                    (click)="declineAccessRequest(request)">
+                    <ion-icon name="close-outline" slot="start"></ion-icon>
+                    Decline
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="pendingRequests.length === 0" class="no-requests">
+              <ion-icon name="mail-outline" color="medium"></ion-icon>
+              <p>No pending access requests</p>
+              <p class="helper-text">Patients can request access by adding you to their doctor visits</p>
+            </div>
+          </div>
+
+          <div class="current-patients-card">
+            <div class="card-header">
+              <ion-icon name="people-outline" color="primary"></ion-icon>
+              <h3>Current Patients</h3>
+              <span class="patient-count">{{ doctorStats.activePatients }} active</span>
+            </div>
+            
+            <div class="patients-summary" *ngIf="doctorStats.activePatients > 0">
+              <div class="summary-item">
+                <ion-icon name="warning-outline" color="danger"></ion-icon>
+                <span>{{ doctorStats.criticalPatients || 0 }} Critical Risk</span>
+              </div>
+              <div class="summary-item">
+                <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+                <span>{{ doctorStats.highRiskPatients || 0 }} High Risk</span>
+              </div>
+              <div class="summary-item">
+                <ion-icon name="calendar-outline" color="tertiary"></ion-icon>
+                <span>{{ doctorStats.upcomingAppointments || 0 }} Upcoming Appointments</span>
+              </div>
+            </div>
+
+            <div *ngIf="doctorStats.activePatients === 0" class="no-patients">
+              <ion-icon name="people-outline" color="medium"></ion-icon>
+              <p>No patients currently assigned</p>
+            </div>
+
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="primary"
+              (click)="navigateToDoctorDashboard()"
+              *ngIf="doctorStats.activePatients > 0">
+              <ion-icon name="people-outline" slot="start"></ion-icon>
+              View All Patients
+            </ion-button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'settings'">
+          <div class="section-title">
+            Professional Settings
+          </div>
+
+          <div class="notification-settings-card">
+            <div class="card-header">
+              <ion-icon name="notifications-outline" color="primary"></ion-icon>
+              <h3>Notification Preferences</h3>
+            </div>
+            
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">Access Request Notifications</div>
+                <div class="setting-desc">Get notified when patients request access</div>
+              </div>
+              <ion-toggle [(ngModel)]="professionalSettings.accessRequestNotifications" (ionChange)="saveProfessionalSettings()"></ion-toggle>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">Patient Update Notifications</div>
+                <div class="setting-desc">Notifications for patient data changes</div>
+              </div>
+              <ion-toggle [(ngModel)]="professionalSettings.patientUpdateNotifications" (ionChange)="saveProfessionalSettings()"></ion-toggle>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">Emergency Alert Notifications</div>
+                <div class="setting-desc">Receive emergency alerts from your patients</div>
+              </div>
+              <ion-toggle [(ngModel)]="professionalSettings.emergencyAlerts" (ionChange)="saveProfessionalSettings()"></ion-toggle>
+            </div>
+          </div>
+
+          <div class="availability-card">
+            <div class="card-header">
+              <ion-icon name="time-outline" color="tertiary"></ion-icon>
+              <h3>Availability Settings</h3>
+            </div>
+            
+            <div class="availability-info">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-title">Working Hours</div>
+                  <div class="setting-desc">{{ professionalSettings.workingHours || 'Not set' }}</div>
+                </div>
+                <ion-button fill="clear" size="small" (click)="editWorkingHours()">
+                  <ion-icon name="create-outline"></ion-icon>
+                </ion-button>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <div class="setting-title">Contact Preference</div>
+                  <div class="setting-desc">{{ professionalSettings.contactPreference || 'Email' }}</div>
+                </div>
+                <ion-button fill="clear" size="small" (click)="editContactPreference()">
+                  <ion-icon name="create-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+
+          <div class="account-settings-card">
+            <div class="card-header">
+              <ion-icon name="settings-outline" color="dark"></ion-icon>
+              <h3>Account Settings</h3>
+            </div>
+            
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="primary"
+              (click)="editProfessionalInfo()">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              Edit Professional Information
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="medium"
+              (click)="changePassword()">
+              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+              Change Password
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="danger"
+              (click)="logout()">
+              <ion-icon name="log-out-outline" slot="start"></ion-icon>
+              Logout
+            </ion-button>
+          </div>
+        </ng-container>
+      </div> <!-- End Doctor/Nurse Profile Content -->
+
+      <!-- BUDDY PROFILE CONTENT -->
+      <div *ngIf="userProfile?.role === 'buddy'">
+        <ng-container *ngIf="selectedTab === 'dashboard'">
+          <div class="section-title">
+            Buddy Dashboard
+          </div>
+
+          <div class="buddy-dashboard-card">
+            <div class="dashboard-header">
+              <ion-icon name="shield-checkmark-outline" color="tertiary"></ion-icon>
+              <h3>Emergency Responder Dashboard</h3>
+            </div>
+            
+            <div class="dashboard-quick-stats">
+              <div class="quick-stat">
+                <div class="stat-number">{{ buddyStats.protectedPatients }}</div>
+                <div class="stat-label">Protected Patients</div>
+              </div>
+              <div class="quick-stat">
+                <div class="stat-number">{{ buddyStats.emergencyResponses }}</div>
+                <div class="stat-label">Emergency Responses</div>
+              </div>
+              <div class="quick-stat">
+                <div class="stat-number">{{ buddyStats.invitations }}</div>
+                <div class="stat-label">Pending Invitations</div>
+              </div>
+            </div>
+
+            <ion-button 
+              expand="block" 
+              fill="solid" 
+              color="tertiary"
+              (click)="navigateToResponderDashboard()">
+              <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+              Access Responder Dashboard
+            </ion-button>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'patients'">
+          <div class="section-title">
+            My Protected Patients
+          </div>
+          
+          <p class="helper-text">Patients who have added you as their emergency buddy</p>
+          
+          <div *ngIf="buddyStats.protectedPatients === 0" class="no-patients">
+            <ion-icon name="people-outline" color="medium"></ion-icon>
+            <p>No patients currently protected</p>
+            <p class="helper-text">You'll see patients here when they add you as their emergency buddy</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'emergency'">
+          <div class="section-title">
+            Emergency Response Settings
+          </div>
+          
+          <div class="emergency-settings-card">
+            <div class="card-header">
+              <ion-icon name="warning-outline" color="warning"></ion-icon>
+              <h3>Response Preferences</h3>
+            </div>
+            
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">Emergency Notifications</div>
+                <div class="setting-desc">Receive emergency alerts from your patients</div>
+              </div>
+              <ion-toggle [(ngModel)]="buddySettings.emergencyNotifications" (ionChange)="saveBuddySettings()"></ion-toggle>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">Location Sharing</div>
+                <div class="setting-desc">Share your location during emergency response</div>
+              </div>
+              <ion-toggle [(ngModel)]="buddySettings.locationSharing" (ionChange)="saveBuddySettings()"></ion-toggle>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="selectedTab === 'settings'">
+          <div class="section-title">
+            Buddy Settings
+          </div>
+          
+          <div class="account-settings-card">
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="medium"
+              (click)="changePassword()">
+              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+              Change Password
+            </ion-button>
+
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="danger"
+              (click)="logout()">
+              <ion-icon name="log-out-outline" slot="start"></ion-icon>
+              Logout
+            </ion-button>
+          </div>
+        </ng-container>
+      </div> <!-- End Buddy Profile Content -->
+
     </div>
   </div>
 </ion-content>
