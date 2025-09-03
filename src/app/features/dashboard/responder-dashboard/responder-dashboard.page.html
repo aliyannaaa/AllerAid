@@ -9,17 +9,17 @@
     <!-- Emergency Alert Card -->
     <ion-row>
       <ion-col size="12">
-        <ion-card class="emergency-card emergency-pulse">
+        <ion-card class="emergency-card emergency-pulse" *ngIf="currentEmergency">
           <ion-card-header class="emergency-header">
             <ion-card-title>INCOMING EMERGENCY ALERT</ion-card-title>
-            <ion-note slot="end">Just now</ion-note>
+            <ion-note slot="end">{{ currentEmergency.timestamp?.toDate() | date:'short' }}</ion-note>
           </ion-card-header>
 
           <ion-card-content>
             <ion-item lines="none">
               <ion-label>
-                <h2>Emergency from Juan Dela Cruz</h2>
-                <p>Severe asthma attack</p>
+                <h2>Emergency from {{ currentEmergency.userName || 'Patient' }}</h2>
+                <p>Medical Emergency</p>
               </ion-label>
               <ion-badge color="danger">CRITICAL</ion-badge>
             </ion-item>
@@ -27,11 +27,11 @@
             <ion-label class="label-heading">Patient Location</ion-label>
             <div class="map-container"></div>
             <ion-text color="primary">
-              <p><ion-icon name="location"></ion-icon> 123 Main St, Makati City</p>
+              <p><ion-icon name="location"></ion-icon> {{ currentEmergency.location ? (currentEmergency.location.latitude + ', ' + currentEmergency.location.longitude) : 'Location updating...' }}</p>
             </ion-text>
 
-            <ion-label class="label-heading">Emergency Instructions</ion-label>
-            <ion-text class="instruction-box">"Bring inhaler, allergic to nuts"</ion-text>
+            <ion-label class="label-heading">Emergency Details</ion-label>
+            <ion-text class="instruction-box">{{ currentEmergency.instruction || 'Emergency details not provided' }}</ion-text>
 
             <ion-item lines="none" class="voice-item">
               <ion-button fill="clear" color="primary" (click)="playVoiceMessage()">
@@ -43,9 +43,9 @@
             <!-- Action Buttons -->
             <ion-row class="button-grid">
               <ion-col size="6">
-                <ion-button expand="block" color="success" (click)="responded()">
+                <ion-button expand="block" color="success" (click)="responded()" [disabled]="hasResponded">
                   <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-                  Responded
+                  I'm On My Way
                 </ion-button>
               </ion-col>
 
@@ -84,6 +84,20 @@
                 <p class="ion-margin-top">You have responded to this emergency</p>
               </ion-card-content>
             </ion-card>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- No Emergency Card -->
+        <ion-card *ngIf="!currentEmergency">
+          <ion-card-header>
+            <ion-card-title>BuddyCare Dashboard</ion-card-title>
+            <ion-card-subtitle>No active emergencies</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="ion-text-center">
+              <ion-icon name="checkmark-circle-outline" size="large" color="success"></ion-icon>
+              <p>All quiet. You'll be notified of any emergencies from your patients.</p>
+            </div>
           </ion-card-content>
         </ion-card>
       </ion-col>

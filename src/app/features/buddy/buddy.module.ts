@@ -13,6 +13,7 @@ import {
   BuddyEditModalComponent,
   BuddyDeleteConfirmModalComponent 
 } from './components';
+import { BuddyInvitationsModal } from './components/buddy-invitations-modal.component';
 
 @NgModule({
   imports: [
@@ -26,7 +27,8 @@ import {
     BuddyModalComponent,
     BuddyActionsModalComponent,
     BuddyEditModalComponent,
-    BuddyDeleteConfirmModalComponent
+    BuddyDeleteConfirmModalComponent,
+    BuddyInvitationsModal
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

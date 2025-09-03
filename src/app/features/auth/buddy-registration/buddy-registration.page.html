@@ -1,0 +1,136 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Join as Emergency Buddy</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="registration-container">
+    <!-- Header -->
+    <div class="header-section">
+      <ion-icon name="people-outline" size="large" color="primary"></ion-icon>
+      <h1>Emergency Buddy Registration</h1>
+      <p>You've been invited to be an emergency buddy. Register to help monitor and respond to emergencies.</p>
+    </div>
+
+    <!-- Registration Form -->
+    <form (ngSubmit)="register()" #registrationForm="ngForm">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Your Information</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item>
+            <ion-label position="stacked">First Name *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.firstName" 
+              name="firstName"
+              required
+              placeholder="Enter your first name">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Last Name *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.lastName" 
+              name="lastName"
+              required
+              placeholder="Enter your last name">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Email *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.email" 
+              name="email"
+              type="email"
+              required
+              readonly
+              placeholder="Email from invitation">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Phone Number *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.phone" 
+              name="phone"
+              type="tel"
+              required
+              placeholder="Your phone number for emergencies">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Password *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.password" 
+              name="password"
+              type="password"
+              required
+              placeholder="Create a password">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Confirm Password *</ion-label>
+            <ion-input 
+              [(ngModel)]="registrationData.confirmPassword" 
+              name="confirmPassword"
+              type="password"
+              required
+              placeholder="Confirm your password">
+            </ion-input>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Invitation Details -->
+      <ion-card *ngIf="invitationDetails">
+        <ion-card-header>
+          <ion-card-title>Invitation Details</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p><strong>From:</strong> {{ invitationDetails.fromUserName }}</p>
+          <p><strong>Message:</strong> {{ invitationDetails.message }}</p>
+          <ion-note>
+            By registering, you'll be able to receive emergency alerts and help {{ invitationDetails.fromUserName }} during medical emergencies.
+          </ion-note>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Terms and Registration -->
+      <ion-card>
+        <ion-card-content>
+          <ion-item>
+            <ion-checkbox [(ngModel)]="acceptTerms" name="acceptTerms"></ion-checkbox>
+            <ion-label class="ion-margin-start">
+              I agree to the <a href="#" (click)="showTerms()">Terms of Service</a> and 
+              <a href="#" (click)="showPrivacy()">Privacy Policy</a>
+            </ion-label>
+          </ion-item>
+
+          <ion-button 
+            expand="block" 
+            type="submit" 
+            [disabled]="!registrationForm.valid || !acceptTerms || isLoading"
+            class="ion-margin-top">
+            <ion-spinner *ngIf="isLoading" slot="start"></ion-spinner>
+            {{ isLoading ? 'Creating Account...' : 'Register as Emergency Buddy' }}
+          </ion-button>
+
+          <ion-button 
+            expand="block" 
+            fill="clear" 
+            color="medium"
+            (click)="declineInvitation()"
+            [disabled]="isLoading">
+            Decline Invitation
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </form>
+  </div>
+</ion-content>

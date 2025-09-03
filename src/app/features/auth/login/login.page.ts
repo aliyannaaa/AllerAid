@@ -57,12 +57,15 @@ export class LoginPage {
           // Update last login timestamp
           await this.userService.updateLastLogin(userCredential.user.uid);
           
-          // Check user role for routing - healthcare professionals skip onboarding
+          // Check user role for routing - healthcare professionals and buddies skip onboarding
           if (userProfile.role === 'doctor' || userProfile.role === 'nurse') {
             this.presentToast(`Welcome back, ${userProfile.role === 'doctor' ? 'Dr.' : 'Nurse'} ${userProfile.firstName}`);
             this.navCtrl.navigateForward('/doctor-dashboard');
+          } else if (userProfile.role === 'buddy') {
+            this.presentToast(`Welcome back, ${userProfile.firstName}!`);
+            this.navCtrl.navigateForward('/tabs/responder-dashboard');
           } else {
-            // For patients and caregivers, check if they've completed allergy onboarding
+            // For patients, check if they've completed allergy onboarding
             const hasCompletedOnboarding = await this.userService.hasCompletedAllergyOnboarding(userCredential.user.uid);
             
             if (hasCompletedOnboarding) {

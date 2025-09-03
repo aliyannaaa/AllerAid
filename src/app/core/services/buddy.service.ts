@@ -187,22 +187,21 @@ export class BuddyService {
 
   // INVITATION METHODS
 
-  // Send buddy invitation
+  // Send buddy invitation (updated for email-based invitations)
   async sendBuddyInvitation(
-    toUserId: string, 
     toUserEmail: string, 
     toUserName: string, 
     message: string
   ): Promise<void> {
     try {
-      // Get current user info (you'll need to inject AuthService)
+      // Get current user info
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       
       const invitation: Omit<BuddyInvitation, 'id'> = {
         fromUserId: currentUser.uid,
         fromUserName: currentUser.fullName || `${currentUser.firstName} ${currentUser.lastName}`,
         fromUserEmail: currentUser.email,
-        toUserId: toUserId,
+        toUserId: '', // Will be set when recipient registers
         toUserEmail: toUserEmail,
         toUserName: toUserName,
         message: message,
@@ -211,6 +210,10 @@ export class BuddyService {
       };
 
       await addDoc(collection(this.db, 'buddy_invitations'), invitation);
+      
+      // TODO: Send email notification to recipient with registration link
+      // Email should include: invitation details + link to buddy-registration page
+      
     } catch (error) {
       console.error('Error sending buddy invitation:', error);
       throw error;
@@ -308,6 +311,20 @@ export class BuddyService {
       });
     } catch (error) {
       console.error('Error declining buddy invitation:', error);
+      throw error;
+    }
+  }
+
+  // Cancel buddy invitation (for sender)
+  async cancelBuddyInvitation(invitationId: string): Promise<void> {
+    try {
+      const invitationRef = doc(this.db, 'buddy_invitations', invitationId);
+      await updateDoc(invitationRef, {
+        status: 'cancelled',
+        respondedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error cancelling buddy invitation:', error);
       throw error;
     }
   }

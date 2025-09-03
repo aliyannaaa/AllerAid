@@ -4,6 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { BuddyInvitationsModal } from '../components/buddy-invitations-modal.component';
 
 @Component({
   selector: 'app-buddy',
@@ -25,6 +26,7 @@ export class BuddyPage implements OnInit {
   showDeleteModal = false;
   buddyToEdit: any = null;
   selectedBuddy: any = null;
+  invitationCount: number = 0;
   
   // Current user info
   currentUserName: string = '';
@@ -40,6 +42,7 @@ export class BuddyPage implements OnInit {
 
   async ngOnInit() {
     await this.loadCurrentUser();
+    await this.loadInvitationCount();
     this.loadBuddies();
   }
   
@@ -58,6 +61,19 @@ export class BuddyPage implements OnInit {
       } catch (error) {
         console.error('Error loading current user:', error);
       }
+    }
+  }
+
+  async loadInvitationCount() {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (currentUser) {
+        const invitations = await this.buddyService.getReceivedInvitations(currentUser.uid);
+        this.invitationCount = invitations.filter(inv => inv.status === 'pending').length;
+      }
+    } catch (error) {
+      console.error('Error loading invitation count:', error);
+      this.invitationCount = 0;
     }
   }
 
@@ -155,12 +171,20 @@ export class BuddyPage implements OnInit {
   }
 
   async openInvitationsModal() {
-    const toast = await this.toastController.create({
-      message: 'Invitations feature coming soon!',
-      duration: 2000,
-      color: 'primary'
+    const modal = await this.modalController.create({
+      component: BuddyInvitationsModal,
+      componentProps: {}
     });
-    await toast.present();
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data && result.data.refreshNeeded) {
+        this.loadBuddies(); // Refresh buddy list if needed
+      }
+      // Always refresh invitation count when modal closes
+      this.loadInvitationCount();
+    });
+
+    return await modal.present();
   }
 
   closeModal() {

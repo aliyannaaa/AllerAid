@@ -1,3 +1,191 @@
+// Decluttered Emergency Instructions Section
+.instructions-section-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a3977;
+  margin-bottom: 12px;
+  margin-top: 18px;
+  padding-left: 2px;
+}
+.instructions-list-scrollable {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+.instruction-card.decluttered {
+  background: #f8f9fa;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid #e55e76;
+  padding: 16px 18px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  
+  &.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: #f1f3f4;
+    }
+    
+    &:active {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    }
+  }
+}
+.instruction-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #d32f2f;
+  
+  .clickable & {
+    justify-content: space-between;
+  }
+}
+.instruction-text {
+  font-size: 15px;
+  color: #333;
+  margin-left: 28px;
+  line-height: 1.5;
+}
+.no-instructions-card.decluttered {
+  background: #f8f9fa;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid #e55e76;
+  padding: 16px 18px;
+  margin-bottom: 0;
+}
+@media (max-width: 480px) {
+  .instructions-list-scrollable {
+    max-height: 180px;
+    gap: 10px;
+  }
+  .instruction-card.decluttered, .no-instructions-card.decluttered {
+    padding: 10px 8px;
+    border-radius: 10px;
+  }
+  .instruction-header {
+    font-size: 14px;
+  }
+  .instruction-text {
+    font-size: 14px;
+    margin-left: 24px;
+  }
+}
+// Emergency Section Title
+.emergency-section-title {
+  font-weight: 700;
+  font-size: 18px;
+  margin: 24px 0 8px;
+  display: flex;
+  align-items: center;
+  color: #222;
+  gap: 6px;
+}
+
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-left: 4px solid #e55e76;
+  justify-content: space-between;
+}
+.instruction-content {
+  flex: 1;
+}
+.instruction-content strong {
+  color: #d32f2f;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+}
+.instruction-content p {
+  margin: 0;
+  color: #333;
+  line-height: 1.5;
+}
+.no-instructions {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  margin-top: 12px;
+}
+.emergency-info-card {
+  background: #e6eef6;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin: 16px 0;
+  border: none;
+}
+.emergency-info-card ion-card-header {
+  background: transparent;
+  border-bottom: 1px solid #dbe6f3;
+  padding-bottom: 8px;
+}
+.emergency-info-card ion-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a3977;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.emergency-info-card ion-card-content {
+  padding: 12px 0 0 0;
+}
+.emergency-message-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.emergency-message-label {
+  font-weight: 700;
+  min-width: 100px;
+  color: #222;
+  font-size: 15px;
+}
+.emergency-message-value {
+  color: #444;
+  font-size: 15px;
+  word-break: break-word;
+}
+@media (max-width: 480px) {
+  .emergency-info-card {
+    border-radius: 12px;
+    margin: 10px 0;
+  }
+  .emergency-message-label, .emergency-message-value {
+    font-size: 14px;
+  }
+  .emergency-info-card ion-card-title {
+    font-size: 16px;
+  }
+  .instruction-item {
+    padding: 10px 8px;
+    border-radius: 8px;
+  }
+}
 // Optimized Profile Page Styles - Concise Version
 
 // Basic Layout
@@ -13,7 +201,56 @@
 // Components
 .allergy-list-scrollable { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 8px; }
 .allergy-chip { background: #b3dbfc; color: #222; border-radius: 16px; padding: 6px 18px; font-size: 16px; font-weight: 500; white-space: nowrap; }
-.emergency-box { background: #b3dbfc; border-radius: 12px; padding: 14px 16px; margin-top: 10px; color: #222; b { font-weight: 700; color: #0a3977; } }
+
+// Emergency Info Card Styling
+.emergency-info-card {
+  background: #e6eef6;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin: 16px 0;
+  border: none;
+}
+.emergency-info-card ion-card-header {
+  background: transparent;
+  border-bottom: 1px solid #dbe6f3;
+  padding-bottom: 8px;
+}
+.emergency-info-card ion-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a3977;
+}
+.emergency-info-card ion-card-content {
+  padding: 12px 0 0 0;
+}
+.emergency-message-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.emergency-message-label {
+  font-weight: 700;
+  min-width: 100px;
+  color: #222;
+  font-size: 15px;
+}
+.emergency-message-value {
+  color: #444;
+  font-size: 15px;
+  word-break: break-word;
+}
+@media (max-width: 480px) {
+  .emergency-info-card {
+    border-radius: 12px;
+    margin: 10px 0;
+  }
+  .emergency-message-label, .emergency-message-value {
+    font-size: 14px;
+  }
+  .emergency-info-card ion-card-title {
+    font-size: 16px;
+  }
+}
 
 // Cards Base
 .medication-card, .emergency-setting-card { border: 1.5px solid #bbb; border-radius: 12px; background: #fff; margin-bottom: 12px; }
@@ -181,3 +418,98 @@
   .visit-click-hint, .history-click-hint { font-size: 13px; margin-top: 10px; padding-top: 10px; }
 }
 
+// Emergency Instruction Details Modal
+.instruction-details-container {
+  padding: 8px;
+}
+
+.detail-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%);
+  border-bottom: 1px solid #e9ecef;
+  
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.detail-content {
+  padding: 20px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: flex-start;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  min-width: 80px;
+  margin-right: 12px;
+}
+
+.detail-value {
+  color: #333;
+  flex: 1;
+}
+
+.instruction-full-text {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  border-left: 4px solid #e55e76;
+}
+
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tips-list {
+  margin: 0;
+  padding-left: 16px;
+  
+  li {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

@@ -29,11 +29,14 @@ export class ProfilePage implements OnInit, OnDestroy {
   showEditEmergencyMessageModal = false;
   showExamplesModal = false;
   showManageInstructionsModal = false;
+  showInstructionDetailsModal = false;
 
   // Emergency instructions (per-allergy specific)
   emergencyInstructions: any[] = [];
   selectedAllergyForInstruction: any = null;
   newInstructionText: string = '';
+  editingInstruction: any = null; // Track which instruction is being edited
+  selectedInstructionDetails: any = null; // Track selected instruction for details modal
 
   // Emergency settings
   emergencySettings = {
@@ -296,7 +299,10 @@ export class ProfilePage implements OnInit, OnDestroy {
         med.name.toLowerCase().includes(term) ||
         med.notes?.toLowerCase().includes(term) ||
         med.dosage.toLowerCase().includes(term) ||
-        med.prescribedBy?.toLowerCase().includes(term)
+        med.prescribedBy?.toLowerCase().includes(term) ||
+        med.frequency?.toLowerCase().includes(term) ||
+        med.medicationType?.toLowerCase().includes(term) ||
+        med.route?.toLowerCase().includes(term)
       );
     }
 
@@ -356,10 +362,19 @@ export class ProfilePage implements OnInit, OnDestroy {
     
     // Set new timeout for debounced search
     this.searchTimeout = setTimeout(() => {
-      this.medicationSearchTerm = event.target.value;
+      this.medicationSearchTerm = event.detail.value || event.target.value || '';
       this.clearMedicationCache(); // Clear cache when search changes
       this.filterMedications();
     }, 300); // 300ms delay
+  }
+
+  /**
+   * Clear medication search
+   */
+  clearMedicationSearch() {
+    this.medicationSearchTerm = '';
+    this.clearMedicationCache();
+    this.filterMedications();
   }
 
   /**
@@ -764,8 +779,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       await this.loadEmergencyInstructions();
 
       // Reset form
-      this.selectedAllergyForInstruction = null;
-      this.newInstructionText = '';
+      this.cancelEditInstruction();
 
       this.presentToast('Emergency instruction added successfully');
     } catch (error) {
@@ -788,6 +802,156 @@ export class ProfilePage implements OnInit, OnDestroy {
       console.error('Error removing emergency instruction:', error);
       this.presentToast('Error removing emergency instruction');
     }
+  }
+
+  /**
+   * Edit emergency instruction - populate form with existing data
+   */
+  editEmergencyInstruction(instruction: any) {
+    this.editingInstruction = instruction;
+    this.selectedAllergyForInstruction = this.userAllergies.find(allergy => 
+      allergy.name === instruction.allergyId || allergy.name === instruction.allergyName
+    );
+    this.newInstructionText = instruction.instruction;
+  }
+
+  /**
+   * Update emergency instruction
+   */
+  async updateEmergencyInstruction() {
+    if (!this.userProfile || !this.editingInstruction || !this.newInstructionText) {
+      this.presentToast('Please enter instruction text');
+      return;
+    }
+
+    try {
+      await this.medicalService.setEmergencyInstructionForAllergy(
+        this.userProfile.uid,
+        this.editingInstruction.allergyId || this.editingInstruction.allergyName,
+        this.editingInstruction.allergyName,
+        this.newInstructionText
+      );
+
+      // Reload instructions
+      await this.loadEmergencyInstructions();
+
+      // Reset form
+      this.cancelEditInstruction();
+
+      this.presentToast('Emergency instruction updated successfully');
+    } catch (error) {
+      console.error('Error updating emergency instruction:', error);
+      this.presentToast('Error updating emergency instruction');
+    }
+  }
+
+  /**
+   * Cancel editing instruction and reset form
+   */
+  cancelEditInstruction() {
+    this.editingInstruction = null;
+    this.selectedAllergyForInstruction = null;
+    this.newInstructionText = '';
+  }
+
+  /**
+   * Show instruction details modal
+   */
+  showInstructionDetails(instruction: any) {
+    this.selectedInstructionDetails = instruction;
+    this.showInstructionDetailsModal = true;
+  }
+
+  /**
+   * Edit instruction from details modal
+   */
+  editInstructionFromDetails() {
+    if (this.selectedInstructionDetails) {
+      this.editEmergencyInstruction(this.selectedInstructionDetails);
+      this.showInstructionDetailsModal = false;
+      this.showManageInstructionsModal = true;
+    }
+  }
+
+  /**
+   * Test instruction audio playback
+   */
+  async testInstructionAudio() {
+    if (!this.selectedInstructionDetails) return;
+    
+    try {
+      const textToSpeak = `Emergency instruction for ${this.selectedInstructionDetails.allergyName}: ${this.selectedInstructionDetails.instruction}`;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        speechSynthesis.speak(utterance);
+        
+        this.presentToast('Playing instruction audio...');
+      } else {
+        this.presentToast('Text-to-speech not supported on this device');
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      this.presentToast('Error playing audio');
+    }
+  }
+
+  /**
+   * Share instruction via native share API or copy to clipboard
+   */
+  async shareInstruction() {
+    if (!this.selectedInstructionDetails) return;
+
+    const shareText = `Emergency Instruction for ${this.selectedInstructionDetails.allergyName}:\n\n${this.selectedInstructionDetails.instruction}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Emergency Instruction - ${this.selectedInstructionDetails.allergyName}`,
+          text: shareText
+        });
+        this.presentToast('Instruction shared successfully');
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(shareText);
+        this.presentToast('Instruction copied to clipboard');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      this.presentToast('Error sharing instruction');
+    }
+  }
+
+  /**
+   * Confirm deletion of instruction with alert
+   */
+  async confirmDeleteInstruction() {
+    if (!this.selectedInstructionDetails) return;
+
+    const alert = await this.alertController.create({
+      header: 'Delete Emergency Instruction',
+      message: `Are you sure you want to delete the emergency instruction for ${this.selectedInstructionDetails.allergyName}?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: async () => {
+            await this.removeEmergencyInstruction(this.selectedInstructionDetails.allergyId || this.selectedInstructionDetails.allergyName);
+            this.showInstructionDetailsModal = false;
+            this.selectedInstructionDetails = null;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   /**

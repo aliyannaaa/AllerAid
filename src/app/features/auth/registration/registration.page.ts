@@ -50,10 +50,10 @@ export class RegistrationPage {
           role: this.role
         });
         
-        // If healthcare professional, mark onboarding as completed since they don't need allergy setup
-        if (this.role === 'doctor' || this.role === 'nurse') {
+        // If healthcare professional or buddy, mark onboarding as completed since they don't need allergy setup
+        if (this.role === 'doctor' || this.role === 'nurse' || this.role === 'buddy') {
           await this.userService.markAllergyOnboardingCompleted(userCredential.user.uid);
-          console.log('Healthcare professional onboarding marked as completed');
+          console.log('Healthcare professional/buddy onboarding marked as completed');
         }
         
         console.log('User profile created in Firestore');

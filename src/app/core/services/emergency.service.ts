@@ -558,5 +558,105 @@ export class EmergencyService {
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
+
+  /**
+   * Get emergencies for a buddy user (patients they're monitoring)
+   */
+  async getEmergenciesForBuddy(buddyUserId: string): Promise<EmergencyAlert[]> {
+    try {
+      const emergenciesRef = collection(this.db, 'emergencies');
+      const q = query(
+        emergenciesRef,
+        where('buddyIds', 'array-contains', buddyUserId)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const emergencies: EmergencyAlert[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        emergencies.push({ id: doc.id, ...doc.data() } as EmergencyAlert);
+      });
+      
+      // Sort by timestamp (newest first)
+      emergencies.sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
+      
+      return emergencies;
+    } catch (error) {
+      console.error('Error getting emergencies for buddy:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Subscribe to real-time emergency alerts for a buddy
+   */
+  subscribeToEmergencyAlertsForBuddy(buddyUserId: string, callback: (emergencies: EmergencyAlert[]) => void): () => void {
+    const emergenciesRef = collection(this.db, 'emergencies');
+    const q = query(
+      emergenciesRef,
+      where('buddyIds', 'array-contains', buddyUserId),
+      where('status', 'in', ['active', 'responding'])
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const emergencies: EmergencyAlert[] = [];
+      querySnapshot.forEach((doc) => {
+        emergencies.push({ id: doc.id, ...doc.data() } as EmergencyAlert);
+      });
+      
+      // Sort by timestamp (newest first)
+      emergencies.sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
+      
+      callback(emergencies);
+    });
+
+    return unsubscribe;
+  }
+
+  /**
+   * Get patients that a buddy is monitoring
+   */
+  async getPatientsForBuddy(buddyUserId: string): Promise<any[]> {
+    try {
+      // Get accepted buddy relations where this user is the buddy
+      const relationsRef = collection(this.db, 'buddy_relations');
+      const q = query(
+        relationsRef,
+        where('user2Id', '==', buddyUserId),
+        where('status', '==', 'accepted')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const patients: any[] = [];
+      
+      // Get patient details for each relation
+      for (const relationDoc of querySnapshot.docs) {
+        const relation = relationDoc.data();
+        const patientId = relation['user1Id'];
+        
+        // Get patient profile
+        const patientDoc = await getDoc(doc(this.db, 'users', patientId));
+        if (patientDoc.exists()) {
+          const patientData = patientDoc.data();
+          patients.push({
+            id: patientId,
+            fullName: patientData['fullName'],
+            email: patientData['email'],
+            phone: patientData['phone'],
+            avatar: patientData['avatar'],
+            relationship: 'Patient',
+            lastSeen: patientData['lastLogin']?.toDate() || new Date(),
+            hasActiveAllergies: true,
+            allergyCount: 0
+          });
+        }
+      }
+      
+      return patients;
+    } catch (error) {
+      console.error('Error getting patients for buddy:', error);
+      return [];
+    }
+  }
 }
 

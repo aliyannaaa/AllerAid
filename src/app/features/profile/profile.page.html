@@ -77,56 +77,32 @@
         </div>
         
         <div class="section-title">
-          Emergency Instructions Overview
+          Emergency Instructions & Message
         </div>
 
-        <div class="emergency-box">
-          <div *ngIf="getEmergencyInstructionDisplay(); else noInstructionTemplate">
-            <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-              <strong>Emergency Instructions:</strong>
-              <div style="display: flex; gap: 8px;">
-                <ion-button size="small" fill="outline" (click)="selectTab('emergency')">
-                  <ion-icon name="create-outline" slot="start"></ion-icon>
-                  Edit in Emergency Tab
-                </ion-button>
-                <ion-button size="small" fill="clear" (click)="copyInstructions()">
-                  <ion-icon name="copy-outline" slot="start"></ion-icon>
-                  Copy
-                </ion-button>
-              </div>
+        <ion-card class="emergency-info-card">
+          <ion-card-header>
+            <ion-card-title>Emergency Information</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="emergency-message-row">
+              <span class="emergency-message-label">Name:</span>
+              <span class="emergency-message-value">{{ getEmergencyMessageName() }}</span>
             </div>
-            
-            <!-- Show individual emergency instructions if available -->
-            <div *ngIf="emergencyInstructions.length > 0">
-              <div *ngFor="let instruction of emergencyInstructions" class="instruction-overview-item" style="margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #e55e76;">
-                <div style="font-weight: 600; color: #d32f2f; margin-bottom: 4px;">{{ instruction.allergyName }}</div>
-                <div style="line-height: 1.5; color: #333;">{{ instruction.instruction }}</div>
-              </div>
+            <div class="emergency-message-row">
+              <span class="emergency-message-label">Allergies:</span>
+              <span class="emergency-message-value">{{ userAllergies && userAllergies.length > 0 ? (userAllergies[0].label || userAllergies[0].name) : 'None listed' }}</span>
             </div>
-            
-            <div style="margin-top: 8px; font-size: 12px; color: #666;">
-              {{ emergencyInstructions.length }} allergy-specific instructions • View-only in Overview
+            <div class="emergency-message-row">
+              <span class="emergency-message-label">Instructions:</span>
+              <span class="emergency-message-value">{{ userProfile?.emergencyInstruction || (emergencyInstructions.length > 0 ? emergencyInstructions[0].instruction : 'No instructions set') }}</span>
             </div>
-          </div>
-          <ng-template #noInstructionTemplate>
-            <div style="text-align: center; padding: 20px;">
-              <ion-icon name="alert-circle-outline" style="font-size: 48px; color: #ff6b6b; margin-bottom: 12px;"></ion-icon>
-              <div style="color: #666; font-style: italic; margin-bottom: 16px;">
-                No emergency instructions set
-              </div>
-              <div style="color: #999; font-size: 12px; margin-bottom: 16px;">
-                Emergency instructions help responders know exactly what to do for each of your allergies.
-              </div>
-              <ion-button 
-                fill="outline" 
-                size="small" 
-                (click)="selectTab('emergency')">
-                <ion-icon name="add-outline" slot="start"></ion-icon>
-                Set Emergency Instructions
-              </ion-button>
+            <div class="emergency-message-row">
+              <span class="emergency-message-label">Location:</span>
+              <span class="emergency-message-value">{{ userProfile?.emergencyLocation?.address || 'Google Maps' }}</span>
             </div>
-          </ng-template>
-        </div>
+          </ion-card-content>
+        </ion-card>
       </ng-container>
 
       <ng-container *ngIf="selectedTab === 'health'">
@@ -141,11 +117,18 @@
         <!-- Medication Search -->
         <div class="medication-search">
           <ion-searchbar 
-            [(ngModel)]="medicationSearchTerm"
+            [value]="medicationSearchTerm"
             (ionInput)="searchMedications($event)"
+            (ionClear)="clearMedicationSearch()"
             placeholder="Search medications..."
+            showClearButton="focus"
             debounce="300">
           </ion-searchbar>
+          <div *ngIf="medicationSearchTerm && medicationSearchTerm.trim()" class="search-results-info">
+            <small style="color: #666;">
+              {{ filteredMedications.length }} of {{ userMedications.length }} medications found
+            </small>
+          </div>
         </div>
 
         <!-- Medication Filter -->
@@ -298,13 +281,29 @@
           <div *ngIf="filteredMedications.length === 0" class="no-medications">
             <div style="text-align: center; padding: 20px;">
               <ion-icon name="medical-outline" style="font-size: 48px; color: #ccc; margin-bottom: 12px;"></ion-icon>
-              <p style="color: #666; font-style: italic;">No medications recorded</p>
+              <p style="color: #666; font-style: italic;">
+                <ng-container *ngIf="medicationSearchTerm && medicationSearchTerm.trim(); else noMedicationsAtAll">
+                  No medications found matching "{{ medicationSearchTerm }}"
+                </ng-container>
+                <ng-template #noMedicationsAtAll>
+                  No medications recorded
+                </ng-template>
+              </p>
               <ion-button 
+                *ngIf="!medicationSearchTerm || !medicationSearchTerm.trim()"
                 fill="outline" 
                 size="small" 
                 (click)="openAddMedicationModal()">
                 <ion-icon name="add-outline" slot="start"></ion-icon>
                 Add Medication
+              </ion-button>
+              <ion-button 
+                *ngIf="medicationSearchTerm && medicationSearchTerm.trim()"
+                fill="outline" 
+                size="small" 
+                (click)="clearMedicationSearch()">
+                <ion-icon name="close-outline" slot="start"></ion-icon>
+                Clear Search
               </ion-button>
             </div>
           </div>
@@ -624,7 +623,7 @@
         </div>
 
         <div class="emergency-message-title">
-          Emergency Instructions <ion-icon name="pencil-outline" (click)="showManageInstructionsModal = true"></ion-icon>
+          Emergency Instructions <ion-icon name="settings-outline" (click)="showManageInstructionsModal = true"></ion-icon>
         </div>
 
         <!-- Emergency Instructions Management Modal -->
@@ -633,11 +632,6 @@
             <ion-header>
               <ion-toolbar>
                 <ion-title>Emergency Instructions</ion-title>
-                <ion-buttons slot="start">
-                  <ion-button (click)="showManageInstructionsModal = false" fill="clear">
-                    <ion-icon name="arrow-back-outline"></ion-icon>
-                  </ion-button>
-                </ion-buttons>
                 <ion-buttons slot="end">
                   <ion-button (click)="showManageInstructionsModal = false" fill="clear">
                     <ion-icon name="close"></ion-icon>
@@ -650,11 +644,13 @@
                 Manage what responders should do for each allergy during emergencies.
               </p>
 
-              <!-- Add Instruction Form -->
+              <!-- Add/Edit Instruction Form -->
               <div class="add-instruction-form" style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-top: 0; color: #333;">{{ editingInstruction ? 'Edit Instruction' : 'Add New Instruction' }}</h4>
+                
                 <ion-item lines="none">
                   <ion-label position="stacked">Allergy</ion-label>
-                  <ion-select [(ngModel)]="selectedAllergyForInstruction" placeholder="Select allergy">
+                  <ion-select [(ngModel)]="selectedAllergyForInstruction" placeholder="Select allergy" [disabled]="editingInstruction">
                     <ion-select-option *ngFor="let allergy of userAllergies" [value]="allergy">
                       {{ allergy.label || allergy.name }}
                     </ion-select-option>
@@ -671,14 +667,23 @@
                   </ion-textarea>
                 </ion-item>
                 
-                <ion-button 
-                  expand="block" 
-                  (click)="addEmergencyInstruction()"
-                  [disabled]="!selectedAllergyForInstruction || !newInstructionText"
-                  style="margin-top: 12px;">
-                  <ion-icon name="add-outline" slot="start"></ion-icon>
-                  Add Instruction
-                </ion-button>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                  <ion-button 
+                    expand="block" 
+                    (click)="editingInstruction ? updateEmergencyInstruction() : addEmergencyInstruction()"
+                    [disabled]="!selectedAllergyForInstruction || !newInstructionText">
+                    <ion-icon [name]="editingInstruction ? 'save-outline' : 'add-outline'" slot="start"></ion-icon>
+                    {{ editingInstruction ? 'Update Instruction' : 'Add Instruction' }}
+                  </ion-button>
+                  
+                  <ion-button 
+                    *ngIf="editingInstruction"
+                    fill="outline" 
+                    color="medium"
+                    (click)="cancelEditInstruction()">
+                    Cancel
+                  </ion-button>
+                </div>
               </div>
 
               <!-- Existing Instructions List -->
@@ -688,13 +693,22 @@
                     <strong>{{ instruction.allergyName }}:</strong>
                     <p>{{ instruction.instruction }}</p>
                   </div>
-                  <ion-button 
-                    fill="clear" 
-                    color="danger" 
-                    size="small"
-                    (click)="removeEmergencyInstruction(instruction.allergyId)">
-                    <ion-icon name="trash-outline"></ion-icon>
-                  </ion-button>
+                  <div class="instruction-actions">
+                    <ion-button 
+                      fill="clear" 
+                      color="primary" 
+                      size="small"
+                      (click)="editEmergencyInstruction(instruction)">
+                      <ion-icon name="create-outline"></ion-icon>
+                    </ion-button>
+                    <ion-button 
+                      fill="clear" 
+                      color="danger" 
+                      size="small"
+                      (click)="removeEmergencyInstruction(instruction.allergyId)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </ion-button>
+                  </div>
                 </div>
                 
                 <div *ngIf="emergencyInstructions.length === 0" class="no-instructions">
@@ -707,26 +721,150 @@
           </ng-template>
         </ion-modal>
 
+        <!-- Emergency Instruction Details Modal -->
+        <ion-modal [isOpen]="showInstructionDetailsModal" (didDismiss)="showInstructionDetailsModal = false">
+          <ng-template>
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>Emergency Instruction Details</ion-title>
+                <ion-buttons slot="start">
+                  <ion-button (click)="showInstructionDetailsModal = false" fill="clear">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+                <ion-buttons slot="end">
+                  <ion-button (click)="showInstructionDetailsModal = false" fill="clear">
+                    <ion-icon name="close"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding" *ngIf="selectedInstructionDetails">
+              <div class="instruction-details-container">
+                <!-- Allergy Information -->
+                <div class="detail-section">
+                  <div class="detail-header">
+                    <ion-icon name="warning-outline" color="danger"></ion-icon>
+                    <h3>Allergy Information</h3>
+                  </div>
+                  <div class="detail-content">
+                    <div class="detail-row">
+                      <span class="detail-label">Allergy:</span>
+                      <span class="detail-value">{{ selectedInstructionDetails.allergyName }}</span>
+                    </div>
+                    <div class="detail-row" *ngIf="selectedInstructionDetails.allergyId !== selectedInstructionDetails.allergyName">
+                      <span class="detail-label">ID:</span>
+                      <span class="detail-value">{{ selectedInstructionDetails.allergyId }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Emergency Instructions -->
+                <div class="detail-section">
+                  <div class="detail-header">
+                    <ion-icon name="medical-outline" color="primary"></ion-icon>
+                    <h3>Emergency Instructions</h3>
+                  </div>
+                  <div class="detail-content">
+                    <div class="instruction-full-text">
+                      {{ selectedInstructionDetails.instruction }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="detail-section">
+                  <div class="detail-header">
+                    <ion-icon name="settings-outline" color="medium"></ion-icon>
+                    <h3>Quick Actions</h3>
+                  </div>
+                  <div class="detail-content">
+                    <div class="action-buttons-grid">
+                      <ion-button 
+                        expand="block" 
+                        fill="outline" 
+                        color="primary"
+                        (click)="editInstructionFromDetails()">
+                        <ion-icon name="create-outline" slot="start"></ion-icon>
+                        Edit Instruction
+                      </ion-button>
+                      
+                      <ion-button 
+                        expand="block" 
+                        fill="outline" 
+                        color="success"
+                        (click)="testInstructionAudio()">
+                        <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+                        Test Audio
+                      </ion-button>
+                      
+                      <ion-button 
+                        expand="block" 
+                        fill="outline" 
+                        color="warning"
+                        (click)="shareInstruction()">
+                        <ion-icon name="share-outline" slot="start"></ion-icon>
+                        Share
+                      </ion-button>
+                      
+                      <ion-button 
+                        expand="block" 
+                        fill="outline" 
+                        color="danger"
+                        (click)="confirmDeleteInstruction()">
+                        <ion-icon name="trash-outline" slot="start"></ion-icon>
+                        Delete
+                      </ion-button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Usage Tips -->
+                <div class="detail-section">
+                  <div class="detail-header">
+                    <ion-icon name="information-circle-outline" color="tertiary"></ion-icon>
+                    <h3>Usage Tips</h3>
+                  </div>
+                  <div class="detail-content">
+                    <ul class="tips-list">
+                      <li>This instruction will be read aloud during emergencies if audio is enabled</li>
+                      <li>First responders and emergency contacts will see this information</li>
+                      <li>Keep instructions clear and specific to this allergy</li>
+                      <li>Include medication locations and emergency contact numbers</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </ion-content>
+          </ng-template>
+        </ion-modal>
+
         <!-- Display Current Instructions -->
         <div class="emergency-instructions-display">
-          <div *ngFor="let instruction of emergencyInstructions" class="instruction-card">
-            <div class="instruction-header">
-              <strong>{{ instruction.allergyName }}</strong>
+          <div class="instructions-section-header">Allergy-Specific Emergency Instructions</div>
+          <div class="instructions-list-scrollable">
+            <div *ngFor="let instruction of emergencyInstructions" 
+                 class="instruction-card decluttered clickable" 
+                 (click)="showInstructionDetails(instruction)">
+              <div class="instruction-header">
+                <ion-icon name="alert-circle-outline" style="color:#e55e76; font-size:20px; margin-right:8px;"></ion-icon>
+                <strong>{{ instruction.allergyName }}</strong>
+                <ion-icon name="chevron-forward-outline" style="color:#666; font-size:16px; margin-left:auto;"></ion-icon>
+              </div>
+              <div class="instruction-text">
+                {{ instruction.instruction | slice:0:100 }}{{ instruction.instruction.length > 100 ? '...' : '' }}
+              </div>
             </div>
-            <div class="instruction-text">
-              {{ instruction.instruction }}
+            <div *ngIf="emergencyInstructions.length === 0" class="no-instructions-card decluttered">
+              <p style="text-align: center; color: #666; font-style: italic;">
+                No emergency instructions set.
+              </p>
             </div>
-          </div>
-          
-          <div *ngIf="emergencyInstructions.length === 0" class="no-instructions-card">
-            <p style="text-align: center; color: #666; font-style: italic;">
-              No emergency instructions set.
-            </p>
           </div>
         </div>
 
         <div class="emergency-message-title">
-          Emergency Message <ion-icon name="pencil-outline" (click)="showEditEmergencyMessageModal = true"></ion-icon>
+          Emergency Message <ion-icon name="settings-outline" (click)="showEditEmergencyMessageModal = true"></ion-icon>
         </div>
         <ion-modal [isOpen]="showEditEmergencyMessageModal" (didDismiss)="showEditEmergencyMessageModal = false">
           <ng-template>
@@ -766,22 +904,29 @@
             </ion-content>
           </ng-template>
         </ion-modal>
-        <div class="emergency-message-card">
-          <div class="emergency-message-row">
-            <div class="emergency-message-label">Name:</div>
-            <div class="emergency-message-value">{{ getEmergencyMessageName() }}</div>
-          </div>
-          <div class="emergency-message-row">
-            <div class="emergency-message-label">Allergies:</div>
-            <div class="emergency-message-value">{{ getEmergencyMessageAllergies() }}</div>
-          </div>
-          <div class="emergency-message-row">
-            <div class="emergency-message-label">Instructions:</div>
-            <div class="emergency-message-value">{{ getEmergencyMessageInstructions() }}</div>
-          </div>
-          <div class="emergency-message-row">
-            <div class="emergency-message-label">Location:</div>
-            <div class="emergency-message-value">{{ getEmergencyMessageLocation() }}</div>
+
+        <!-- Display Emergency Message -->
+        <div class="emergency-instructions-display">
+          <div class="instructions-section-header">Emergency Contact Information</div>
+          <div class="instructions-list-scrollable">
+            <div class="emergency-message-card decluttered">
+              <div class="emergency-message-row">
+                <div class="emergency-message-label">Name:</div>
+                <div class="emergency-message-value">{{ getEmergencyMessageName() }}</div>
+              </div>
+              <div class="emergency-message-row">
+                <div class="emergency-message-label">Allergies:</div>
+                <div class="emergency-message-value">{{ getEmergencyMessageAllergies() }}</div>
+              </div>
+              <div class="emergency-message-row">
+                <div class="emergency-message-label">Instructions:</div>
+                <div class="emergency-message-value">{{ getEmergencyMessageInstructions() }}</div>
+              </div>
+              <div class="emergency-message-row">
+                <div class="emergency-message-label">Location:</div>
+                <div class="emergency-message-value">{{ getEmergencyMessageLocation() }}</div>
+              </div>
+            </div>
           </div>
         </div>
 

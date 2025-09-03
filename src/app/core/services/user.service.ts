@@ -22,6 +22,7 @@ export interface UserProfile {
   fullName: string;
   role: string;
   avatar?: string;
+  phone?: string; // Added for buddy users
   emergencyInstruction?: string;
   emergencyMessage?: {
     name: string;
@@ -220,6 +221,36 @@ export class UserService {
     } catch (error) {
       console.error('Error ensuring user profile exists:', error);
       return null;
+    }
+  }
+
+  // Create buddy user profile (simplified registration)
+  async createBuddyProfile(
+    uid: string, 
+    email: string, 
+    firstName: string, 
+    lastName: string,
+    phone: string
+  ): Promise<void> {
+    try {
+      const userProfile: UserProfile = {
+        uid,
+        email: email,
+        firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
+        lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
+        fullName: `${firstName.charAt(0).toUpperCase() + firstName.slice(1)} ${lastName.charAt(0).toUpperCase() + lastName.slice(1)}`.trim(),
+        role: 'buddy', // Buddy role
+        phone: phone,
+        dateCreated: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        isActive: true
+      };
+
+      await setDoc(doc(this.db, 'users', uid), userProfile);
+      console.log('Buddy profile created successfully');
+    } catch (error) {
+      console.error('Error creating buddy profile:', error);
+      throw error;
     }
   }
 

@@ -80,7 +80,8 @@ export class HomePage implements OnInit, OnDestroy {
           }
         });
 
-          // ...existing code...
+        // Listen for emergency responses
+        this.listenForEmergencyResponses();
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -88,8 +89,21 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   listenForEmergencyResponses() {
-    // Listen for emergency responses if user has active emergencies
-    // This would be implemented based on your emergency service
+    // Listen for emergency responses using the existing emergency service
+    const responseSubscription = this.emergencyService.emergencyResponse$.subscribe(response => {
+      if (response) {
+        this.respondingBuddy = {
+          responderName: response.responderName,
+          estimatedTime: response.estimatedArrival ? `${response.estimatedArrival} min` : 'Calculating...',
+          distance: response.distance || 0,
+          estimatedArrival: response.estimatedArrival || 0,
+          emergencyId: response.emergencyId
+        };
+        this.showResponderAlert(response);
+      }
+    });
+    
+    this.subscriptions.push(responseSubscription);
   }
 
   triggerEmergency() {
