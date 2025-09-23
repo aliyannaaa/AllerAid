@@ -35,8 +35,8 @@ ion-icon[name="people-outline"] {
 }
 
 ion-button.registerBtn {
-  --background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
-  --color: #2b2b2b !important;
+  --background: #036a5d !important;
+  --color: #ffffff !important;
   font-weight: bold;
   margin-top: 10px;
 }
@@ -47,14 +47,13 @@ ion-button.registerBtn {
 }
 
 a{
-  color: #AB7082;
+  color: #036a5d;
   font-weight: bold;;
   text-decoration: none;
 }
 
 ion-content{
-  --background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
-  background: linear-gradient(135deg, #AB7082 0%, #E55E76 100%) !important;
+  --background: linear-gradient(0deg, #deded6 -70%, #036a5d 100%) !important;
   min-height: 100vh !important;
   height: 100vh !important;
   width: 100vw !important;

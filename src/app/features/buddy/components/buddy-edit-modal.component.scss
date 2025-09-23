@@ -3,21 +3,18 @@
   background: transparent;
 }
 
-ion-header ion-toolbar {
-  --background: #AB7082 !important;
-  --ion-color-base: #AB7082 !important;
-  color: #fff !important;
-}
 
 ion-content{
   --background: #faeaee !important;
   color: #000 !important;
+  height: 55vh; /* Set a fixed height, adjust as needed */
+  max-height: 80vh;
 }
 
 ion-item{
   --background: #edd8de !important;
   color: #000 !important;
-  border-radius: 32px;
+  border-radius: 10px;
 }
 
 .buddy-modal-backdrop {
@@ -34,15 +31,11 @@ ion-item{
 }
 
 .buddy-modal-content {
-  background: #fff;
-  border-radius: 32px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   width: 90vw;
   max-width: 400px;
   height: 50vh; /* Set a fixed height, adjust as needed */
   max-height: 80vh;
   z-index: 1001;
-  padding-bottom: 16px;
 }
 
 ion-button.saveBtn {
