@@ -5,6 +5,13 @@
     </ion-buttons>
     <ion-title>Buddy Dashboard</ion-title>
     <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="debugBuddyRelations()" color="secondary">
+        <ion-icon name="bug-outline"></ion-icon>
+        <ion-label>Debug</ion-label>
+      </ion-button>
+      <ion-button fill="clear" (click)="fixAcceptedInvitations()" color="warning">
+        <ion-icon name="build-outline"></ion-icon>
+      </ion-button>
       <ion-button fill="clear" (click)="refreshDashboard()">
         <ion-icon name="refresh-outline"></ion-icon>
       </ion-button>

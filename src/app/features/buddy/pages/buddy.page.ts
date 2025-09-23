@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BuddyService } from '../../../core/services/buddy.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
-import { ToastController, ModalController } from '@ionic/angular';
+import { ToastController, ModalController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { BuddyInvitationsModal } from '../components/buddy-invitations-modal.component';
 import { environment } from '../../../../environments/environment';
@@ -31,10 +31,7 @@ export class BuddyPage implements OnInit {
     this.showDetailsModal = false;
     this.buddyToShowDetails = null;
   }
-  buddyFirstName = '';
-  buddyLastName = '';
-  buddyRelationship = '';
-  buddyContact = '';
+  
   buddies: any[] = [];
   filteredBuddies: any[] = [];
   searchTerm: string = '';
@@ -55,6 +52,7 @@ export class BuddyPage implements OnInit {
     private userService: UserService,
     private toastController: ToastController,
     private modalController: ModalController,
+    private alertController: AlertController,
     private router: Router
   ) {}
 
@@ -147,53 +145,6 @@ export class BuddyPage implements OnInit {
     }
   }
 
-  async addBuddy() {
-    // Wait for auth to be initialized
-    const currentUser = await this.authService.waitForAuthInit();
-    
-    if (!currentUser) {
-      const toast = await this.toastController.create({
-        message: 'You must be logged in to add a buddy.',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-      return;
-    }
-
-    const buddy = {
-      userId: currentUser.uid, // Add the current user's ID
-      firstName: this.buddyFirstName,
-      lastName: this.buddyLastName,
-      relationship: this.buddyRelationship,
-      contactNumber: this.buddyContact
-    };
-
-    try {
-      await this.buddyService.addBuddy(buddy);
-      this.buddyFirstName = '';
-      this.buddyLastName = '';
-      this.buddyRelationship = '';
-      this.buddyContact = '';
-
-      const toast = await this.toastController.create({
-        message: 'Buddy added successfully!',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-
-      this.loadBuddies();
-    } catch (error) {
-      const toast = await this.toastController.create({
-        message: 'Failed to add buddy.',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-    }
-  }
-
   async openModal() {
     // For now, just show the manual buddy entry modal
     this.showModal = true;
@@ -271,24 +222,88 @@ export class BuddyPage implements OnInit {
         return;
       }
 
-      // Add userId to the buddy object
-      const buddyWithUserId = {
-        ...buddy,
-        userId: currentUser.uid
-      };
+      // Check for duplicate buddy by email first
+      const duplicateCheck = await this.buddyService.checkDuplicateBuddyByEmail(currentUser.uid, buddy.email.trim());
+      
+      if (duplicateCheck.isDuplicate) {
+        let alertMessage = '';
+        let alertHeader = 'Duplicate Buddy';
+        
+        switch (duplicateCheck.type) {
+          case 'existing_buddy':
+            alertMessage = `You already have ${duplicateCheck.details?.name || 'this person'} as a buddy.`;
+            break;
+          case 'pending_sent_invitation':
+            alertMessage = `You have already sent a buddy invitation to ${duplicateCheck.details?.name || buddy.email}. Please wait for them to respond.`;
+            break;
+          case 'pending_received_invitation':
+            alertMessage = `${duplicateCheck.details?.name || 'This person'} has already sent you a buddy invitation. Please check your invitations.`;
+            break;
+          case 'legacy_buddy':
+            alertMessage = `You already have ${duplicateCheck.details?.name || 'this person'} as a buddy in your contacts.`;
+            break;
+          default:
+            alertMessage = `This email is already associated with a buddy relationship.`;
+        }
 
-      await this.buddyService.addBuddy(buddyWithUserId); // use buddyService instead of firebaseService
+        const alert = await this.alertController.create({
+          header: alertHeader,
+          message: alertMessage,
+          buttons: ['OK']
+        });
+        
+        await alert.present();
+        return; // Block the invitation
+      }
+
+      // Get current user profile for invitation message
+      const currentUserProfile = await this.userService.getUserProfile(currentUser.uid);
+      if (!currentUserProfile) {
+        const toast = await this.toastController.create({
+          message: 'Unable to load your profile. Please try again.',
+          duration: 2000,
+          color: 'danger'
+        });
+        await toast.present();
+        return;
+      }
+
+      // Check if target user exists by email
+      const targetUser = await this.userService.getUserByEmail(buddy.email.trim());
+      
+      const invitationMessage = `${currentUserProfile.firstName} ${currentUserProfile.lastName} would like to add you as their ${buddy.relationship || 'emergency buddy'}.`;
+      
+      if (targetUser) {
+        // User exists - send invitation with user data
+        await this.buddyService.sendBuddyInvitationWithUser(
+          currentUserProfile,
+          targetUser,
+          invitationMessage
+        );
+      } else {
+        // User doesn't exist - send email invitation with name
+        const targetUserName = `${buddy.firstName} ${buddy.lastName}`.trim();
+        await this.buddyService.sendBuddyInvitation(
+          buddy.email.trim(),
+          targetUserName,
+          invitationMessage
+        );
+      }
+
       const toast = await this.toastController.create({
-        message: 'Buddy added successfully!',
+        message: 'Buddy invitation sent successfully!',
         duration: 2000,
         color: 'success'
       });
       await toast.present();
-      this.loadBuddies();
+      
+      // Refresh buddy list and invitations
+      await this.loadBuddies();
       this.closeModal();
     } catch (error) {
+      console.error('Error sending buddy invitation:', error);
       const toast = await this.toastController.create({
-        message: 'Failed to add buddy.',
+        message: 'Failed to send buddy invitation.',
         duration: 2000,
         color: 'danger'
       });
@@ -347,7 +362,7 @@ export class BuddyPage implements OnInit {
 
   async onConfirmDeleteBuddy(buddy: any) {
     try {
-      await this.buddyService.deleteBuddy(buddy.id); // Delete from Firebase by ID
+      await this.buddyService.deleteBuddy(buddy); // Pass the full buddy object, not just the ID
       this.showDeleteModal = false;
       this.buddyToEdit = null;
       

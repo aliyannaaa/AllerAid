@@ -18,6 +18,8 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation, Position } from '@capacitor/geolocation';
+import { EmergencyNotificationService } from './emergency-notification.service';
+import { UserService } from './user.service';
 
 export interface EmergencyAlert {
   id?: string;
@@ -60,13 +62,16 @@ export class EmergencyService {
   private emergencyResponseSubject = new BehaviorSubject<any | null>(null);
   emergencyResponse$ = this.emergencyResponseSubject.asObservable();
 
-  constructor() {
+  constructor(
+    private emergencyNotificationService?: EmergencyNotificationService,
+    private userService?: UserService
+  ) {
     const app = initializeApp(firebaseConfig);
     this.db = getFirestore(app);
   }
 
   /**
-   * Send an emergency alert to the user's buddies
+   * Send an emergency alert to the user's buddies with automatic notifications
    */
   async sendEmergencyAlert(
     userId: string, 
@@ -76,6 +81,8 @@ export class EmergencyService {
     instruction: string = ''
   ): Promise<string> {
     try {
+      console.log('🚨 Starting emergency alert process...');
+      
       // Get current location
       const position = await this.getCurrentLocation();
       
@@ -99,15 +106,45 @@ export class EmergencyService {
       const docRef = await addDoc(collection(this.db, 'emergencies'), emergencyData);
       const emergencyId = docRef.id;
       
+      // Update the emergency data with the ID
+      emergencyData.id = emergencyId;
+      
+      console.log('✅ Emergency alert created in Firestore:', emergencyId);
+      
       // Start tracking location updates
       this.startLocationTracking(emergencyId);
       
       // Set up listener for responses
       this.listenForResponses(emergencyId, userId);
       
+      // 🚨 AUTO EMERGENCY NOTIFICATIONS 🚨
+      // Send SMS and push notifications to all buddies
+      if (this.emergencyNotificationService && this.userService) {
+        try {
+          console.log('📱 Sending emergency notifications to buddies...');
+          
+          // Get user profile for comprehensive emergency info
+          const userProfile = await this.userService.getUserProfile(userId);
+          
+          // Send notifications to all buddies
+          await this.emergencyNotificationService.sendEmergencyNotifications(
+            emergencyData,
+            userProfile
+          );
+          
+          console.log('✅ Emergency notifications sent successfully');
+          
+        } catch (notificationError) {
+          console.error('⚠️ Emergency notifications failed:', notificationError);
+          // Don't throw error - emergency alert should still work even if notifications fail
+        }
+      } else {
+        console.log('⚠️ Emergency notification service not available');
+      }
+      
       return emergencyId;
     } catch (error) {
-      console.error('Error sending emergency alert:', error);
+      console.error('❌ Error sending emergency alert:', error);
       throw error;
     }
   }
@@ -241,7 +278,11 @@ export class EmergencyService {
       try {
         // Watch position with options
         this.locationWatchId = await Geolocation.watchPosition(
-          { enableHighAccuracy: true, timeout: 10000 },
+          { 
+            enableHighAccuracy: true, 
+            timeout: 10000,
+            maximumAge: 30000 // Accept location up to 30 seconds old
+          },
           (position) => {
             if (position) {
               this.updateEmergencyLocation(emergencyId, {
@@ -249,6 +290,7 @@ export class EmergencyService {
                 longitude: position.coords.longitude,
                 accuracy: position.coords.accuracy
               });
+              console.log('Real-time location updated:', position.coords.latitude, position.coords.longitude, 'accuracy:', position.coords.accuracy);
             }
           }
         );
@@ -271,10 +313,11 @@ export class EmergencyService {
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           });
+          console.log('Location updated:', position.coords.latitude, position.coords.longitude);
         } catch (error) {
           console.error('Error updating location:', error);
         }
-      }, 10000); // Update every 10 seconds
+      }, 5000); // Update every 5 seconds for more real-time tracking
       
       // Store the interval ID as a string for consistency
       this.locationWatchId = watchId.toString();
@@ -557,106 +600,6 @@ export class EmergencyService {
    */
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
-  }
-
-  /**
-   * Get emergencies for a buddy user (patients they're monitoring)
-   */
-  async getEmergenciesForBuddy(buddyUserId: string): Promise<EmergencyAlert[]> {
-    try {
-      const emergenciesRef = collection(this.db, 'emergencies');
-      const q = query(
-        emergenciesRef,
-        where('buddyIds', 'array-contains', buddyUserId)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const emergencies: EmergencyAlert[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        emergencies.push({ id: doc.id, ...doc.data() } as EmergencyAlert);
-      });
-      
-      // Sort by timestamp (newest first)
-      emergencies.sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
-      
-      return emergencies;
-    } catch (error) {
-      console.error('Error getting emergencies for buddy:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Subscribe to real-time emergency alerts for a buddy
-   */
-  subscribeToEmergencyAlertsForBuddy(buddyUserId: string, callback: (emergencies: EmergencyAlert[]) => void): () => void {
-    const emergenciesRef = collection(this.db, 'emergencies');
-    const q = query(
-      emergenciesRef,
-      where('buddyIds', 'array-contains', buddyUserId),
-      where('status', 'in', ['active', 'responding'])
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const emergencies: EmergencyAlert[] = [];
-      querySnapshot.forEach((doc) => {
-        emergencies.push({ id: doc.id, ...doc.data() } as EmergencyAlert);
-      });
-      
-      // Sort by timestamp (newest first)
-      emergencies.sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
-      
-      callback(emergencies);
-    });
-
-    return unsubscribe;
-  }
-
-  /**
-   * Get patients that a buddy is monitoring
-   */
-  async getPatientsForBuddy(buddyUserId: string): Promise<any[]> {
-    try {
-      // Get accepted buddy relations where this user is the buddy
-      const relationsRef = collection(this.db, 'buddy_relations');
-      const q = query(
-        relationsRef,
-        where('user2Id', '==', buddyUserId),
-        where('status', '==', 'accepted')
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const patients: any[] = [];
-      
-      // Get patient details for each relation
-      for (const relationDoc of querySnapshot.docs) {
-        const relation = relationDoc.data();
-        const patientId = relation['user1Id'];
-        
-        // Get patient profile
-        const patientDoc = await getDoc(doc(this.db, 'users', patientId));
-        if (patientDoc.exists()) {
-          const patientData = patientDoc.data();
-          patients.push({
-            id: patientId,
-            fullName: patientData['fullName'],
-            email: patientData['email'],
-            phone: patientData['phone'],
-            avatar: patientData['avatar'],
-            relationship: 'Patient',
-            lastSeen: patientData['lastLogin']?.toDate() || new Date(),
-            hasActiveAllergies: true,
-            allergyCount: 0
-          });
-        }
-      }
-      
-      return patients;
-    } catch (error) {
-      console.error('Error getting patients for buddy:', error);
-      return [];
-    }
   }
 }
 

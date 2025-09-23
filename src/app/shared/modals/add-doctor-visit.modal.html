@@ -51,11 +51,36 @@
         </ion-input>
       </ion-item>
 
+      <!-- Manual Doctor Email Input (Optional) -->
+      <ion-item *ngIf="doctorInputMode === 'manual'">
+        <ion-label position="stacked">Doctor Email (Optional)</ion-label>
+        <ion-input 
+          [(ngModel)]="manualDoctorEmail" 
+          name="manualDoctorEmail" 
+          type="email"
+          placeholder="e.g., doctor@hospital.com"
+          (ionInput)="onManualDoctorEmailInput()">
+        </ion-input>
+        <ion-note>
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Providing email enables automatic access requests if doctor is registered in AllerAid
+        </ion-note>
+      </ion-item>
+
       <!-- Show selected/entered doctor name -->
       <ion-item *ngIf="visitData.doctorName">
         <ion-label>
           <h3>Selected Doctor: {{ visitData.doctorName }}</h3>
+          <p *ngIf="visitData.doctorEmail">Email: {{ visitData.doctorEmail }}</p>
           <p *ngIf="visitData.specialty">Specialty: {{ visitData.specialty }}</p>
+          <ion-note *ngIf="visitData.doctorEmail" color="success">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            Registered in AllerAid - Will receive access request
+          </ion-note>
+          <ion-note *ngIf="!visitData.doctorEmail" color="warning">
+            <ion-icon name="information-circle"></ion-icon>
+            Manual entry - Doctor must be registered separately for dashboard access
+          </ion-note>
         </ion-label>
       </ion-item>
 

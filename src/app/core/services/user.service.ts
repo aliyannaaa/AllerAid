@@ -59,6 +59,7 @@ export interface UserProfile {
 })
 export class UserService {
   private db;
+  private userProfileCache: Map<string, UserProfile> = new Map(); // Simple cache to reduce API calls
 
   constructor(
     private firebaseService: FirebaseService,
@@ -88,6 +89,10 @@ export class UserService {
       };
 
       await setDoc(doc(this.db, 'users', uid), userProfile);
+      
+      // Cache the newly created profile
+      this.userProfileCache.set(uid, userProfile);
+      
       console.log('User profile created successfully');
       
       // Verify the document was created
@@ -104,12 +109,20 @@ export class UserService {
   }
 
   // Get user profile from Firestore
-  async getUserProfile(uid: string): Promise<UserProfile | null> {
+  async getUserProfile(uid: string, useCache: boolean = true): Promise<UserProfile | null> {
     try {
+      // Check cache first if enabled
+      if (useCache && this.userProfileCache.has(uid)) {
+        return this.userProfileCache.get(uid)!;
+      }
+
       const userDoc = await getDoc(doc(this.db, 'users', uid));
       
       if (userDoc.exists()) {
-        return userDoc.data() as UserProfile;
+        const profile = userDoc.data() as UserProfile;
+        // Cache the profile
+        this.userProfileCache.set(uid, profile);
+        return profile;
       } else {
         console.log('No user profile found');
         return null;
@@ -127,10 +140,23 @@ export class UserService {
         ...updates,
         lastLogin: serverTimestamp()
       });
+      
+      // Clear cache to ensure fresh data on next request
+      this.userProfileCache.delete(uid);
+      
       console.log('User profile updated successfully');
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
+    }
+  }
+
+  // Clear user profile cache (useful for logout or data refresh)
+  clearUserProfileCache(uid?: string): void {
+    if (uid) {
+      this.userProfileCache.delete(uid);
+    } else {
+      this.userProfileCache.clear();
     }
   }
 

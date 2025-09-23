@@ -117,3 +117,92 @@ ion-card-content p {
   font-weight: 500;
   color: #202020;
 }
+
+// Emergency Status Card
+.emergency-status-card {
+  background: #ffebee !important;
+  border: 2px solid #ef5350 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(239, 83, 80, 0.3) !important;
+  animation: emergency-pulse 2s infinite;
+}
+
+@keyframes emergency-pulse {
+  0% {
+    box-shadow: 0 4px 20px rgba(239, 83, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(239, 83, 80, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 20px rgba(239, 83, 80, 0.3);
+  }
+}
+
+.emergency-info {
+  .buddy-responses {
+    margin-top: 16px;
+    
+    h4 {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #d32f2f;
+    }
+  }
+  
+  .response-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .response-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #ef5350;
+    
+    .buddy-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      .buddy-name {
+        font-weight: 500;
+        color: #424242;
+      }
+      
+      .buddy-status {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      
+      .status-badge {
+        font-size: 0.75rem;
+        padding: 2px 8px;
+      }
+      
+      .notification-badge {
+        font-size: 0.7rem;
+        padding: 1px 6px;
+        opacity: 0.9;
+      }
+    }
+    
+    .response-time {
+      font-size: 0.8rem;
+      color: #757575;
+    }
+  }
+  
+  .emergency-actions {
+    margin-top: 16px;
+    border-top: 1px solid rgba(211, 47, 47, 0.2);
+    padding-top: 16px;
+  }
+}

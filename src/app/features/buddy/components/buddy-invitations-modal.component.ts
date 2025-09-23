@@ -39,7 +39,16 @@ export class BuddyInvitationsModal implements OnInit {
     try {
       const currentUser = await this.userService.getCurrentUserProfile();
       if (currentUser) {
-        this.receivedInvitations = await this.buddyService.getReceivedInvitations(currentUser.uid);
+        // First try to get invitations by userId
+        let receivedInvitations = await this.buddyService.getReceivedInvitations(currentUser.uid);
+        
+        // If no invitations found by userId, try by email
+        if (receivedInvitations.length === 0 && currentUser.email) {
+          console.log('No invitations found by userId, trying email...');
+          receivedInvitations = await this.buddyService.getReceivedInvitationsByEmail(currentUser.email);
+        }
+        
+        this.receivedInvitations = receivedInvitations;
         this.sentInvitations = await this.buddyService.getSentInvitations(currentUser.uid);
       }
     } catch (error) {
@@ -62,6 +71,49 @@ export class BuddyInvitationsModal implements OnInit {
     try {
       this.isLoading = true;
 
+      // Get current user profile first
+      const currentUser = await this.userService.getCurrentUserProfile();
+      if (!currentUser) {
+        this.showToast('You must be logged in to send invitations', 'danger');
+        this.isLoading = false;
+        return;
+      }
+
+      // Check for duplicate buddy relationships FIRST
+      const duplicateCheck = await this.buddyService.checkDuplicateBuddyByEmail(currentUser.uid, this.inviteEmail.trim());
+      
+      if (duplicateCheck.isDuplicate) {
+        let alertMessage = '';
+        let alertHeader = 'Duplicate Buddy';
+        
+        switch (duplicateCheck.type) {
+          case 'existing_buddy':
+            alertMessage = `You already have ${duplicateCheck.details?.name || 'this person'} as a buddy.`;
+            break;
+          case 'pending_sent_invitation':
+            alertMessage = `You have already sent a buddy invitation to ${duplicateCheck.details?.name || this.inviteEmail}. Please wait for them to respond.`;
+            break;
+          case 'pending_received_invitation':
+            alertMessage = `${duplicateCheck.details?.name || 'This person'} has already sent you a buddy invitation. Please check your invitations.`;
+            break;
+          case 'legacy_buddy':
+            alertMessage = `You already have ${duplicateCheck.details?.name || 'this person'} as a buddy in your contacts.`;
+            break;
+          default:
+            alertMessage = `This email is already associated with a buddy relationship.`;
+        }
+
+        const alert = await this.alertController.create({
+          header: alertHeader,
+          message: alertMessage,
+          buttons: ['OK']
+        });
+        
+        await alert.present();
+        this.isLoading = false;
+        return; // Block the invitation
+      }
+
       // First, search for the user by email
       const targetUser = await this.userService.getUserByEmail(this.inviteEmail);
       
@@ -71,21 +123,10 @@ export class BuddyInvitationsModal implements OnInit {
         return;
       }
 
-      // Check if already buddies or invitation already sent
-      const existingInvitation = this.sentInvitations.find(inv => 
-        inv.toUserEmail === this.inviteEmail && inv.status === 'pending'
-      );
-      
-      if (existingInvitation) {
-        this.showToast('You already have a pending invitation to this user', 'warning');
-        this.isLoading = false;
-        return;
-      }
-
-      // Send the invitation
-      await this.buddyService.sendBuddyInvitation(
-        targetUser.email,
-        targetUser.fullName || `${targetUser.firstName} ${targetUser.lastName}`,
+      // Send the invitation with current user data
+      await this.buddyService.sendBuddyInvitationWithUser(
+        currentUser,
+        targetUser,
         this.inviteMessage
       );
 
@@ -122,7 +163,14 @@ export class BuddyInvitationsModal implements OnInit {
           text: 'Accept',
           handler: async () => {
             try {
-              await this.buddyService.acceptBuddyInvitation(invitationId);
+              // Get current user profile first
+              const currentUser = await this.userService.getCurrentUserProfile();
+              if (!currentUser) {
+                throw new Error('No current user found');
+              }
+              
+              // Pass the current user to the accept method
+              await this.buddyService.acceptBuddyInvitationWithUser(invitationId, currentUser.uid);
               this.showToast('Buddy invitation accepted!', 'success');
               await this.loadInvitations();
               this.dismiss(true); // Close modal and refresh parent

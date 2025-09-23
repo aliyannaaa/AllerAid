@@ -107,54 +107,97 @@ export class ResponderDashboardPage implements OnInit, OnDestroy {
 
   cannotRespond() {
     if (this.currentEmergency) {
-      // Mark as unable to respond
+      // Mark as unable to respond and notify the patient
       this.hasResponded = false;
       console.log('User cannot respond to the emergency.');
+      
+      // TODO: Send notification to patient that this buddy cannot respond
+      // You could call an emergency service method here to update the response status
     }
   }
 
   navigate() {
     if (this.currentEmergency && this.currentEmergency.location) {
-      // Navigate to responder map page with emergency details
-      this.router.navigate(['/tabs/responder-map'], {
-        queryParams: {
-          emergencyId: this.currentEmergency.id,
-          userId: this.currentEmergency.userId,
-          lat: this.currentEmergency.location.latitude,
-          lng: this.currentEmergency.location.longitude
-        }
-      });
+      const lat = this.currentEmergency.location.latitude;
+      const lng = this.currentEmergency.location.longitude;
+      
+      // Open Google Maps with directions to the emergency location
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+      window.open(mapsUrl, '_blank');
     } else {
-      // Fallback to Google Maps
-      const mapUrl = 'https://www.google.com/maps?q=123+Main+St,+Makati+City';
-      window.open(mapUrl, '_blank');
+      console.log('No emergency location available');
     }
     console.log('Navigation opened for emergency:', this.currentEmergency?.id);
   }
 
-  markResolved() {
-    alert('Emergency marked as resolved.');
-    this.hasResponded = false;
-    console.log('Emergency resolved.');
-  }
-
-  playVoiceMessage() {
-    const voiceURL = 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.currentTime = 0;
+  async markResolved() {
+    if (!this.currentEmergency || !this.currentEmergency.id) {
+      console.log('No current emergency to resolve');
+      return;
     }
-    this.audio = new Audio(voiceURL);
-    this.audio.play();
-    console.log('Playing voice message:', voiceURL);
+
+    try {
+      // Mark the emergency as resolved
+      await this.emergencyService.resolveEmergency(this.currentEmergency.id);
+      console.log('Emergency marked as resolved');
+      
+      // Clear current emergency state
+      this.currentEmergency = null;
+      this.hasResponded = false;
+      
+      // Show confirmation
+      alert('Emergency has been marked as resolved.');
+    } catch (error) {
+      console.error('Error marking emergency as resolved:', error);
+      alert('Failed to mark emergency as resolved. Please try again.');
+    }
   }
 
   speakAlert() {
-    const message = new SpeechSynthesisUtterance(
-      'Emergency from Juan Dela Cruz. Severe asthma attack. Location: 123 Main Street, Makati City. Bring inhaler, allergic to nuts.'
-    );
+    if (!this.currentEmergency) {
+      console.log('No current emergency to speak about');
+      return;
+    }
+
+    // Build real emergency message from actual data
+    let emergencyText = `Emergency alert from ${this.currentEmergency.userName || 'unknown person'}.`;
+    
+    // Add allergies if available
+    if (this.currentEmergency.allergies && this.currentEmergency.allergies.length > 0) {
+      emergencyText += ` They are allergic to ${this.currentEmergency.allergies.join(', ')}.`;
+    }
+    
+    // Add specific instructions if available
+    if (this.currentEmergency.instruction) {
+      emergencyText += ` Emergency instructions: ${this.currentEmergency.instruction}`;
+    }
+    
+    // Add location information
+    if (this.currentEmergency.location) {
+      emergencyText += ` Location: ${this.currentEmergency.location.latitude.toFixed(4)}, ${this.currentEmergency.location.longitude.toFixed(4)}.`;
+    }
+    
+    emergencyText += ' Please respond immediately.';
+
+    const message = new SpeechSynthesisUtterance(emergencyText);
+    message.rate = 0.9; // Slightly slower for clarity
+    message.volume = 1.0; // Maximum volume
     window.speechSynthesis.speak(message);
-    console.log('Speaking emergency alert.');
+    console.log('Speaking real emergency alert:', emergencyText);
+  }
+
+  // New methods for mobile responsive dashboard
+  refreshDashboard() {
+    this.setupRealTimeListeners();
+    console.log('Dashboard refreshed');
+  }
+
+  viewPatients() {
+    this.router.navigate(['/tabs/patients']);
+  }
+
+  viewHistory() {
+    this.router.navigate(['/tabs/emergencies']);
   }
 }
 

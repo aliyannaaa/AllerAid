@@ -7,8 +7,10 @@ import { AuthService } from '../../core/services/auth.service';
 import { BarcodeService } from '../../core/services/barcode.service';
 import { MedicalService, EmergencyMessage } from '../../core/services/medical.service';
 import { EmergencyAlertService } from '../../core/services/emergency-alert.service';
+import { EmergencyDetectorService } from '../../core/services/emergency-detector.service';
 import { MedicationService, Medication } from '../../core/services/medication.service';
 import { EHRService, DoctorVisit, MedicalHistory, HealthcareProvider, AccessRequest } from '../../core/services/ehr.service';
+import { VoiceRecordingService, AudioSettings } from '../../core/services/voice-recording.service';
 import { ToastController, ModalController, AlertController, PopoverController } from '@ionic/angular';
 import { AddMedicationModal } from '../../shared/modals/add-medication.modal';
 import { AddDoctorVisitModal } from '../../shared/modals/add-doctor-visit.modal';
@@ -26,6 +28,8 @@ import { environment } from '../../../environments/environment';
 export class ProfilePage implements OnInit, OnDestroy {
 
   selectedTab: 'overview' | 'health' | 'emergency' | 'ehr' | 'dashboard' | 'professional' | 'patients' | 'settings' = 'overview';
+  private userHasSelectedTab: boolean = false; // Track if user manually selected a tab
+  
   showEditAllergiesModal = false;
   showEditEmergencyMessageModal = false;
   showExamplesModal = false;
@@ -45,6 +49,15 @@ export class ProfilePage implements OnInit, OnDestroy {
     powerButtonAlert: true,
     audioInstructions: true
   };
+
+  // Audio settings
+  audioSettings: AudioSettings;
+
+  // Voice recording state
+  isRecording = false;
+  recordingTime = 0;
+  recordings: any[] = [];
+  showVoiceSettings = false;
 
   // Professional settings for doctors/nurses
   professionalSettings = {
@@ -77,6 +90,9 @@ export class ProfilePage implements OnInit, OnDestroy {
     emergencyResponses: 0,
     invitations: 0
   };
+
+  // Store actual protected patients data
+  protectedPatients: any[] = [];
 
   // Professional credentials
   professionalCredentials: any[] = [];
@@ -117,6 +133,10 @@ export class ProfilePage implements OnInit, OnDestroy {
   isLoadingMedications: boolean = true;
   isLoadingEHR: boolean = false;
 
+  // Data initialization flags to prevent duplicate loading
+  isDataInitialized: boolean = false;
+  shouldRefreshData: boolean = false;
+
   // Expanded states for EHR sections
   isDoctorVisitsExpanded: boolean = false;
   isMedicalHistoryExpanded: boolean = false;
@@ -140,13 +160,17 @@ export class ProfilePage implements OnInit, OnDestroy {
     private barcodeService: BarcodeService,
     private medicalService: MedicalService,
     private emergencyAlertService: EmergencyAlertService,
+    private emergencyDetectorService: EmergencyDetectorService,
     private medicationService: MedicationService,
     private ehrService: EHRService,
+    private voiceRecordingService: VoiceRecordingService,
     private toastController: ToastController,
     private modalController: ModalController,
     private alertController: AlertController,
     private popoverController: PopoverController
-  ) { }
+  ) {
+    this.audioSettings = this.voiceRecordingService.getAudioSettings();
+  }
 
   async ngOnInit() {
     // Only show debug logs in development
@@ -162,6 +186,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       if (params['tab']) {
         this.selectedTab = params['tab'];
+        this.userHasSelectedTab = true; // Mark as user-selected when coming from URL
       }
     });
 
@@ -171,6 +196,19 @@ export class ProfilePage implements OnInit, OnDestroy {
     await this.loadEmergencyInstructions();
     await this.loadUserMedications();
     await this.loadEHRData();
+    
+    // Subscribe to voice recording observables
+    this.voiceRecordingService.recordingState$.subscribe(isRecording => {
+      this.isRecording = isRecording;
+    });
+    
+    this.voiceRecordingService.recordingTime$.subscribe(time => {
+      this.recordingTime = time;
+    });
+    
+    this.voiceRecordingService.recordings$.subscribe(recordings => {
+      this.recordings = recordings;
+    });
     
     // Load access requests if user is a doctor or nurse
     if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
@@ -186,15 +224,27 @@ export class ProfilePage implements OnInit, OnDestroy {
       // Regular user - set default tab
       this.selectedTab = 'overview';
     }
-  }  async ionViewWillEnter() {
-    // Reset loading states when refreshing data
-    this.isLoadingDoctorVisits = true;
-    this.isLoadingMedicalHistory = true;
-    this.isLoadingMedications = true;
     
-    // Refresh medical data when returning to the profile page
-    await this.loadEHRData();
-    await this.loadUserMedications();
+    // Mark data as initialized to prevent duplicate loading
+    this.isDataInitialized = true;
+  }
+  
+  async ionViewWillEnter() {
+    // Only refresh data if it hasn't been loaded recently or if explicitly needed
+    // This prevents duplicate API calls after ngOnInit
+    if (!this.isDataInitialized || this.shouldRefreshData) {
+      // Reset loading states when refreshing data
+      this.isLoadingDoctorVisits = true;
+      this.isLoadingMedicalHistory = true;
+      this.isLoadingMedications = true;
+      
+      // Refresh medical data when returning to the profile page
+      await this.loadEHRData();
+      await this.loadUserMedications();
+      
+      // Mark data as refreshed
+      this.shouldRefreshData = false;
+    }
   }
 
   async loadAllergyOptions() {
@@ -605,6 +655,7 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   selectTab(tab: 'overview' | 'health' | 'emergency' | 'ehr' | 'dashboard' | 'professional' | 'patients' | 'settings') {
     this.selectedTab = tab;
+    this.userHasSelectedTab = true; // Mark that user has manually selected a tab
   }
 
   async saveAllergies() {
@@ -757,11 +808,99 @@ export class ProfilePage implements OnInit, OnDestroy {
         emergencySettings: this.emergencySettings
       });
       
+      // Update the emergency detector service with new settings
+      await this.emergencyDetectorService.updateEmergencySettings(this.emergencySettings);
+      
       this.presentToast('Emergency settings saved successfully');
     } catch (error) {
       console.error('Error saving emergency settings:', error);
       this.presentToast('Error saving emergency settings');
     }
+  }
+
+  // Voice Recording Methods
+  openVoiceRecordingModal() {
+    this.showVoiceSettings = !this.showVoiceSettings;
+  }
+
+  getAudioSourceText(): string {
+    if (this.audioSettings.useCustomVoice && this.audioSettings.selectedRecordingId) {
+      return 'Custom Voice';
+    }
+    return `Text-to-Speech (${this.audioSettings.defaultVoice})`;
+  }
+
+  getAudioSourceClass(): string {
+    if (this.audioSettings.useCustomVoice && this.audioSettings.selectedRecordingId) {
+      return 'audio-source custom-voice';
+    }
+    return 'audio-source default-voice';
+  }
+
+  async startRecording() {
+    const success = await this.voiceRecordingService.startRecording();
+    if (success) {
+      this.presentToast('Recording started. Speak clearly!');
+    }
+  }
+
+  async stopRecording() {
+    const recording = await this.voiceRecordingService.stopRecording();
+    if (recording) {
+      this.presentToast('Recording saved successfully');
+    }
+  }
+
+  async playRecording(recordingId: string) {
+    await this.voiceRecordingService.playRecording(recordingId);
+  }
+
+  async deleteRecording(recording: any) {
+    const alert = await this.alertController.create({
+      header: 'Delete Recording',
+      message: `Are you sure you want to delete "${recording.name}"?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          handler: async () => {
+            await this.voiceRecordingService.deleteRecording(recording.id);
+            this.presentToast('Recording deleted');
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  selectRecording(recordingId: string) {
+    this.audioSettings.selectedRecordingId = recordingId;
+    this.audioSettings.useCustomVoice = true;
+    this.voiceRecordingService.updateAudioSettings(this.audioSettings);
+    this.presentToast('Custom voice selected');
+  }
+
+  onAudioSettingChange() {
+    this.voiceRecordingService.updateAudioSettings(this.audioSettings);
+  }
+
+  formatDuration(seconds: number): string {
+    return this.voiceRecordingService.formatDuration(seconds);
+  }
+
+  formatFileSize(bytes: number): string {
+    return this.voiceRecordingService.formatFileSize(bytes);
+  }
+
+  isRecordingSelected(recordingId: string): boolean {
+    return this.audioSettings.selectedRecordingId === recordingId;
+  }
+
+  getRoundedVolume(): number {
+    return Math.round(this.audioSettings.volume * 100);
   }
 
   async presentToast(message: string) {
@@ -830,6 +969,131 @@ export class ProfilePage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error testing emergency alert:', error);
       this.presentToast('Error testing emergency alert');
+    }
+  }
+
+  /**
+   * Test shake detection
+   */
+  async testShakeDetection() {
+    try {
+      if (!this.emergencySettings.shakeToAlert) {
+        const alert = await this.alertController.create({
+          header: 'Shake Detection Disabled',
+          message: 'Please enable "Shake to Alert" setting first to test shake detection.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+
+      const alert = await this.alertController.create({
+        header: 'Test Shake Detection',
+        message: 'This will simulate a shake gesture and trigger an emergency alert. Are you sure?',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel'
+          },
+          {
+            text: 'Test Shake',
+            handler: async () => {
+              await this.emergencyDetectorService.testShakeDetection();
+              this.presentToast('Shake detection test triggered');
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } catch (error) {
+      console.error('Error testing shake detection:', error);
+      this.presentToast('Error testing shake detection');
+    }
+  }
+
+  /**
+   * Test power button detection
+   */
+  async testPowerButtonDetection() {
+    try {
+      if (!this.emergencySettings.powerButtonAlert) {
+        const alert = await this.alertController.create({
+          header: 'Power Button Alert Disabled',
+          message: 'Please enable "Power Button Alert" setting first to test power button detection.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+
+      const alert = await this.alertController.create({
+        header: 'Test Power Button Detection',
+        message: 'This will simulate triple power button press and trigger an emergency alert. Are you sure?',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel'
+          },
+          {
+            text: 'Test Power Button',
+            handler: async () => {
+              await this.emergencyDetectorService.testPowerButtonDetection();
+              this.presentToast('Power button detection test triggered');
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } catch (error) {
+      console.error('Error testing power button detection:', error);
+      this.presentToast('Error testing power button detection');
+    }
+  }
+
+  /**
+   * Test audio instructions
+   */
+  async testAudioInstructions() {
+    try {
+      if (!this.userProfile) {
+        this.presentToast('User profile not loaded');
+        return;
+      }
+
+      if (!this.emergencySettings.audioInstructions) {
+        const alert = await this.alertController.create({
+          header: 'Audio Instructions Disabled',
+          message: 'Please enable "Audio Instructions" setting first to test audio playback.',
+          buttons: ['OK']
+        });
+        await alert.present();
+        return;
+      }
+
+      // Test with voice recording service
+      const testMessage = "This is a test of your emergency audio instructions. Your current settings have been applied.";
+      await this.voiceRecordingService.playEmergencyInstructions(testMessage);
+      this.presentToast('Audio instructions test played');
+    } catch (error) {
+      console.error('Error testing audio instructions:', error);
+      this.presentToast('Error testing audio instructions');
+    }
+  }
+
+  /**
+   * Request motion permissions for shake detection (iOS)
+   */
+  async requestMotionPermissions() {
+    try {
+      const granted = await this.emergencyDetectorService.requestMotionPermissions();
+      if (granted) {
+        this.presentToast('Motion permissions granted');
+      } else {
+        this.presentToast('Motion permissions denied');
+      }
+    } catch (error) {
+      console.error('Error requesting motion permissions:', error);
+      this.presentToast('Error requesting motion permissions');
     }
   }
 
@@ -1539,7 +1803,7 @@ export class ProfilePage implements OnInit, OnDestroy {
       const currentUser = await this.authService.waitForAuthInit();
       if (currentUser && this.userProfile) {
         if (this.userProfile.role === 'doctor' || this.userProfile.role === 'nurse') {
-          await this.router.navigate(['/doctor-dashboard']);
+          await this.router.navigate(['/tabs/doctor-dashboard']);
         } else {
           this.presentToast('Access denied. Professional privileges required.');
         }
@@ -1793,12 +2057,15 @@ export class ProfilePage implements OnInit, OnDestroy {
    * Set default tab based on user role
    */
   setDefaultTabForRole() {
-    if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
-      this.selectedTab = 'dashboard';
-    } else if (this.userProfile?.role === 'buddy') {
-      this.selectedTab = 'dashboard';
-    } else {
-      this.selectedTab = 'overview';
+    // Only set default tab if user hasn't manually selected a tab
+    if (!this.userHasSelectedTab) {
+      if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
+        this.selectedTab = 'dashboard';
+      } else if (this.userProfile?.role === 'buddy') {
+        this.selectedTab = 'dashboard';
+      } else {
+        this.selectedTab = 'overview';
+      }
     }
   }
 
@@ -1834,14 +2101,29 @@ export class ProfilePage implements OnInit, OnDestroy {
    */
   async loadBuddyStats() {
     try {
-      // Placeholder implementation - would integrate with buddy service
+      const user = await this.authService.waitForAuthInit();
+      if (user) {
+        // Load actual protected patients
+        const relations = await this.buddyService.getProtectedPatients(user.uid);
+        this.protectedPatients = relations;
+        
+        this.buddyStats = {
+          protectedPatients: relations.length,
+          emergencyResponses: 0,
+          invitations: 0
+        };
+        
+        console.log('Loaded buddy stats:', this.buddyStats);
+        console.log('Protected patients:', this.protectedPatients);
+      }
+    } catch (error) {
+      console.error('Error loading buddy stats:', error);
       this.buddyStats = {
         protectedPatients: 0,
         emergencyResponses: 0,
         invitations: 0
       };
-    } catch (error) {
-      console.error('Error loading buddy stats:', error);
+      this.protectedPatients = [];
     }
   }
 
@@ -2012,6 +2294,117 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   /**
+   * DEBUG: Check user profile and role
+   */
+  async debugUserProfile() {
+    try {
+      const user = await this.authService.waitForAuthInit();
+      console.log('=== DEBUG USER PROFILE ===');
+      console.log('Firebase Auth User:', user);
+      
+      if (user) {
+        const userProfile = await this.userService.getUserProfile(user.uid, false); // Force fresh data
+        console.log('Firestore User Profile:', userProfile);
+        console.log('User Role:', userProfile?.role);
+        console.log('User UID:', user.uid);
+        console.log('User Email:', user.email);
+        
+        // Show alert with the information
+        const alert = await this.alertController.create({
+          header: 'Debug: User Profile',
+          message: `
+            <strong>Firebase UID:</strong> ${user.uid}<br>
+            <strong>Email:</strong> ${user.email}<br>
+            <strong>Profile Found:</strong> ${userProfile ? 'Yes' : 'No'}<br>
+            <strong>Role:</strong> ${userProfile?.role || 'undefined'}<br>
+            <strong>Name:</strong> ${userProfile?.fullName || 'N/A'}
+          `,
+          buttons: [
+            {
+              text: 'Fix Role',
+              handler: () => {
+                this.fixUserRole();
+              }
+            },
+            {
+              text: 'Close',
+              role: 'cancel'
+            }
+          ]
+        });
+        await alert.present();
+      } else {
+        console.log('No authenticated user found');
+        const toast = await this.toastController.create({
+          message: 'No authenticated user found',
+          duration: 3000,
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    } catch (error) {
+      console.error('Error debugging user profile:', error);
+      const toast = await this.toastController.create({
+        message: `Error: ${error}`,
+        duration: 3000,
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Fix user role by setting it to 'user' (patient)
+   */
+  async fixUserRole() {
+    try {
+      const user = await this.authService.waitForAuthInit();
+      if (user) {
+        // First, let's try to get the existing profile
+        const existingProfile = await this.userService.getUserProfile(user.uid, false);
+        
+        if (existingProfile) {
+          // Update existing profile with role
+          await this.userService.updateUserProfile(user.uid, { role: 'user' });
+          console.log('Updated existing profile with role: user');
+        } else {
+          // Create new profile if it doesn't exist
+          const displayName = user.displayName || user.email?.split('@')[0] || 'User';
+          const nameParts = displayName.split(' ');
+          const firstName = nameParts[0] || 'User';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
+          await this.userService.createUserProfile(user.uid, {
+            email: user.email || '',
+            firstName: firstName,
+            lastName: lastName,
+            role: 'user'
+          });
+          console.log('Created new profile with role: user');
+        }
+        
+        const toast = await this.toastController.create({
+          message: 'User role fixed! Please refresh the page.',
+          duration: 3000,
+          color: 'success'
+        });
+        await toast.present();
+        
+        // Reload the page
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error fixing user role:', error);
+      const toast = await this.toastController.create({
+        message: `Error fixing role: ${error}`,
+        duration: 3000,
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  /**
    * Cleanup method to prevent memory leaks
    */
   ngOnDestroy() {
@@ -2027,6 +2420,72 @@ export class ProfilePage implements OnInit, OnDestroy {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+  }
+
+  /**
+   * Debug buddy relations
+   */
+  async debugBuddyRelations() {
+    try {
+      const user = await this.authService.waitForAuthInit();
+      if (user) {
+        console.log('=== DEBUGGING BUDDY RELATIONS FOR PROFILE PAGE ===');
+        console.log('Current user ID:', user.uid);
+        console.log('Current user email:', user.email);
+        console.log('Current user name:', user.displayName);
+        
+        // Check what this specific query returns
+        console.log('Checking getProtectedPatients for current user...');
+        const relations = await this.buddyService.getProtectedPatients(user.uid);
+        console.log('Protected patients found:', relations);
+        
+        // Update the buddy stats
+        this.buddyStats.protectedPatients = relations.length;
+        this.protectedPatients = relations;
+        
+        // Also check all buddy relations in the database
+        console.log('Running comprehensive buddy relation check...');
+        await this.buddyService.debugBuddyRelations();
+        
+        // Show toast with result
+        this.presentToast(`Debug complete: Found ${relations.length} protected patients. Check console for details.`);
+      }
+    } catch (error) {
+      console.error('Debug error:', error);
+      this.presentToast('Debug error - check console');
+    }
+  }
+
+  /**
+   * Refresh protected patients list
+   */
+  async refreshProtectedPatients(): Promise<void> {
+    console.log('Refresh method called');
+    try {
+      const user = await this.authService.waitForAuthInit();
+      if (user) {
+        console.log('Refreshing protected patients...');
+        const relations = await this.buddyService.getProtectedPatients(user.uid);
+        console.log('Refreshed protected patients:', relations);
+        
+        this.buddyStats.protectedPatients = relations.length;
+        this.protectedPatients = relations;
+        
+        this.presentToast(`Refreshed: Found ${relations.length} protected patients`);
+      }
+    } catch (error) {
+      console.error('Refresh error:', error);
+      this.presentToast('Error refreshing patients');
+    }
+  }
+
+  /**
+   * Force refresh all profile data - useful when data needs to be reloaded
+   */
+  async forceRefreshData(): Promise<void> {
+    this.shouldRefreshData = true;
+    this.isDataInitialized = false;
+    await this.ionViewWillEnter();
   }
 }
 

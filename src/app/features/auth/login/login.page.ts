@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ToastController, NavController } from '@ionic/angular';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,7 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./login.page.scss'],
   standalone: false,
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   email: string = '';
   password: string = '';
 
@@ -19,6 +19,21 @@ export class LoginPage {
     private userService: UserService,
     private authService: AuthService
   ) {}
+
+  ngOnInit() {
+    // Clear form fields when the page is initialized
+    this.clearForm();
+  }
+
+  ionViewWillEnter() {
+    // Clear form fields every time user enters this page
+    this.clearForm();
+  }
+
+  clearForm() {
+    this.email = '';
+    this.password = '';
+  }
 
   async login() {
     if (!this.email || !this.password) {
@@ -49,8 +64,8 @@ export class LoginPage {
             role: 'user' // Default role for existing users
           });
           
-          // Get the newly created profile
-          userProfile = await this.userService.getUserProfile(userCredential.user.uid);
+          // Get the newly created profile from cache (avoid second API call)
+          userProfile = await this.userService.getUserProfile(userCredential.user.uid, true);
         }
         
         if (userProfile) {
@@ -60,9 +75,11 @@ export class LoginPage {
           // Check user role for routing - healthcare professionals and buddies skip onboarding
           if (userProfile.role === 'doctor' || userProfile.role === 'nurse') {
             this.presentToast(`Welcome back, ${userProfile.role === 'doctor' ? 'Dr.' : 'Nurse'} ${userProfile.firstName}`);
-            this.navCtrl.navigateForward('/doctor-dashboard');
+            this.clearForm(); // Clear form before navigation
+            this.navCtrl.navigateForward('/tabs/doctor-dashboard');
           } else if (userProfile.role === 'buddy') {
             this.presentToast(`Welcome back, ${userProfile.firstName}!`);
+            this.clearForm(); // Clear form before navigation
             this.navCtrl.navigateForward('/tabs/responder-dashboard');
           } else {
             // For patients, check if they've completed allergy onboarding
@@ -70,16 +87,19 @@ export class LoginPage {
             
             if (hasCompletedOnboarding) {
               this.presentToast('Login successful');
+              this.clearForm(); // Clear form before navigation
               this.navCtrl.navigateForward('/tabs/home');
             } else {
               // First-time user or user who hasn't completed onboarding
               this.presentToast('Welcome! Please complete your allergy profile');
+              this.clearForm(); // Clear form before navigation
               this.navCtrl.navigateForward('/allergy-onboarding');
             }
           }
         } else {
           // If profile still doesn't exist, redirect to onboarding
           this.presentToast('Please complete your profile setup');
+          this.clearForm(); // Clear form before navigation
           this.navCtrl.navigateForward('/allergy-onboarding');
         }
       }

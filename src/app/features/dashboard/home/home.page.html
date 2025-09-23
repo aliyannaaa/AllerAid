@@ -36,6 +36,80 @@
       (dismiss)="respondingBuddy = null">
     </app-emergency-response-notification>
 
+    <!-- Emergency Status Card -->
+    <ion-card *ngIf="isEmergencyActive" class="emergency-status-card">
+      <ion-card-header>
+        <ion-card-title style="color: #d32f2f; display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="alert-circle" color="danger"></ion-icon>
+          EMERGENCY ACTIVE
+        </ion-card-title>
+        <ion-card-subtitle>
+          Started: {{ emergencyStartTime | date:'short' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="emergency-info">
+          <p><strong>Location:</strong> 
+            <span *ngIf="emergencyLocation">
+              {{ emergencyLocation.latitude.toFixed(4) }}, {{ emergencyLocation.longitude.toFixed(4) }}
+            </span>
+            <span *ngIf="!emergencyLocation">Updating...</span>
+          </p>
+          
+          <div class="buddy-responses" *ngIf="hasBuddyResponses()">
+            <h4>Buddy Responses & Notifications:</h4>
+            <div class="response-list">
+              <div *ngFor="let buddyId of getObjectKeys(buddyResponses)" class="response-item">
+                <div class="buddy-info">
+                  <span class="buddy-name">{{ buddyResponses[buddyId].name }}</span>
+                  <div class="buddy-status">
+                    <ion-badge [color]="getBuddyResponseColor(buddyId)" class="status-badge">
+                      {{ getBuddyResponseStatus(buddyId) }}
+                    </ion-badge>
+                    <ion-badge [color]="getNotificationStatusColor(buddyId)" class="notification-badge">
+                      {{ getNotificationStatus(buddyId) }}
+                    </ion-badge>
+                  </div>
+                </div>
+                <div class="response-time">
+                  {{ buddyResponses[buddyId].timestamp | date:'short' }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="emergency-actions">
+            <ion-button 
+              expand="block" 
+              color="success" 
+              (click)="resolveEmergency()"
+              style="margin-top: 16px;">
+              <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+              Mark as Resolved
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Test Emergency Notifications (Development Mode) -->
+    <ion-card *ngIf="!isEmergencyActive">
+      <ion-card-header>
+        <ion-card-title>🧪 Emergency Notification Test</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Test the emergency notification system (SMS & Push notifications)</p>
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          color="warning" 
+          (click)="testEmergencyNotifications()">
+          <ion-icon name="flash" slot="start"></ion-icon>
+          Test Notifications
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
     <ion-card>
       <ion-card-header>
         <ion-card-title>Health Overview</ion-card-title>

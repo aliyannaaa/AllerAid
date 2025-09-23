@@ -14,6 +14,7 @@ export class AddDoctorVisitModal implements OnInit {
   
   visitData: Omit<DoctorVisit, 'id' | 'patientId'> = {
     doctorName: '',
+    doctorEmail: '', // Added for email-based matching
     specialty: '',
     visitDate: new Date().toISOString(),
     visitType: 'routine',
@@ -38,6 +39,7 @@ export class AddDoctorVisitModal implements OnInit {
   availableDoctors: { name: string; specialty: string; email: string; }[] = [];
   selectedDoctorEmail = '';
   manualDoctorName = '';
+  manualDoctorEmail = '';
 
   visitTypes = [
     { value: 'routine', label: 'Routine Check-up' },
@@ -79,6 +81,7 @@ export class AddDoctorVisitModal implements OnInit {
       this.isEditMode = true;
       this.visitData = {
         doctorName: this.visit.doctorName,
+        doctorEmail: this.visit.doctorEmail || '', // Include doctor email
         specialty: this.visit.specialty,
         visitDate: this.visit.visitDate,
         visitType: this.visit.visitType,
@@ -92,17 +95,27 @@ export class AddDoctorVisitModal implements OnInit {
         notes: this.visit.notes || ''
       };
       
-      // Check if the doctor is in our available doctors list
-      const existingDoctor = this.availableDoctors.find(d => 
-        d.name === this.visit?.doctorName || d.email === this.visit?.doctorName
-      );
+      // Check if the doctor is in our available doctors list (prioritize email matching)
+      const existingDoctor = this.availableDoctors.find(d => {
+        // First try to match by email if available
+        if (this.visit?.doctorEmail) {
+          return d.email === this.visit.doctorEmail;
+        }
+        // Fall back to name matching
+        return d.name === this.visit?.doctorName;
+      });
       
       if (existingDoctor) {
         this.doctorInputMode = 'dropdown';
         this.selectedDoctorEmail = existingDoctor.email;
+        // Ensure email is set in visit data if it wasn't already
+        if (!this.visitData.doctorEmail) {
+          this.visitData.doctorEmail = existingDoctor.email;
+        }
       } else {
         this.doctorInputMode = 'manual';
         this.manualDoctorName = this.visit.doctorName;
+        this.manualDoctorEmail = this.visit.doctorEmail || '';
       }
     }
   }
@@ -128,6 +141,7 @@ export class AddDoctorVisitModal implements OnInit {
     this.selectedDoctorEmail = '';
     this.manualDoctorName = '';
     this.visitData.doctorName = '';
+    this.visitData.doctorEmail = ''; // Clear email when switching modes
     this.visitData.specialty = '';
   }
 
@@ -135,12 +149,21 @@ export class AddDoctorVisitModal implements OnInit {
     const selectedDoctor = this.availableDoctors.find(d => d.email === this.selectedDoctorEmail);
     if (selectedDoctor) {
       this.visitData.doctorName = selectedDoctor.name;
+      this.visitData.doctorEmail = selectedDoctor.email; // Store email for access control
       this.visitData.specialty = selectedDoctor.specialty;
     }
   }
 
   onManualDoctorInput() {
     this.visitData.doctorName = this.manualDoctorName;
+    // Keep the email if manually entered, otherwise clear
+    if (!this.manualDoctorEmail.trim()) {
+      this.visitData.doctorEmail = '';
+    }
+  }
+
+  onManualDoctorEmailInput() {
+    this.visitData.doctorEmail = this.manualDoctorEmail.trim();
   }
 
   dismiss() {

@@ -77,6 +77,7 @@ export interface DoctorVisit {
   id?: string;
   patientId: string;
   doctorName: string;
+  doctorEmail?: string; // Added for better matching and access control
   specialty?: string;
   visitDate: string;
   visitType: 'routine' | 'emergency' | 'follow-up' | 'consultation';
@@ -361,6 +362,7 @@ export class EHRService {
       // Clean and validate the data before saving
       const cleanedData: any = {
         doctorName: visitData.doctorName?.trim() || '',
+        doctorEmail: visitData.doctorEmail?.trim() || '', // Include doctor email
         specialty: visitData.specialty?.trim() || '',
         visitDate: visitData.visitDate || new Date().toISOString(),
         visitType: visitData.visitType || 'routine',
@@ -401,8 +403,13 @@ export class EHRService {
       const docRef = await addDoc(collection(this.db, `ehr/${currentUser.uid}/doctorVisits`), cleanedData);
       console.log('EHR Service: Doctor visit added successfully with ID:', docRef.id);
       
-      // Auto-grant access to doctor if they exist in the system
-      await this.autoGrantDoctorAccess(cleanedData.doctorName, cleanedData.specialty);
+      // Auto-grant access to doctor if they have an email (registered in system)
+      if (cleanedData.doctorEmail) {
+        await this.autoGrantDoctorAccessByEmail(cleanedData.doctorEmail, cleanedData.doctorName, cleanedData.specialty);
+      } else {
+        // Fallback to name-based matching for manually entered doctors
+        await this.autoGrantDoctorAccess(cleanedData.doctorName, cleanedData.specialty);
+      }
       
     } catch (error) {
       console.error('EHR Service: Detailed error adding doctor visit:', error);
@@ -1067,6 +1074,50 @@ export class EHRService {
   /**
    * Create a pending access request instead of auto-granting access
    */
+  /**
+   * Auto-grant doctor access using email (more reliable than name matching)
+   */
+  private async autoGrantDoctorAccessByEmail(doctorEmail: string, doctorName: string, specialty?: string): Promise<void> {
+    try {
+      const currentUser = await this.authService.waitForAuthInit();
+      if (!currentUser) return;
+
+      // Verify that the email belongs to a registered doctor
+      const usersRef = collection(this.db, 'users');
+      const doctorQuery = query(
+        usersRef, 
+        where('email', '==', doctorEmail),
+        where('role', 'in', ['doctor', 'nurse'])
+      );
+      
+      const doctorSnapshot = await getDocs(doctorQuery);
+      
+      if (!doctorSnapshot.empty) {
+        const doctorDoc = doctorSnapshot.docs[0];
+        const doctorData = doctorDoc.data();
+        
+        console.log('EHR Service: Found registered doctor by email:', doctorEmail);
+        
+        // Create a pending access request
+        await this.createAccessRequest(
+          doctorEmail,
+          doctorData['role'] || 'doctor',
+          doctorName,
+          specialty || doctorData['specialty'] || 'General Medicine',
+          doctorName
+        );
+        
+        console.log('EHR Service: Created access request for doctor:', doctorEmail);
+      } else {
+        console.log('EHR Service: No registered doctor found with email:', doctorEmail);
+      }
+
+    } catch (error) {
+      console.error('Error creating doctor access request by email:', error);
+      // Don't throw error - this is a background operation
+    }
+  }
+
   private async autoGrantDoctorAccess(doctorName: string, specialty?: string): Promise<void> {
     try {
       const currentUser = await this.authService.waitForAuthInit();

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { MedicalService } from './medical.service';
 import { BuddyService } from './buddy.service';
 import { AuthService } from './auth.service';
+import { UserService } from './user.service';
 
 export interface EmergencyAlert {
   id: string;
@@ -27,7 +28,8 @@ export class EmergencyAlertService {
   constructor(
     private medicalService: MedicalService,
     private buddyService: BuddyService,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserService
   ) { }
 
   /**
@@ -199,10 +201,22 @@ export class EmergencyAlertService {
   }
 
   /**
-   * Play audio emergency instructions (if available)
+   * Play audio emergency instructions (if available and enabled)
    */
   async playAudioInstructions(emergencyData: any): Promise<void> {
     try {
+      // Check if audio instructions are enabled for this user
+      const currentUser = await this.authService.waitForAuthInit();
+      if (currentUser) {
+        const userProfile = await this.userService.getUserProfile(currentUser.uid);
+        const audioEnabled = userProfile?.emergencySettings?.audioInstructions !== false;
+        
+        if (!audioEnabled) {
+          console.log('Audio instructions disabled by user settings');
+          return;
+        }
+      }
+      
       const audioUrl = emergencyData.emergencyMessage?.audioUrl;
       
       if (audioUrl) {

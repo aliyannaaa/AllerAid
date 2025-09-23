@@ -31,9 +31,17 @@ export class RoleGuard implements CanActivate {
       const userProfile = await this.userService.getUserProfile(user.uid);
       
       if (!userProfile) {
-        console.log('RoleGuard: User profile not found');
-        this.presentToast('User profile not found. Please contact support.');
-        this.router.navigate(['/tabs/home']);
+        console.log('RoleGuard: User profile not found, redirecting to profile creation');
+        this.presentToast('User profile not found. Redirecting to complete setup.');
+        this.router.navigate(['/registration']);
+        return false;
+      }
+
+      // Check if user has undefined or null role
+      if (!userProfile.role || userProfile.role === 'undefined') {
+        console.log('RoleGuard: User role is undefined, redirecting to profile setup');
+        this.presentToast('User role not set. Please complete your profile setup.');
+        this.router.navigate(['/profile'], { queryParams: { tab: 'settings', setup: 'role' } });
         return false;
       }
 
@@ -53,13 +61,27 @@ export class RoleGuard implements CanActivate {
       } else {
         console.log(`RoleGuard: User role '${userProfile.role}' not authorized for this page. Required: ${requiredRoles.join(', ')}`);
         this.presentToast(`Access denied. This feature requires ${requiredRoles.join(' or ')} privileges.`);
-        this.router.navigate(['/tabs/home']);
+        
+        // Redirect based on user's actual role to prevent infinite loops
+        switch (userProfile.role) {
+          case 'doctor':
+          case 'nurse':
+            this.router.navigate(['/tabs/doctor-dashboard']);
+            break;
+          case 'buddy':
+            this.router.navigate(['/tabs/responder-dashboard']);
+            break;
+          case 'user':
+          default:
+            this.router.navigate(['/tabs/home']);
+            break;
+        }
         return false;
       }
     } catch (error) {
       console.error('RoleGuard error:', error);
       this.presentToast('Error checking permissions. Please try again.');
-      this.router.navigate(['/tabs/home']);
+      this.router.navigate(['/login']);
       return false;
     }
   }
