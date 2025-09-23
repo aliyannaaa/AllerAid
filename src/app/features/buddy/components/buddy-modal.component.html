@@ -1,16 +1,6 @@
 <ng-container>
-  <div class="buddy-modal-backdrop">
-    <div class="buddy-modal-content">
-      <ion-header>
-        <ion-toolbar color="primary">
-          <ion-title>Add Buddy</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="dismiss()">
-              <ion-icon name="close"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
+  <div class="buddy-modal-backdrop" (click)="dismiss()">
+    <div class="buddy-modal-content" (click)="$event.stopPropagation()">
       <ion-content class="ion-padding" [style.background]="'#fff'">
         <form>
           <ion-item>
