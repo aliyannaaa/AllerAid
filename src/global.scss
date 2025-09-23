@@ -45,7 +45,7 @@ ion-alert .alert-checkbox-group {
 }
 ion-alert .alert-radio-label,
 ion-alert .alert-checkbox-label {
-  color: #AB7082 !important;
+  color: #036a5d !important;
 }
 
 // Allergen Alert Styles
@@ -90,35 +90,112 @@ ion-alert .alert-checkbox-label {
   font-weight: 500 !important;
 }
 
-// For the popover interface (used by ion-select on desktop)
-ion-popover .select-interface-option {
-  --background: #faeaee !important;
-  background: #faeaee !important;
-  color: #AB7082 !important;
-}
 
-ion-alert .alert-button,
-ion-alert .alert-button.sc-ion-alert-md,
-ion-alert .alert-button.sc-ion-alert-ios {
-  color: #E55E76 !important;
-}
+// ion-alert .alert-button,
+// ion-alert .alert-button.sc-ion-alert-md,
+// ion-alert .alert-button.sc-ion-alert-ios {
+//   color: #036a5d !important;
+// }
 
-// Custom radio button color for ion-alert (select options)
-ion-alert .alert-radio-icon {
-  border: 2px solid #E55E76 !important;
-  background: #faeaee !important;
-}
+// // Custom radio button color for ion-alert (select options)
+// ion-alert .alert-radio-icon {
+//   border: 2px solid #036a5d !important;
+//   background: #faeaee !important;
+// }
 
-ion-alert .alert-radio-checked .alert-radio-icon {
-  border: 2px solid #E55E76 !important;
-  background: #E55E76 !important;
-}
-ion-alert .alert-radio-checked .alert-radio-inner {
-  background: #faeaee !important;
-  border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  left: 3px;
-  top: 3px;
-  position: absolute;
-}
+// ion-alert .alert-radio-checked .alert-radio-icon {
+//   border: 2px solid #036a5d !important;
+//   background: #036a5d !important;
+// }
+// ion-alert .alert-radio-checked .alert-radio-inner {
+//   background: #faeaee !important;
+//   border-radius: 50%;
+//   width: 10px;
+//   height: 10px;
+//   left: 3px;
+//   top: 3px;
+//   position: absolute;
+// }
+
+//Popover section
+
+// ion-select-popover {
+//   color-scheme: light !important;
+//   --ion-background-color: #fff !important;
+//   --background: #fff !important;
+// }
+// ion-select-popover,
+// ion-select-popover * {
+//   background: #fff !important;
+//   color: #036a5d !important;
+//   filter: none !important;
+//   box-shadow: none !important;
+// }
+// ion-select-popover .popover-viewport,
+// ion-select-popover .sc-ion-select-popover-md {
+//   background: #fff !important;
+// }
+// ion-select-popover .select-interface-option {
+//   background: #fff !important;
+//   color: #036a5d !important;
+//   border-radius: 12px;
+//   width: 100%;
+//   box-shadow: none !important;
+//   border: none !important;
+//   padding: 5px 9px;
+//   display: flex;
+//   align-items: center;
+// }
+// ion-select-popover .select-interface-option[aria-checked="true"] {
+//   background: #faeaee !important;
+//   color: #036a5d !important;
+// }
+// ion-select-popover .radio-label-wrapper,
+// ion-select-popover .label-text-wrapper {
+//   background: #faeaee !important;
+//   color: #036a5d !important;
+//   width: 100%;
+//   max-width: 100%;
+//   white-space: normal;
+//   word-break: break-word;
+//   display: block;
+// }
+
+// ion-select-popover .select-interface-option .item-native,
+// ion-select-popover .select-interface-option .item-inner,
+// ion-select-popover .select-interface-option .input-wrapper {
+//   background: #fff !important;
+//   border-radius: 12px !important;
+//   box-shadow: none !important;
+//   border: none !important;
+// }
+// ion-select-popover .select-interface-option .item-native {
+//   color: #036a5d !important;
+// }
+// ion-select-popover .select-interface-option .item-inner {
+//   color: #036a5d !important;
+// }
+// ion-select-popover .select-interface-option .input-wrapper {
+//   color: #036a5d !important;
+// }
+// ion-select-popover .select-interface-option .radio-icon,
+// ion-select-popover .select-interface-option .radio-inner {
+//   background: #fff !important;
+//   border: none !important;
+// }
+
+// ion-select-popover .item-native,
+// ion-select-popover .item-inner {
+//   background: #faeaee !important;
+//   border-radius: 12px !important;
+//   box-shadow: none !important;
+//   border: none !important;
+// }
+
+// ion-select-popover .radio-icon,
+// ion-select-popover .radio-inner {
+//   background: #036a5d !important;
+//   border-radius: 50%;
+//   width: 12px;
+//   height: 12px;
+// }

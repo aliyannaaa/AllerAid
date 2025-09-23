@@ -41,7 +41,7 @@
   </ion-card>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!isLoading && allergyOptions.length > 0">
-    <ion-fab-button color="primary" (click)="submitAllergies()">
+    <ion-fab-button class="nextBtn" (click)="submitAllergies()">
       <ion-icon name="arrow-forward-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>

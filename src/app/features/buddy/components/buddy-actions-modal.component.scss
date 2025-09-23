@@ -6,27 +6,17 @@ ion-icon[name="create-outline"] {
   background: transparent;
 }
 
-ion-header ion-toolbar {
-  --background: #AB7082 !important;
-  --ion-color-base: #AB7082 !important;
-  color: #fff !important;
-}
-
-ion-content{
-  --background: #faeaee !important;
-  color: #000 !important;
-}
 
 ion-list{
   --background: #faeaee !important;
   background: #faeaee !important;
   color: #000 !important;
+  border-radius: 5px;
 }
 
 ion-item{
   --background: #faeaee !important;
   color: #000 !important;
-  border-radius: 15px;
 }
 
 .buddy-modal-backdrop {
@@ -43,15 +33,9 @@ ion-item{
 }
 
 .buddy-modal-content {
-  background: #fff;
   border-radius: 32px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  width: 90vw;
-  max-width: 400px;
-  height: 23vh;
-  max-height: 80vh;
-  z-index: 1001;
-  padding-bottom: 16px;
+  width: 80vw;
+  max-width: 600px;
 }
 
 
