@@ -341,8 +341,8 @@ export class HomePage implements OnInit, OnDestroy {
         throw new Error('User not authenticated');
       }
 
-      // Get buddy IDs
-      const buddyIds = this.userBuddies.map(buddy => buddy.id);
+      // Get buddy user IDs (the actual user IDs, not relation IDs)
+      const buddyIds = this.userBuddies.map(buddy => buddy.connectedUserId || buddy.id);
       
       // Get allergy strings
       const allergyStrings = this.userAllergies.map((allergy: any) => 

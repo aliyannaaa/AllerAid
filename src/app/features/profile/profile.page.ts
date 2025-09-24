@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { UserService, UserProfile } from '../../core/services/user.service';
 import { AllergyService } from '../../core/services/allergy.service';
 import { BuddyService } from '../../core/services/buddy.service';
 import { AuthService } from '../../core/services/auth.service';
-import { BarcodeService } from '../../core/services/barcode.service';
 import { MedicalService, EmergencyMessage } from '../../core/services/medical.service';
 import { EmergencyAlertService } from '../../core/services/emergency-alert.service';
 import { EmergencyDetectorService } from '../../core/services/emergency-detector.service';
@@ -150,6 +150,9 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   allergyOptions: any[] = [];
 
+  // Subscriptions for cleanup
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -157,7 +160,6 @@ export class ProfilePage implements OnInit, OnDestroy {
     private allergyService: AllergyService,
     private buddyService: BuddyService,
     private authService: AuthService,
-    private barcodeService: BarcodeService,
     private medicalService: MedicalService,
     private emergencyAlertService: EmergencyAlertService,
     private emergencyDetectorService: EmergencyDetectorService,
@@ -183,12 +185,14 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
     
     // Check for query parameters to set the selected tab
-    this.route.queryParams.subscribe(params => {
-      if (params['tab']) {
-        this.selectedTab = params['tab'];
-        this.userHasSelectedTab = true; // Mark as user-selected when coming from URL
-      }
-    });
+    this.subscriptions.push(
+      this.route.queryParams.subscribe(params => {
+        if (params['tab']) {
+          this.selectedTab = params['tab'];
+          this.userHasSelectedTab = true; // Mark as user-selected when coming from URL
+        }
+      })
+    );
 
     await this.loadAllergyOptions();
     await this.loadUserData();
@@ -198,17 +202,23 @@ export class ProfilePage implements OnInit, OnDestroy {
     await this.loadEHRData();
     
     // Subscribe to voice recording observables
-    this.voiceRecordingService.recordingState$.subscribe(isRecording => {
-      this.isRecording = isRecording;
-    });
+    this.subscriptions.push(
+      this.voiceRecordingService.recordingState$.subscribe(isRecording => {
+        this.isRecording = isRecording;
+      })
+    );
     
-    this.voiceRecordingService.recordingTime$.subscribe(time => {
-      this.recordingTime = time;
-    });
+    this.subscriptions.push(
+      this.voiceRecordingService.recordingTime$.subscribe(time => {
+        this.recordingTime = time;
+      })
+    );
     
-    this.voiceRecordingService.recordings$.subscribe(recordings => {
-      this.recordings = recordings;
-    });
+    this.subscriptions.push(
+      this.voiceRecordingService.recordings$.subscribe(recordings => {
+        this.recordings = recordings;
+      })
+    );
     
     // Load access requests if user is a doctor or nurse
     if (this.userProfile?.role === 'doctor' || this.userProfile?.role === 'nurse') {
@@ -724,44 +734,6 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Get character count for emergency instruction display
-   */
-  getCharacterCount(): number {
-    const displayText = this.getEmergencyInstructionDisplay();
-    return displayText ? displayText.length : 0;
-  }
-
-  /**
-   * Copy emergency instructions to clipboard
-   */
-  async copyInstructions() {
-    const instructionsText = this.getEmergencyInstructionDisplay();
-    if (!instructionsText) {
-      this.presentToast('No emergency instructions to copy');
-      return;
-    }
-
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(instructionsText);
-        this.presentToast('Emergency instructions copied to clipboard');
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = instructionsText;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        this.presentToast('Emergency instructions copied to clipboard');
-      }
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      this.presentToast('Error copying instructions');
-    }
-  }
-
   async saveEmergencyMessage() {
     if (!this.userProfile) {
       this.presentToast('User profile not loaded');
@@ -899,9 +871,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     return this.audioSettings.selectedRecordingId === recordingId;
   }
 
-  getRoundedVolume(): number {
-    return Math.round(this.audioSettings.volume * 100);
-  }
+
 
   async presentToast(message: string) {
     const toast = await this.toastController.create({
@@ -2188,66 +2158,13 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Get time ago string for activity
-   */
-  getTimeAgo(timestamp: Date): string {
-    const now = new Date();
-    const diffMs = now.getTime() - timestamp.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffHours < 1) return 'Just now';
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return timestamp.toLocaleDateString();
-  }
 
   /**
    * Navigate to responder dashboard for buddies
    */
   navigateToResponderDashboard() {
     this.router.navigate(['/tabs/responder-dashboard']);
-  }
-
-  /**
-   * Edit professional information
-   */
-  editProfessionalInfo() {
-    // Placeholder - would open professional info edit modal
-    this.presentToast('Professional info editing - to be implemented');
-  }
-
-  /**
-   * Manage certifications
-   */
-  manageCertifications() {
-    // Placeholder - would open certifications management modal
-    this.presentToast('Certification management - to be implemented');
-  }
-
-  /**
-   * Edit working hours
-   */
-  editWorkingHours() {
-    // Placeholder - would open working hours edit modal
-    this.presentToast('Working hours editing - to be implemented');
-  }
-
-  /**
-   * Edit contact preference
-   */
-  editContactPreference() {
-    // Placeholder - would open contact preference modal
-    this.presentToast('Contact preference editing - to be implemented');
-  }
-
-  /**
-   * Change password
-   */
-  changePassword() {
-    // Placeholder - would open password change modal
-    this.presentToast('Password change - to be implemented');
   }
 
   /**
@@ -2294,120 +2211,17 @@ export class ProfilePage implements OnInit, OnDestroy {
   }
 
   /**
-   * DEBUG: Check user profile and role
-   */
-  async debugUserProfile() {
-    try {
-      const user = await this.authService.waitForAuthInit();
-      console.log('=== DEBUG USER PROFILE ===');
-      console.log('Firebase Auth User:', user);
-      
-      if (user) {
-        const userProfile = await this.userService.getUserProfile(user.uid, false); // Force fresh data
-        console.log('Firestore User Profile:', userProfile);
-        console.log('User Role:', userProfile?.role);
-        console.log('User UID:', user.uid);
-        console.log('User Email:', user.email);
-        
-        // Show alert with the information
-        const alert = await this.alertController.create({
-          header: 'Debug: User Profile',
-          message: `
-            <strong>Firebase UID:</strong> ${user.uid}<br>
-            <strong>Email:</strong> ${user.email}<br>
-            <strong>Profile Found:</strong> ${userProfile ? 'Yes' : 'No'}<br>
-            <strong>Role:</strong> ${userProfile?.role || 'undefined'}<br>
-            <strong>Name:</strong> ${userProfile?.fullName || 'N/A'}
-          `,
-          buttons: [
-            {
-              text: 'Fix Role',
-              handler: () => {
-                this.fixUserRole();
-              }
-            },
-            {
-              text: 'Close',
-              role: 'cancel'
-            }
-          ]
-        });
-        await alert.present();
-      } else {
-        console.log('No authenticated user found');
-        const toast = await this.toastController.create({
-          message: 'No authenticated user found',
-          duration: 3000,
-          color: 'danger'
-        });
-        await toast.present();
-      }
-    } catch (error) {
-      console.error('Error debugging user profile:', error);
-      const toast = await this.toastController.create({
-        message: `Error: ${error}`,
-        duration: 3000,
-        color: 'danger'
-      });
-      await toast.present();
-    }
-  }
-
-  /**
-   * Fix user role by setting it to 'user' (patient)
-   */
-  async fixUserRole() {
-    try {
-      const user = await this.authService.waitForAuthInit();
-      if (user) {
-        // First, let's try to get the existing profile
-        const existingProfile = await this.userService.getUserProfile(user.uid, false);
-        
-        if (existingProfile) {
-          // Update existing profile with role
-          await this.userService.updateUserProfile(user.uid, { role: 'user' });
-          console.log('Updated existing profile with role: user');
-        } else {
-          // Create new profile if it doesn't exist
-          const displayName = user.displayName || user.email?.split('@')[0] || 'User';
-          const nameParts = displayName.split(' ');
-          const firstName = nameParts[0] || 'User';
-          const lastName = nameParts.slice(1).join(' ') || '';
-          
-          await this.userService.createUserProfile(user.uid, {
-            email: user.email || '',
-            firstName: firstName,
-            lastName: lastName,
-            role: 'user'
-          });
-          console.log('Created new profile with role: user');
-        }
-        
-        const toast = await this.toastController.create({
-          message: 'User role fixed! Please refresh the page.',
-          duration: 3000,
-          color: 'success'
-        });
-        await toast.present();
-        
-        // Reload the page
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Error fixing user role:', error);
-      const toast = await this.toastController.create({
-        message: `Error fixing role: ${error}`,
-        duration: 3000,
-        color: 'danger'
-      });
-      await toast.present();
-    }
-  }
-
-  /**
    * Cleanup method to prevent memory leaks
    */
   ngOnDestroy() {
+    // Unsubscribe from all subscriptions to prevent memory leaks
+    this.subscriptions.forEach(subscription => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
+
     // Clear any timeouts
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
@@ -2422,71 +2236,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Debug buddy relations
-   */
-  async debugBuddyRelations() {
-    try {
-      const user = await this.authService.waitForAuthInit();
-      if (user) {
-        console.log('=== DEBUGGING BUDDY RELATIONS FOR PROFILE PAGE ===');
-        console.log('Current user ID:', user.uid);
-        console.log('Current user email:', user.email);
-        console.log('Current user name:', user.displayName);
-        
-        // Check what this specific query returns
-        console.log('Checking getProtectedPatients for current user...');
-        const relations = await this.buddyService.getProtectedPatients(user.uid);
-        console.log('Protected patients found:', relations);
-        
-        // Update the buddy stats
-        this.buddyStats.protectedPatients = relations.length;
-        this.protectedPatients = relations;
-        
-        // Also check all buddy relations in the database
-        console.log('Running comprehensive buddy relation check...');
-        await this.buddyService.debugBuddyRelations();
-        
-        // Show toast with result
-        this.presentToast(`Debug complete: Found ${relations.length} protected patients. Check console for details.`);
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-      this.presentToast('Debug error - check console');
-    }
-  }
 
-  /**
-   * Refresh protected patients list
-   */
-  async refreshProtectedPatients(): Promise<void> {
-    console.log('Refresh method called');
-    try {
-      const user = await this.authService.waitForAuthInit();
-      if (user) {
-        console.log('Refreshing protected patients...');
-        const relations = await this.buddyService.getProtectedPatients(user.uid);
-        console.log('Refreshed protected patients:', relations);
-        
-        this.buddyStats.protectedPatients = relations.length;
-        this.protectedPatients = relations;
-        
-        this.presentToast(`Refreshed: Found ${relations.length} protected patients`);
-      }
-    } catch (error) {
-      console.error('Refresh error:', error);
-      this.presentToast('Error refreshing patients');
-    }
-  }
-
-  /**
-   * Force refresh all profile data - useful when data needs to be reloaded
-   */
-  async forceRefreshData(): Promise<void> {
-    this.shouldRefreshData = true;
-    this.isDataInitialized = false;
-    await this.ionViewWillEnter();
-  }
 }
 
 // Popover component for visit actions
@@ -2594,11 +2344,3 @@ export class HistoryActionsPopoverComponent {
   onEdit: () => void = () => {};
   onDelete: () => void = () => {};
 }
-
-
-
-
-
-
-
-

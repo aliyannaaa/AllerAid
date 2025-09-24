@@ -2,10 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { BuddyService } from '../../../../core/services/buddy.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { BuddyResponseService } from '../../../../core/services/buddy-response.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 
 interface Patient {
   id: string;
@@ -50,7 +51,9 @@ export class BuddyDashboardPage implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private buddyService: BuddyService,
-    private authService: AuthService
+    private authService: AuthService,
+    private buddyResponseService: BuddyResponseService,
+    private toastController: ToastController
   ) { }
 
   async ngOnInit() {
@@ -217,16 +220,54 @@ export class BuddyDashboardPage implements OnInit, OnDestroy {
     try {
       const user = await this.authService.waitForAuthInit();
       if (user) {
-        // Navigate to emergency response
-        this.router.navigate(['/tabs/emergency/respond'], { 
-          state: { 
-            emergency: emergency,
-            responderName: user.displayName || 'Buddy Response'
-          }
+        // Show loading toast
+        const loadingToast = await this.toastController.create({
+          message: 'Sending response to patient...',
+          duration: 2000,
+          position: 'top',
+          icon: 'car-outline'
         });
+        await loadingToast.present();
+
+        // Use the new buddy response service to handle all features
+        await this.buddyResponseService.handleBuddyResponse(
+          emergency, 
+          user.displayName || 'Buddy Response',
+          user.uid
+        );
+        
+        // Update emergency status to responding
+        await this.buddyService.respondToEmergency(
+          emergency.id, 
+          user.uid, 
+          user.displayName || 'Buddy Response'
+        );
+        
+        // Show success toast
+        const successToast = await this.toastController.create({
+          message: 'Patient has been notified! Route is displayed.',
+          duration: 3000,
+          position: 'top',
+          icon: 'checkmark-circle-outline',
+          color: 'success'
+        });
+        await successToast.present();
+        
+        // Refresh dashboard to show updated status
+        await this.loadDashboardData();
       }
     } catch (error) {
       console.error('Error responding to emergency:', error);
+      
+      // Show error toast
+      const errorToast = await this.toastController.create({
+        message: 'Failed to send response. Please try again.',
+        duration: 4000,
+        position: 'top',
+        icon: 'alert-circle-outline',
+        color: 'danger'
+      });
+      await errorToast.present();
     }
   }
 

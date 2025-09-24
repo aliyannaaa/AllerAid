@@ -384,14 +384,7 @@ ion-toolbar {
   }
 }
 
-.loading-state {
-  padding: 20px;
-  
-  ion-skeleton-text {
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-}
+
 
 // Provider Access
 .access-description { font-size: 14px; color: #666; margin: 0 0 20px 0; }
@@ -868,13 +861,7 @@ ion-toolbar {
   }
 }
 
-// Optional field label styling
-.optional-label {
-  font-size: 11px;
-  color: #999;
-  font-weight: normal;
-  font-style: italic;
-}
+
 
 // Voice Recording Settings
 .voice-settings-section {
@@ -1065,8 +1052,8 @@ ion-toolbar {
       }
 
       &.default-voice {
-        background: var(--ion-color-primary-tint);
-        color: var(--ion-color-primary);
+        background: var(--ion-color-light);
+        color: var(--ion-color-medium);
       }
     }
   }

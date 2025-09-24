@@ -199,3 +199,47 @@ ion-alert .alert-checkbox-label {
 //   width: 12px;
 //   height: 12px;
 // }
+
+/* Buddy Response Alert Modal Styles */
+.buddy-alert-modal {
+  --width: 90%;
+  --max-width: 400px;
+  --height: auto;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.buddy-alert-modal .modal-wrapper {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Route Map Modal Styles */
+.route-map-modal {
+  --width: 95%;
+  --max-width: 600px;
+  --height: 80%;
+  --border-radius: 12px;
+  --box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.route-map-modal .modal-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .buddy-alert-modal,
+  .route-map-modal {
+    --animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .buddy-alert-modal,
+  .route-map-modal {
+    --box-shadow: 0 0 0 2px var(--ion-color-primary);
+  }
+}

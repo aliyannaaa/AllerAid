@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Route & ETA</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Route Information -->
+  <div class="route-info">
+    <ion-card>
+      <ion-card-content>
+        <div class="route-details">
+          <div class="route-item">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <span>{{ routeData.buddyName }} → {{ routeData.patientName }}</span>
+          </div>
+          <div class="route-item">
+            <ion-icon name="time-outline" color="success"></ion-icon>
+            <span><strong>ETA: {{ estimatedTime }}</strong></span>
+          </div>
+          <div class="route-item">
+            <ion-icon name="location-outline" color="tertiary"></ion-icon>
+            <span><strong>Distance: {{ distance }}</strong></span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Map Container -->
+  <div class="map-container">
+    <div #mapContainer class="map" id="map"></div>
+    
+    <!-- Fallback for when map doesn't load -->
+    <div class="map-fallback" *ngIf="!map">
+      <ion-icon name="map-outline" size="large" color="medium"></ion-icon>
+      <p>Map not available</p>
+      <ion-button fill="outline" (click)="openInMapsApp()">
+        <ion-icon name="navigate-outline" slot="start"></ion-icon>
+        Open in Maps App
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-buttons ion-padding">
+    <ion-button 
+      expand="block" 
+      fill="solid" 
+      color="primary" 
+      (click)="openInMapsApp()">
+      <ion-icon name="navigate-outline" slot="start"></ion-icon>
+      Open in Maps App
+    </ion-button>
+    
+    <ion-button 
+      expand="block" 
+      fill="outline" 
+      color="medium" 
+      (click)="dismiss()">
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+      Close
+    </ion-button>
+  </div>
+</ion-content>

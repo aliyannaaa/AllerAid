@@ -15,17 +15,6 @@
       </ion-avatar>
       
       <div class="profile-name">{{ getUserDisplayName() }}</div>
-      
-      <!-- DEBUG BUTTON (temporary) -->
-      <ion-button 
-        fill="outline" 
-        color="warning" 
-        size="small" 
-        (click)="debugUserProfile()"
-        style="margin-top: 10px;">
-        <ion-icon name="bug-outline" slot="start"></ion-icon>
-        Debug User Role
-      </ion-button>
     </div>
 
     <!-- Patient Profile Stats -->
@@ -873,7 +862,7 @@
 
             <div class="setting-item">
               <div class="setting-info">
-                <label>Volume ({{ getRoundedVolume() }}%)</label>
+                <label>Volume ({{ (audioSettings.volume * 100).toFixed(0) }}%)</label>
                 <p>Audio playback volume</p>
               </div>
               <ion-range [(ngModel)]="audioSettings.volume"
@@ -1366,7 +1355,7 @@
                 <ion-icon [name]="getActivityIcon(activity.type)" [color]="getActivityColor(activity.type)"></ion-icon>
                 <div class="activity-content">
                   <div class="activity-description">{{ activity.description }}</div>
-                  <div class="activity-time">{{ getTimeAgo(activity.timestamp) }}</div>
+                  <div class="activity-time">{{ activity.timestamp | date:'short' }}</div>
                 </div>
               </div>
             </div>
@@ -1387,9 +1376,6 @@
             <div class="card-header">
               <ion-icon name="person-outline" color="primary"></ion-icon>
               <h3>Professional Details</h3>
-              <ion-button fill="clear" size="small" (click)="editProfessionalInfo()">
-                <ion-icon name="create-outline"></ion-icon>
-              </ion-button>
             </div>
             
             <div class="professional-details">
@@ -1427,9 +1413,6 @@
             <div class="card-header">
               <ion-icon name="school-outline" color="tertiary"></ion-icon>
               <h3>Credentials & Certifications</h3>
-              <ion-button fill="clear" size="small" (click)="manageCertifications()">
-                <ion-icon name="add-outline"></ion-icon>
-              </ion-button>
             </div>
             
             <div class="credentials-list" *ngIf="professionalCredentials.length > 0">
@@ -1445,11 +1428,7 @@
 
             <div *ngIf="professionalCredentials.length === 0" class="no-credentials">
               <ion-icon name="school-outline" color="medium"></ion-icon>
-              <p>No credentials added</p>
-              <ion-button fill="outline" size="small" (click)="manageCertifications()">
-                <ion-icon name="add-outline" slot="start"></ion-icon>
-                Add Certification
-              </ion-button>
+              <p>No credentials added yet</p>
             </div>
           </div>
         </ng-container>
@@ -1610,9 +1589,6 @@
                   <div class="setting-title">Working Hours</div>
                   <div class="setting-desc">{{ professionalSettings.workingHours || 'Not set' }}</div>
                 </div>
-                <ion-button fill="clear" size="small" (click)="editWorkingHours()">
-                  <ion-icon name="create-outline"></ion-icon>
-                </ion-button>
               </div>
 
               <div class="setting-item">
@@ -1620,9 +1596,6 @@
                   <div class="setting-title">Contact Preference</div>
                   <div class="setting-desc">{{ professionalSettings.contactPreference || 'Email' }}</div>
                 </div>
-                <ion-button fill="clear" size="small" (click)="editContactPreference()">
-                  <ion-icon name="create-outline"></ion-icon>
-                </ion-button>
               </div>
             </div>
           </div>
@@ -1633,24 +1606,6 @@
               <h3>Account Settings</h3>
             </div>
             
-            <ion-button 
-              expand="block" 
-              fill="outline" 
-              color="primary"
-              (click)="editProfessionalInfo()">
-              <ion-icon name="create-outline" slot="start"></ion-icon>
-              Edit Professional Information
-            </ion-button>
-
-            <ion-button 
-              expand="block" 
-              fill="outline" 
-              color="medium"
-              (click)="changePassword()">
-              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-              Change Password
-            </ion-button>
-
             <ion-button 
               expand="block" 
               fill="outline" 
@@ -1705,14 +1660,6 @@
         <ng-container *ngIf="selectedTab === 'patients'">
           <div class="section-title">
             My Protected Patients
-            <ion-button fill="clear" size="small" (click)="debugBuddyRelations()" color="secondary">
-              <ion-icon name="bug-outline"></ion-icon>
-              Debug
-            </ion-button>
-            <ion-button fill="clear" size="small" (click)="refreshProtectedPatients()" color="primary">
-              <ion-icon name="refresh-outline"></ion-icon>
-              Refresh
-            </ion-button>
           </div>
           
           <p class="helper-text">Patients who have added you as their emergency buddy</p>
@@ -1768,15 +1715,6 @@
           </div>
           
           <div class="account-settings-card">
-            <ion-button 
-              expand="block" 
-              fill="outline" 
-              color="medium"
-              (click)="changePassword()">
-              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-              Change Password
-            </ion-button>
-
             <ion-button 
               expand="block" 
               fill="outline" 

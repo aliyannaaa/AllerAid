@@ -41,8 +41,8 @@ export class EmergencyNotificationService {
     try {
       console.log('🚨 Starting emergency notification process...');
       
-      // Get all buddies for this user
-      const buddyRelations = await this.buddyService.getProtectedPatients(emergencyAlert.userId);
+      // Get all buddies for this user (who should receive notifications)
+      const buddyRelations = await this.buddyService.getUserBuddies(emergencyAlert.userId);
       
       if (buddyRelations.length === 0) {
         console.log('⚠️ No buddies found to notify');
@@ -110,10 +110,12 @@ export class EmergencyNotificationService {
     this.updateNotificationStatus(buddy.id!, 'sending');
 
     // Get buddy's user profile for contact information
-    const buddyProfile = await this.userService.getUserProfile(buddy.user2Id);
+    // Use connectedUserId which contains the actual buddy's user ID
+    const buddyUserId = buddy.connectedUserId || buddy.user2Id;
+    const buddyProfile = await this.userService.getUserProfile(buddyUserId);
     
     if (!buddyProfile) {
-      throw new Error(`Buddy profile not found for ${buddy.id}`);
+      throw new Error(`Buddy profile not found for ${buddy.id} (userId: ${buddyUserId})`);
     }
 
     // Send SMS notification

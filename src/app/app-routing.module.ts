@@ -23,10 +23,6 @@ const routes: Routes = [
     loadChildren: () => import('./features/auth/login/login.module').then( m => m.LoginPageModule)
   },
   {
-    path: 'buddy-registration',
-    loadChildren: () => import('./features/auth/buddy-registration/buddy-registration.module').then( m => m.BuddyRegistrationPageModule)
-  },
-  {
     path: 'scan',
     loadChildren: () => import('./features/scan/scan.module').then( m => m.ScanPageModule),
     canActivate: [AuthGuard, RoleGuard],

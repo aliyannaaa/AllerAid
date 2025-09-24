@@ -496,7 +496,7 @@ export class BuddyService {
       await addDoc(collection(this.db, 'buddy_invitations'), invitation);
       
       // TODO: Send email notification to recipient with registration link
-      // Email should include: invitation details + link to buddy-registration page
+      // Email should include: invitation details + link to general registration page
       
     } catch (error) {
       console.error('Error sending buddy invitation:', error);
