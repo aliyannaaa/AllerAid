@@ -8,15 +8,14 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="profile-header">
+    <ion-avatar class="profile-avatar">
+      <img alt="person-avatar" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+    </ion-avatar>
+    <div class="profile-name">{{ getUserDisplayName() }}</div>
+    <!-- DEBUG BUTTON REMOVED -->
+  </div>
   <div class="profile-card">
-    <div class="profile-header">
-      <ion-avatar class="profile-avatar">
-        <img alt="person-avatar" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
-      </ion-avatar>
-      
-      <div class="profile-name">{{ getUserDisplayName() }}</div>
-    </div>
-
     <!-- Patient Profile Stats -->
     <div class="profile-stats" *ngIf="userProfile?.role === 'user'">
       <div class="stat">
@@ -176,7 +175,7 @@
         <div class="section-title">
           Medications 
           <ion-button size="small" fill="clear" (click)="openAddMedicationModal()">
-            <ion-icon name="add-outline" slot="start"></ion-icon>
+            <ion-icon name="add-outline" slot="start" style="color: #0b6242"></ion-icon>
             Add
           </ion-button>
         </div>

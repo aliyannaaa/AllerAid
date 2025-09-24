@@ -18,7 +18,6 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <div class="wrapper">
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
       <ion-fab-button (click)="openModal()">
         <ion-icon name="person-add"></ion-icon>
@@ -37,7 +36,7 @@
     <!-- Buddy Delete Confirm Modal -->
     <app-buddy-delete-confirm-modal *ngIf="showDeleteModal" [buddy]="buddyToEdit" (confirm)="onConfirmDeleteBuddy($event)" (cancelDelete)="closeDeleteModal()"></app-buddy-delete-confirm-modal>
 
-    <ion-item class="search-bar-item">
+    <ion-item class="search-bar-item" lines="none">
       <ion-input class="search-bar-input" placeholder="Search buddy..." [(ngModel)]="searchTerm" (ionInput)="searchBuddy()"></ion-input>
       <ion-button class="search-bar-btn" (click)="searchBuddy()">
         <ion-icon name="search"></ion-icon>
@@ -70,5 +69,4 @@
 
     <!-- Buddy Details Modal -->
     <app-buddy-details-modal *ngIf="showDetailsModal" [buddy]="buddyToShowDetails" (closeDetails)="closeDetailsModal()"></app-buddy-details-modal>
-  </div>
 </ion-content>

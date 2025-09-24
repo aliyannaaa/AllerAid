@@ -3,19 +3,19 @@
     <div class="buddy-modal-content" (click)="$event.stopPropagation()">
       <ion-content class="ion-padding" [style.background]="'#fff'">
         <form>
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="stacked">First Name</ion-label>
             <ion-input [(ngModel)]="buddyFirstName" name="firstName" required></ion-input>
           </ion-item>
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="stacked">Last Name</ion-label>
             <ion-input [(ngModel)]="buddyLastName" name="lastName" required></ion-input>
           </ion-item>
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="stacked">Email</ion-label>
             <ion-input [(ngModel)]="buddyEmail" name="email" type="email" required></ion-input>
           </ion-item>
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="stacked">Relationship</ion-label>
             <ion-select [(ngModel)]="buddyRelationship" name="relationship" required placeholder="Select Relationship">
               <ion-select-option value="" disabled selected hidden>Select Relationship</ion-select-option>
@@ -26,7 +26,7 @@
               <ion-select-option value="Coworker">Coworker</ion-select-option>
             </ion-select>
           </ion-item>
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="stacked">Contact Number</ion-label>
             <ion-input [(ngModel)]="buddyContact" name="contact" type="tel" required></ion-input>
           </ion-item>

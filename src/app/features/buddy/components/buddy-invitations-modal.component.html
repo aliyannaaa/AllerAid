@@ -32,12 +32,12 @@
   <!-- Send Invitation Tab -->
   <div *ngIf="selectedSegment === 'invite'" class="invite-section">
     <h3>Invite Someone as Your Buddy</h3>
-    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+    <p style="color: #e9e9e9; font-size: 14px; margin-bottom: 20px;">
       Search for users by email and send them a buddy request.
     </p>
 
     <form (ngSubmit)="sendInvitation()">
-      <ion-item>
+      <ion-item lines="none">
         <ion-label position="stacked">Recipient Email *</ion-label>
         <ion-input 
           [(ngModel)]="inviteEmail"
@@ -48,7 +48,7 @@
         </ion-input>
       </ion-item>
 
-      <ion-item>
+      <ion-item lines="none">
         <ion-label position="stacked">Personal Message</ion-label>
         <ion-textarea 
           [(ngModel)]="inviteMessage"
@@ -118,7 +118,7 @@
 
     <div *ngIf="receivedInvitations.length === 0" class="empty-state">
       <ion-icon name="mail-outline" class="empty-icon"></ion-icon>
-      <p>No buddy invitations received</p>
+      <p style="color: #ececec">No buddy invitations received</p>
     </div>
   </div>
 
@@ -162,7 +162,7 @@
 
     <div *ngIf="sentInvitations.length === 0" class="empty-state">
       <ion-icon name="paper-plane-outline" class="empty-icon"></ion-icon>
-      <p>No buddy invitations sent</p>
+      <p style="color: #ececec">No buddy invitations sent</p>
     </div>
   </div>
 </ion-content>

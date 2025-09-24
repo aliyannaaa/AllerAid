@@ -1,11 +1,11 @@
 
 .cancelBtn {
-  --color: #b6495d !important;
-  color: #b6495d !important;
+  --color: #036a5d !important;
+  color: #036a5d !important;
 }
 
 ion-icon {
-  color: #E55E76 !important;
+  color: #036a5d !important;
 }
 
 .buddy-modal-content h2,
@@ -17,19 +17,13 @@ ion-icon {
   background: transparent;
 }
 
-ion-header ion-toolbar {
-  --background: #AB7082 !important;
-  --ion-color-base: #AB7082 !important;
-  color: #fff !important;
-}
-
 ion-content{
-  --background: #faeaee !important;
+  --background: #eaf1ee !important;
   color: #000 !important;
 }
 
 ion-item{
-  --background: #edd8de !important;
+  --background: #e3ece7 !important;
   color: #000 !important;
   border-radius: 32px;
 }
@@ -48,19 +42,15 @@ ion-item{
 }
 
 .buddy-modal-content {
-  background: #fff;
-  border-radius: 32px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
   width: 90vw;
   max-width: 400px;
   height: 45vh;
   max-height: 80vh;
   z-index: 1001;
-  padding-bottom: 16px;
 }
 
 .deleteBtn{
-    --background: #E55E76 !important;
+    --background: #e12826 !important;
     --color: #fff !important;
 }
 
