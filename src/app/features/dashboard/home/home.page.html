@@ -127,6 +127,21 @@
       </ion-card-content>
     </ion-card>
 
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Health Overview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Allergens:</strong> 
+          <span *ngIf="userAllergies.length > 0">
+            {{ userAllergies.length }} recorded
+          </span>
+          <span *ngIf="userAllergies.length === 0">None recorded</span>
+        </p>
+        <p><strong>Buddies:</strong> {{ getBuddiesCount() }}</p>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Test Emergency Notifications (Development Mode) -->
     <ion-card *ngIf="!isEmergencyActive">
       <ion-card-header>
@@ -142,21 +157,6 @@
           <ion-icon name="flash" slot="start"></ion-icon>
           Test Notifications
         </ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Health Overview</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p><strong>Allergens:</strong> 
-          <span *ngIf="userAllergies.length > 0">
-            {{ userAllergies.length }} recorded
-          </span>
-          <span *ngIf="userAllergies.length === 0">None recorded</span>
-        </p>
-        <p><strong>Buddies:</strong> {{ getBuddiesCount() }}</p>
       </ion-card-content>
     </ion-card>
   </div>
