@@ -11,7 +11,16 @@
 
 <ion-content>
   <div class="map-container">
-    <div #map id="map"></div>
+    <!-- Leaflet Maps -->
+    <div #map id="map" *ngIf="mapAvailable" style="height: 400px; width: 100%;"></div>
+    
+    <!-- Fallback when map is not available -->
+    <div class="map-fallback" *ngIf="!mapAvailable">
+      <ion-icon name="map-outline" size="large" color="medium"></ion-icon>
+      <h3>Map view unavailable</h3>
+      <p>{{ responderName }} is on their way to your location</p>
+      <p><em>Unable to load map. Please check your internet connection.</em></p>
+    </div>
     
     <div class="responder-info-card">
       <div class="responder-header">

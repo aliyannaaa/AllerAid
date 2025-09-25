@@ -137,15 +137,29 @@ export class PatientNotificationService {
    * Show route map to patient
    */
   private async showPatientRouteView(response: any, buddyData: BuddyResponseData): Promise<void> {
+    console.log('🗺️ PatientNotificationService: Showing route view for buddy response');
+    
     try {
+      // Use patient location if available, otherwise use a default location
+      const patientLocation = response.location ? 
+        { lat: response.location.latitude, lng: response.location.longitude } :
+        { lat: 40.7128, lng: -74.0060 }; // Default to NYC as fallback
+      
+      // For now, use a sample buddy location near patient
+      // In a real app, this would come from the buddy's real-time location
+      const buddyLocation = response.buddyLocation || {
+        lat: patientLocation.lat + 0.01, // Slightly offset from patient
+        lng: patientLocation.lng + 0.01
+      };
+
       const routeData: RouteData = {
-        origin: { lat: 0, lng: 0 }, // Buddy location (would come from real-time tracking)
-        destination: response.location ? 
-          { lat: response.location.latitude, lng: response.location.longitude } :
-          { lat: 0, lng: 0 },
+        origin: buddyLocation,
+        destination: patientLocation,
         buddyName: buddyData.buddyName,
         patientName: 'You'
       };
+
+      console.log('📍 PatientNotificationService: Route data:', routeData);
 
       const modal = await this.modalController.create({
         component: RouteMapComponent,
@@ -172,8 +186,12 @@ export class PatientNotificationService {
       responderName: 'Test Buddy',
       emergencyId: 'test-emergency-456',
       location: {
-        latitude: 37.7749,
+        latitude: 37.7749,  // San Francisco
         longitude: -122.4194
+      },
+      buddyLocation: {
+        lat: 37.7849,  // Buddy location slightly north
+        lng: -122.4094
       }
     };
 

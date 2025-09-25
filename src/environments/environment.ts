@@ -6,7 +6,8 @@ import { firebaseConfig } from '../app/core/services/firebase.config';
 
 export const environment = {
   production: false,
-  firebaseConfig 
+  firebaseConfig
+  // Note: Google Maps API key removed - now using Leaflet (open source)
 };
 
 
