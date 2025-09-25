@@ -4,21 +4,32 @@ import { BuddyResponseAlertComponent, BuddyResponseData } from '../../shared/com
 import { RouteMapComponent, RouteData } from '../../shared/components/route-map/route-map.component';
 import { EmergencyService } from './emergency.service';
 import { BuddyService } from './buddy.service';
+import { LocationPermissionService } from './location-permission.service';
 
 export interface LocationCoords {
   latitude: number;
   longitude: number;
 }
 
+export interface LocationUpdate {
+  buddyId: string;
+  emergencyId: string;
+  location: LocationCoords;
+  timestamp: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class BuddyResponseService {
+  private locationWatchId: number | null = null;
+  private isTracking = false;
 
   constructor(
     private modalController: ModalController,
     private emergencyService: EmergencyService,
-    private buddyService: BuddyService
+    private buddyService: BuddyService,
+    private locationPermissionService: LocationPermissionService
   ) {}
 
   /**
@@ -41,10 +52,13 @@ export class BuddyResponseService {
       // Get current buddy location
       const buddyLocation = await this.getCurrentLocation();
       
+      // Start live location tracking
+      await this.startLiveTracking(emergency.id, buddyId);
+      
       // Show route map to buddy
-      await this.showRouteMapToBuddy(emergency, buddyName, buddyLocation);
+      await this.showRouteMapToBuddy(emergency, buddyName, buddyId, buddyLocation);
 
-      console.log('✅ Buddy response handling complete');
+      console.log('✅ Buddy response handling complete with live tracking started');
 
     } catch (error) {
       console.error('Error handling buddy response:', error);
@@ -81,6 +95,88 @@ export class BuddyResponseService {
         }
       );
     });
+  }
+
+  /**
+   * Start live location tracking for buddy
+   */
+  async startLiveTracking(emergencyId: string, buddyId: string): Promise<void> {
+    if (this.isTracking) {
+      console.log('Live tracking already active, stopping previous tracking');
+      this.stopLiveTracking();
+    }
+
+    // Check and request location permissions
+    const permissionResult = await this.locationPermissionService.requestLocationPermissions();
+    if (!permissionResult.granted) {
+      console.error('Location permission denied:', permissionResult.message);
+      await this.locationPermissionService.showLocationRequiredToast();
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      console.error('Geolocation not supported');
+      return;
+    }
+
+    this.isTracking = true;
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 5000 // Allow cached positions up to 5 seconds
+    };
+
+    this.locationWatchId = navigator.geolocation.watchPosition(
+      async (position) => {
+        if (!this.isTracking) return;
+
+        const locationUpdate: LocationUpdate = {
+          buddyId: buddyId,
+          emergencyId: emergencyId,
+          location: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          },
+          timestamp: new Date()
+        };
+
+        try {
+          // Update buddy location in emergency document
+          await this.emergencyService.updateResponderLocation(
+            emergencyId,
+            buddyId,
+            {
+              latitude: locationUpdate.location.latitude,
+              longitude: locationUpdate.location.longitude
+            }
+          );
+
+          console.log('🗺️ Live location updated:', locationUpdate.location);
+        } catch (error) {
+          console.error('Error updating live location:', error);
+        }
+      },
+      (error) => {
+        console.error('Live tracking error:', error);
+        // Don't stop tracking on errors, geolocation can be intermittent
+      },
+      options
+    );
+
+    console.log('🚀 Live location tracking started for buddy:', buddyId);
+  }
+
+  /**
+   * Stop live location tracking
+   */
+  stopLiveTracking(): void {
+    if (this.locationWatchId !== null) {
+      navigator.geolocation.clearWatch(this.locationWatchId);
+      this.locationWatchId = null;
+    }
+    this.isTracking = false;
+    console.log('🛑 Live location tracking stopped');
   }
 
   /**
@@ -137,7 +233,7 @@ export class BuddyResponseService {
   /**
    * Show route map to buddy
    */
-  private async showRouteMapToBuddy(emergency: any, buddyName: string, buddyLocation: LocationCoords): Promise<void> {
+  private async showRouteMapToBuddy(emergency: any, buddyName: string, buddyId: string, buddyLocation: LocationCoords): Promise<void> {
     const routeData: RouteData = {
       origin: { lat: buddyLocation.latitude, lng: buddyLocation.longitude },
       destination: { lat: emergency.location.latitude, lng: emergency.location.longitude },
@@ -148,7 +244,9 @@ export class BuddyResponseService {
     const modal = await this.modalController.create({
       component: RouteMapComponent,
       componentProps: {
-        routeData: routeData
+        routeData: routeData,
+        emergencyId: emergency.id,
+        buddyId: buddyId
       },
       cssClass: 'route-map-modal'
     });
