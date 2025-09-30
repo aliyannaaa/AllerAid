@@ -26,6 +26,44 @@ import { environment } from '../../../environments/environment';
   standalone: false,
 })
 export class ProfilePage implements OnInit, OnDestroy {
+  // Edit Profile Modal State and Fields
+  showEditProfileModal = false;
+  editFirstName: string = '';
+  editLastName: string = '';
+  editContactNumber: string = '';
+
+  openEditProfileModal() {
+    if (this.userProfile) {
+      this.editFirstName = this.userProfile.firstName || '';
+      this.editLastName = this.userProfile.lastName || '';
+  this.editContactNumber = this.userProfile.phone || '';
+    }
+    this.showEditProfileModal = true;
+  }
+
+  closeEditProfileModal() {
+    this.showEditProfileModal = false;
+  }
+
+  async saveProfileEdits() {
+    if (!this.userProfile) return;
+    try {
+      await this.userService.updateUserProfile(this.userProfile.uid, {
+        firstName: this.editFirstName,
+        lastName: this.editLastName,
+        phone: this.editContactNumber
+      });
+      // Update local userProfile object
+      this.userProfile.firstName = this.editFirstName;
+      this.userProfile.lastName = this.editLastName;
+      this.userProfile.phone = this.editContactNumber;
+      this.closeEditProfileModal();
+      this.presentToast('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      this.presentToast('Error updating profile');
+    }
+  }
 
   selectedTab: 'overview' | 'health' | 'emergency' | 'ehr' | 'dashboard' | 'professional' | 'patients' | 'settings' = 'overview';
   private userHasSelectedTab: boolean = false; // Track if user manually selected a tab

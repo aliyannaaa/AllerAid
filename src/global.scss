@@ -40,8 +40,7 @@
 ion-alert .alert-wrapper,
 ion-alert .alert-radio-group,
 ion-alert .alert-checkbox-group {
-  --background: #faeaee !important;
-  background: #faeaee !important;
+  --background: #ffffff !important;
 }
 ion-alert .alert-radio-label,
 ion-alert .alert-checkbox-label {
@@ -76,7 +75,7 @@ ion-alert .alert-checkbox-label {
 }
 
 .alert-danger .alert-wrapper {
-  --background: #f8d7da !important;
+  --background: #fdfdfd !important;
   border-left: 4px solid #dc3545 !important;
 }
 

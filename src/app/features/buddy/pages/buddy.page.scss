@@ -3,17 +3,17 @@ ion-card-title {
 }
 ion-card ion-item,
 ion-list {
-  --background: #fff !important;
-  background: #fff !important;
+  --background: #f1f1ee !important;
+  background: #f1f1ee !important;
 }
 
 
 ion-card {
-  background: #fff !important;
+  background: #f1f1ee !important;
   border-radius: 20px;
   box-shadow: 0 4px 16px rgba(229, 94, 118, 0.10);
-  border: 1px solid #036a5d;
-  color: #AB7082;
+  border: 1px solid #356c65;
+  color: #036a5d;
 }
 
 ion-card,
@@ -22,28 +22,13 @@ ion-card * {
 }
 :host {
   display: block;
-  background: #ffffff;
+  background: #f1f1ee;
 }
 
 ion-header ion-toolbar {
   --background: #036a5d !important;
   color: #fff !important;
 }
-
-
-// .wrapper {
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   width: 100vw;
-//   height: 100vh;
-//   background-color: #faeaee;
-//   display: flex;
-//   flex-direction: column;
-//   padding: 20px;
-//   z-index: 1;
-//   margin-top: 56px; /* Push content below toolbar (default toolbar height for mobile) */
-// }
 
 ion-content{
   --background: #ffffff;

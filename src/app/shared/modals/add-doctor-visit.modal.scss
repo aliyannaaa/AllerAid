@@ -1,3 +1,28 @@
+ion-content {
+  --background: #fff !important;
+}
+
+ion-toolbar {
+  --background: #036a5d !important;
+  color: #fff !important;
+}
+
+ion-list {
+  --background: #fff !important;
+  background: #fff !important;
+}
+
+ion-item {
+  --background: #fff !important;
+  background: #fff !important;
+  color: #000;
+}
+ion-input {
+  --background: transparent !important;
+  background: transparent !important;
+  color: #000 !important;
+}
+
 .vital-signs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -19,13 +44,34 @@
 }
 
 ion-item-divider {
-  --background: #e3f2fd;
-  --color: #1976d2;
+  --background: #e3fdf2;
+  --color: #0c8653;
   font-weight: 600;
   margin-top: 16px;
 }
 
-ion-textarea {
-  --background: #fafafa;
+ion-segment {
+  --background: transparent !important;
+  background: transparent !important;
   border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+ion-segment-button {
+  --background: #fff !important;
+  background: #fff !important;
+  --color: #036a5d !important;
+  color: #036a5d !important;
+  font-weight: 600;
+  border-radius: 6px;
+  margin: 0 4px;
+}
+
+.visit-btn {
+  --background: #036a5d !important;
+  --color: #fff !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: none;
 }

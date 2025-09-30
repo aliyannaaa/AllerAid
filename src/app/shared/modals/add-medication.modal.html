@@ -126,6 +126,7 @@
       <ion-button 
         expand="block" 
         type="submit" 
+        class="save-medication-btn"
         [disabled]="!med.name.trim() || !med.dosage.trim() || !med.quantity || !med.frequency.trim()">
         <ion-icon [name]="isEditMode ? 'save-outline' : 'add-outline'" slot="start"></ion-icon>
         {{ isEditMode ? 'Update' : 'Save' }} Medication

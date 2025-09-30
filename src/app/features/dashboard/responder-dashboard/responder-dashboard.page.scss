@@ -3,6 +3,10 @@ ion-toolbar {
   --color: white;
 }
 
+ion-content {
+  --background: #ffffff !important;
+}
+
 // Mobile-first responsive container
 .mobile-container {
   padding: 8px;
@@ -255,6 +259,8 @@ ion-toolbar {
 
 // No emergency state
 .no-emergency-card {
+  background-color: #dfe7e4;
+  color: #0c0c0c;
   border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
@@ -280,12 +286,12 @@ ion-toolbar {
   margin: 0 0 12px 0;
   font-size: 1.4rem;
   font-weight: 600;
-  color: var(--ion-color-dark);
+  color: #000;
 }
 
 .empty-state p {
   margin: 0 0 24px 0;
-  color: var(--ion-color-medium);
+  color: #313131;
   line-height: 1.5;
 }
 

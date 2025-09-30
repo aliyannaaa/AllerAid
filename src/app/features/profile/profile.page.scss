@@ -1,32 +1,25 @@
-// Force green color for '+ ADD' and '+ ADD MEDICATION' text, even inside Ionic shadow DOM
-::ng-deep ion-button, ::ng-deep button {
-  color: #036a5d !important;
-  border-color: #036a5d !important;
-}
-
-// Target buttons with 'Add' text specifically
-::ng-deep ion-button span,
-::ng-deep button span {
-  color: #036a5d !important;
-  border-color: #036a5d !important;
-}
-
-// Target the add icon as well
-::ng-deep ion-icon[name="add-outline"] {
-  color: #036a5d !important;
-}
-
 .add-medication-btn {
-  background: #e6edec !important;
+  background: #036a5d !important;
   border: 1.5px solid #036a5d !important;
+  color: #fff !important;
 }
 
 .add-link {
-  color: #036a5d !important;
+  color: #fff !important;
+}
+
+// Modal ion-list and ion-item background and text color
+::ng-deep ion-list,
+::ng-deep ion-item {
+  background: #f6f6f6 !important;
+  --background: #f6f6f6 !important;
+  color: #000 !important;
+  --color: #000 !important;
 }
 
 // Override Ionic blue for selected segment label
 ::ng-deep .medication-filters .segment-button-checked, ::ng-deep .medication-filters .segment-button-checked .label {
+  background: #036a5d !important;
   color: #fff !important;
 }
 // Force selected segment label color to white
@@ -116,7 +109,7 @@ ion-content {
   background: #f8f9fa;
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border-left: 4px solid #e55e76;
+  border-left: 4px solid #359c74;
   padding: 16px 18px;
   margin-bottom: 0;
   display: flex;
@@ -1386,11 +1379,11 @@ ion-content {
 
 // Voice Recording Settings
 .voice-settings-section {
-  background: var(--ion-color-light);
+  background: white;
   border-radius: 12px;
   padding: 20px;
   margin-top: 16px;
-  border: 1px solid var(--ion-color-light-shade);
+  border: 1px solid black;
 }
 
 .voice-recording-controls {
@@ -1398,13 +1391,13 @@ ion-content {
 
   h4 {
     margin: 0 0 8px 0;
-    color: var(--ion-color-primary);
+    color: black;
     font-weight: 600;
   }
 
   p {
     margin: 0 0 16px 0;
-    color: var(--ion-color-medium);
+    color: black;
     font-size: 14px;
   }
 }
@@ -1414,7 +1407,7 @@ ion-content {
   padding: 20px;
   border-radius: 12px;
   background: white;
-  border: 2px dashed var(--ion-color-light-shade);
+  border: 2px dashed black;
   transition: all 0.3s ease;
 
   &.recording {
@@ -1455,7 +1448,6 @@ ion-content {
 
   h4 {
     margin: 0 0 16px 0;
-    color: var(--ion-color-primary);
     font-weight: 600;
   }
 
@@ -1467,7 +1459,7 @@ ion-content {
     background: white;
     border-radius: 8px;
     margin-bottom: 8px;
-    border: 1px solid var(--ion-color-light-shade);
+    border: 1px solid black;
 
     .recording-info {
       flex: 1;
@@ -1488,7 +1480,7 @@ ion-content {
         display: flex;
         gap: 12px;
         font-size: 12px;
-        color: var(--ion-color-medium);
+        color: black;
       }
     }
 
@@ -1502,7 +1494,7 @@ ion-content {
 .voice-audio-settings {
   h4 {
     margin: 0 0 16px 0;
-    color: var(--ion-color-primary);
+    color: black;
     font-weight: 600;
   }
 
@@ -1511,7 +1503,6 @@ ion-content {
     align-items: center;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid var(--ion-color-light-shade);
 
     &:last-child {
       border-bottom: none;
@@ -1526,18 +1517,18 @@ ion-content {
         display: block;
         font-weight: 500;
         margin-bottom: 4px;
-        color: var(--ion-color-dark);
+        
       }
 
       p {
         margin: 0;
         font-size: 12px;
-        color: var(--ion-color-medium);
+        color: black;
       }
     }
 
     ion-toggle {
-      --track-background-checked: var(--ion-color-primary);
+      --track-background-checked: #34c759;
     }
 
     ion-select {

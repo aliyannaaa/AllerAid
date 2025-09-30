@@ -1,9 +1,46 @@
-ion-datetime-button {
-  width: 100%;
+
+.save-medication-btn {
+  --background: #036a5d !important;
+  --color: #fff !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+ion-content {
+  --background: #f3f8f6 !important;
+}
+
+ion-toolbar {
+  --background: #036a5d !important;
+  color: #fff !important;
+}
+
+ion-list {
+  background: #fff;
 }
 
 ion-item {
   --padding-start: 0;
+  --background: #e8e8e8 !important;
+  color: #036a5d !important;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+ion-label {
+  color: #036a5d !important;
+  font-weight: 500;
+}
+
+ion-input, ion-select, ion-datetime {
+  background: transparent !important;
+  color: #036a5d !important;
+}
+
+ion-datetime-button {
+  width: 100%;
 }
 
 form {

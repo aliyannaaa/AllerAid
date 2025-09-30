@@ -1,20 +1,27 @@
+
 :host {
   display: block;
   background: transparent;
 }
 
-
-ion-content{
-  --background: #faeaee !important;
+ion-content {
+  --background: #f3f8f6 !important;
   color: #000 !important;
-  height: 55vh; /* Set a fixed height, adjust as needed */
+  border-radius: 5px;
+  height: 58vh;
   max-height: 80vh;
 }
 
-ion-item{
-  --background: #edd8de !important;
+ion-item {
+  --background: #e8e8e8 !important;
   color: #000 !important;
-  border-radius: 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+ion-select-option {
+  --background: #ebf1ef !important;
+  color: #000 !important;
 }
 
 .buddy-modal-backdrop {
@@ -33,13 +40,13 @@ ion-item{
 .buddy-modal-content {
   width: 90vw;
   max-width: 400px;
-  height: 55vh; /* Set a fixed height, adjust as needed */
+  height: 60vh;
   max-height: 80vh;
   z-index: 1001;
 }
 
 ion-button.saveBtn {
-  --background: #E55E76 !important;
+  --background: #036a5d !important;
   --color: #fff !important;
 }
 
