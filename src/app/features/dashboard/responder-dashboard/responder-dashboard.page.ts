@@ -87,23 +87,6 @@ export class ResponderDashboardPage implements OnInit, OnDestroy {
           const buddyName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : 'Buddy';
           
           // Respond to emergency with ETA calculation
-          const responderPosition = await this.emergencyService.getCurrentLocation();
-          const responderLocation = {
-              latitude: responderPosition.coords.latitude,
-              longitude: responderPosition.coords.longitude,
-              accuracy: responderPosition.coords.accuracy
-          };
-
-          // Calculate distance and ETA
-          const distance = this.emergencyService.calculateDistance(
-              responderLocation.latitude,
-              responderLocation.longitude,
-              this.currentEmergency.location.latitude,
-              this.currentEmergency.location.longitude
-          );
-          const estimatedArrival = this.emergencyService.calculateETA(distance);
-
-          // Respond to emergency with calculated details
           await this.emergencyService.respondToEmergency(
             this.currentEmergency.id, 
             user.uid, 
@@ -113,12 +96,6 @@ export class ResponderDashboardPage implements OnInit, OnDestroy {
           this.hasResponded = true;
           console.log('Buddy marked as responded with ETA calculation');
           
-          // Notify the user
-          await this.emergencyService.notifyUser(
-            this.currentEmergency.id,
-            `${buddyName} is on the way to help you. Estimated arrival time: ${estimatedArrival} minutes. Location: ${responderLocation.latitude.toFixed(4)}, ${responderLocation.longitude.toFixed(4)}.`
-        );
-
           // Navigate to map for directions
           this.navigate();
         }
